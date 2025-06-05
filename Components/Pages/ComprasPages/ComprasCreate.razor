@@ -1,4 +1,7 @@
 ﻿@page "/Compras/Create"
+@inject IToastService toastService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
 
 <PageTitle>Crear Orden de Compra</PageTitle>
 <div class="header-section">
@@ -8,8 +11,7 @@
         </div>
         <div class="col-auto mb-3">
             <div class="d-flex justify-content-around">
-                <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm ms-4" />
-                <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-2" />
+                <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4" />
             </div>
         </div>
     </div>
@@ -103,13 +105,24 @@
 <div class="container mb-5 d-flex justify-content-center">
    
      <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm ">  Cancelar</a>
-    <button class="btn btn-success bi bi-check2-circle shadow-sm ms-2">  Guardar</button>
-    <button class="btn btn-secondary bi bi-printer shadow-sm ms-2">  Imprimir</button>
+    <button class="btn btn-success bi bi-check2-circle shadow-sm ms-2" @onclick="Guardar">  Guardar</button>
+    <button class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir">  Imprimir</button>
         
     
     
 </div>
 @code {
     private string proveedor { get; set; } = string.Empty;
+
+    private void Guardar()
+    {
+        toastService.ShowSuccess("Orden de compra guardada exitosamente");
+        navigationManager.NavigateTo("/Compras/Index");
+    }
+
+    private void Imprimir()
+    {
+        toastService.ShowInfo("Impresión en curso...");
+    }
 
 }
