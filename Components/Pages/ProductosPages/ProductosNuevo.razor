@@ -1,0 +1,94 @@
+﻿@page "/Productos/Nuevo"
+<PageTitle>Registrar Producto</PageTitle>
+
+<div class="container mt-4">
+    <h3 class="fw-semibold">Producto</h3>
+
+    <div class="row mt-4">
+        
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <strong>Registrar Producto</strong>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Código</label>
+                        <input class="form-control" @bind="producto.Codigo" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoría</label>
+                        <input class="form-control" @bind="producto.Categoria" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto</label>
+                        <input class="form-control" @bind="producto.Nombre" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor</label>
+                        <input class="form-control" @bind="producto.Proveedor" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Marca</label>
+                        <input class="form-control" @bind="producto.Marca" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stock</label>
+                        <input type="number" class="form-control" @bind="producto.Stock" />
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label class="form-label">Precio de compra</label>
+                            <input type="number" class="form-control" step="0.01" @bind="producto.PrecioCompra" />
+                        </div>
+                        <div class="col">
+                            <label class="form-label">Precio de venta</label>
+                            <input type="number" class="form-control" step="0.01" @bind="producto.PrecioVenta" />
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-center">
+                        <a href="/Productos/Index" class="btn btn-danger me-2">Cancelar</a>
+                        <button class="btn btn-success" @onclick="GuardarProducto">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
+            <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
+                <i class="bi bi-image fs-1 text-muted"></i>
+                <p class="text-muted">Subir Imagen</p>
+                <InputFile OnChange="SubirImagen" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProductoModel producto = new();
+
+    private async Task GuardarProducto()
+    {
+        
+        Console.WriteLine($"Guardando producto: {producto.Nombre}");
+    }
+
+    private async Task SubirImagen(InputFileChangeEventArgs e)
+    {
+        var archivo = e.File;
+        Console.WriteLine($"Imagen subida: {archivo.Name}");
+    }
+
+    public class ProductoModel
+    {
+        public string Codigo { get; set; } = string.Empty;
+        public string Categoria { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string Proveedor { get; set; } = string.Empty;
+        public string Marca { get; set; } = string.Empty;
+        public int Stock { get; set; }
+        public decimal PrecioCompra { get; set; }
+        public decimal PrecioVenta { get; set; }
+    }
+}
