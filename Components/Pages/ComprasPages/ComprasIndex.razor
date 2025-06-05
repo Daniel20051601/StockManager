@@ -1,0 +1,97 @@
+﻿@page "/Compras/Index"
+@rendermode InteractiveServer
+
+<PageTitle>Ordenes de Compra</PageTitle>
+
+<div class="header-section">
+    <div class="row d-flex justify-content-between">
+        <div class="col-auto">
+            <h3 class="fw-semibold">Compras</h3>
+        </div>
+        <div class="col-auto mb-3">
+            <div class="d-flex justify-content-around">
+                <input class="form-control shadow-sm text-secondary" placeholder="Buscar" />
+                <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm ms-4" />
+                <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-2" />
+            </div>
+        </div>
+    </div>
+    <div class="row d-flex justify-content-between mt-4">
+        <div class="col-auto">
+            <button type="button" class="btn btn-outline" onclick="">Resumen</button>
+            <button type="button" class="btn btn-outline text-secondary ms-4 " onclick="">Aceptadas</button>
+            <button type="button" class="btn btn-outline text-secondary ms-4" onclick="">Pendientes</button>
+            <button type="button" class="btn btn-outline text-secondary ms-4" onclick="">Canceladas</button>
+        </div>
+        <div class="col-auto">
+            <div class="d-flex justify-content-around align-items-lg-baseline">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Filtrar por
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-4" style="width: 300px;">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filtro" value="titulo" >
+                                <label class="form-check-label">Título de Orden de Compra</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filtro" value="numero">
+                                <label class="form-check-label">Número de Orden de Compra</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filtro" value="proveedor">
+                                <label class="form-check-label">Proveedor</label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <label class="mb-3"><strong>Fecha</strong></label>
+                            <div class="row d-flex justify-content-center">
+                                <div class="col-auto">
+                                    <label class="d-flex justify-content-center">Desde</label>
+                                    <input type="date" class="form-control mb-2" @bind="fechaDesde" placeholder="Desde" />
+                                </div>
+                                <div class="col-auto">
+                                    <label class=" d-flex justify-content-center">Hasta</label>
+                                    <input type="date" class="form-control" @bind="fechaHasta" placeholder="Hasta" />
+                                </div>                                                            
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <label><strong>Precio</strong></label>
+                            <input type="range" class="form-range" min="0" max="1000000" step="10000" @bind="precio" />
+                            <small class="text-muted">RD$0 - RD$@precio.ToString("N0")</small>
+                        </div>
+
+                        <button class="btn btn-primary w-100 bi bi-search me-2" @onclick="Buscar">
+                             Buscar
+                        </button>
+                    </div>
+                </div>
+                <a href="/Compras/Create" class="btn btn-success ms-4 shadow-sm d-flex align-items-center">
+                    <i class="bi bi-plus-circle me-2"></i> Crear
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+@code {
+    private string filtro { get; set; } = "Resumen";
+    private string filtroSeleccionado { get; set; } = "titulo";
+    private DateTime? fechaDesde { get; set; }
+    private DateTime? fechaHasta { get; set; }
+    private int precio { get; set; } = 1000000;
+
+    private void Buscar()
+    {
+        Console.WriteLine($"Filtro: {filtroSeleccionado}, Fecha: {fechaDesde} - {fechaHasta}, Precio: {precio}");
+    }
+
+}
