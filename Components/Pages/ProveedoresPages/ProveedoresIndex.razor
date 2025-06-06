@@ -1,0 +1,116 @@
+﻿@page "/Proveedores/Agregar"
+@rendermode InteractiveServer
+
+<PageTitle>Agregar Proveedor</PageTitle>
+
+<style>
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+
+    .form-header {
+        border-bottom: 1px solid #e9ecef;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .btn-cancel {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+            color: white;
+        }
+</style>
+
+<div class="mt-5">
+
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/Proveedores/Index" class="text-decoration-none">Proveedores</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Agregar Proveedor</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-auto d-flex align-items-center gap-3">
+            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
+            <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm"></a>
+            <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <div class="form-header">
+            <h4 class="fw-semibold text-dark mb-1">Agregar Nuevo Proveedor</h4>
+            <p class="text-muted mb-0">Complete la información del proveedor</p>
+        </div>
+
+        <form>
+            <div class="row">
+ 
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label fw-semibold required-field">Nombre del Proveedor</label>
+                        <input type="text" id="nombre" class="form-control shadow-sm" placeholder="Ingrese el nombre del proveedor" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="contacto" class="form-label fw-semibold required-field">Persona de Contacto</label>
+                        <input type="text" id="contacto" class="form-control shadow-sm" placeholder="Nombre del contacto principal" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label fw-semibold required-field">Teléfono</label>
+                        <input type="tel" id="telefono" class="form-control shadow-sm" placeholder="(809) 555-0000" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold required-field">Email</label>
+                        <input type="email" id="email" class="form-control shadow-sm" placeholder="contacto@proveedor.com" required />
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="direccion" class="form-label fw-semibold required-field">Dirección</label>
+                        <textarea id="direccion" class="form-control shadow-sm" rows="3" placeholder="Dirección completa del proveedor" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="estado" class="form-label fw-semibold">Estado</label>
+                        <select id="estado" class="form-select shadow-sm">
+                            <option value="true" selected>Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <hr class="mb-4">
+                    <div class="d-flex justify-content-end gap-3">
+                        <a href="/Proveedores/Index" class="btn btn-cancel shadow-sm px-4">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success shadow-sm px-4">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span>Guardar Proveedor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
