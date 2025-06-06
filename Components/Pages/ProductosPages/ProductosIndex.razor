@@ -1,7 +1,7 @@
-﻿@page "/Proveedores/Index"
+﻿@page "/Productos/Index"
 @rendermode InteractiveServer
 
-<PageTitle>Proveedores</PageTitle>
+<PageTitle>Productos</PageTitle>
 
 <style>
     .table-striped-custom tbody tr:nth-child(odd) {
@@ -11,13 +11,28 @@
     .table-striped-custom tbody tr:nth-child(even) {
         background-color: #f2f2f2;
     }
+
+    .dropdown-toggle::after {
+        display: none;
+    }
+
+    .action-btn {
+        border: none;
+        background: transparent;
+        font-size: 1.5rem;
+        line-height: 1;
+        color: #6c757d;
+    }
+
+    .dropdown-menu {
+        font-size: 0.9rem;
+    }
 </style>
 
 <div class="mt-5">
-
     <div class="row mb-5">
         <div class="col">
-            <h3 class="fw-semibold">Proveedores</h3>
+            <h3 class="fw-semibold">Productos</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
             <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
@@ -34,12 +49,12 @@
         </div>
         <div class="col-auto">
             <div class="d-flex align-items-center">
-                <a href="/Proveedores/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
-                    <i class="bi bi-plus-circle me-2"></i> Agregar
+                <a href="/Productos/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
+                    <i class="bi bi-plus-circle me-2"></i> Nuevo
                 </a>
                 <div class="dropdown ms-3">
                     <button class="btn btn-outline dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                        Estado
+                        Mostrar
                     </button>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#">Activos</a></li>
@@ -51,105 +66,58 @@
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col">
-            <h5 class="fw-semibold text-dark">Lista de proveedores</h5>
-        </div>
-    </div>
-
     <div class="table-responsive mt-4">
         <table class="table table-hover align-middle shadow-sm table-striped-custom">
             <thead class="table-light">
                 <tr>
-                    <th style="width: 180px;">Nombre</th>
-                    <th style="width: 150px;">Contacto</th>
-                    <th style="width: 130px;">Teléfono</th>
-                    <th style="width: 200px;">Email</th>
-                    <th style="width: 200px;">Dirección</th>
-                    <th style="width: 100px;">Estado</th>
-                    <th style="width: 100px;">Productos</th>
-                    <th style="width: 150px;">Acciones</th>
+                    <th style="width: 80px;">Código</th>
+                    <th style="width: 80px;">Imagen</th>
+                    <th style="width: 100px;">Categoría</th>
+                    <th style="width: 180px;">Producto</th>
+                    <th style="width: 180px;">Proveedor</th>
+                    <th style="width: 120px;">Marca</th>
+                    <th style="width: 80px;">Estado</th>
+                    <th style="width: 80px;">Stock</th>
+                    <th style="width: 130px;">Precio de Compra</th>
+                    <th style="width: 130px;">Precio de Venta</th>
+                    <th style="width: 50px;">Editar</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Agua Randy</td>
-                    <td>Luis Fernández</td>
-                    <td>(809) 555-0104</td>
-                    <td>distribucion@aguarandy.do</td>
-                    <td>Calle Principal, Los Alcarrizos</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">12</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/1" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Sosua Import</td>
-                    <td>Ana García</td>
-                    <td>(809) 555-0105</td>
-                    <td>info@sosuaimport.com</td>
-                    <td>Puerto Plata, Sosúa</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">15</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/2" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Ley's Dominican Republic</td>
-                    <td>Pedro Martínez</td>
-                    <td>(809) 555-0103</td>
-                    <td>pedidos@leysdr.com</td>
-                    <td>Km 22 Autopista Duarte</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td><span class="badge bg-light text-dark">0</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/3" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Pescadería Mar y Sol</td>
-                    <td>José Morales</td>
-                    <td>(809) 555-0107</td>
-                    <td>pedidos@marysol.do</td>
-                    <td>Malecón de Puerto Plata</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">6</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/4" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Lacteo Caribe</td>
-                    <td>Roberto Jiménez</td>
-                    <td>(809) 555-0106</td>
-                    <td>ventas@lacteocaribe.do</td>
-                    <td>Av. 27 de Febrero, Santiago</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td><span class="badge bg-light text-dark">0</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/5" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Pescadería Mar y Sol</td>
-                    <td>José Morales</td>
-                    <td>(809) 555-0107</td>
-                    <td>pedidos@marysol.do</td>
-                    <td>Malecón de Puerto Plata</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">6</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/6" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
+                @foreach (var producto in new[] {
+                                new { Codigo = "0007", Img = "pollo.png", Categoria = "Carnes", Nombre = "Pollo entero", Proveedor = "Distribuidora La Granja", Marca = "Granja Feliz", Estado = "Activo", Stock = 30, PrecioCompra = 50.00, PrecioVenta = 65.00 },
+                                new { Codigo = "0018", Img = "yogur.png", Categoria = "Lacteos", Nombre = "Yogur-natural", Proveedor = "Lácteos del Valle", Marca = "Danone", Estado = "Inactivo", Stock = 0, PrecioCompra = 150.00, PrecioVenta = 175.00 },
+                                new { Codigo = "0017", Img = "queso.png", Categoria = "Lacteos", Nombre = "Queso Mozzarella", Proveedor = "Lácteos El Buen Sabor", Marca = "MozzaDelight", Estado = "Activo", Stock = 18, PrecioCompra = 100.00, PrecioVenta = 135.00 },
+                                new { Codigo = "0012", Img = "crisol.png", Categoria = "Abarrotes", Nombre = "Aceite Crisol (1 L)", Proveedor = "Aceites de calidad", Marca = "Crisol", Estado = "Activo", Stock = 35, PrecioCompra = 150.00, PrecioVenta = 175.00 },
+                                new { Codigo = "0020", Img = "arroz.png", Categoria = "Cereal", Nombre = "Arroz Pinco (10Lbs)", Proveedor = "Arroz Muy Feliz", Marca = "Pinco", Estado = "Activo", Stock = 133, PrecioCompra = 375.00, PrecioVenta = 425.00 },
+                                new { Codigo = "0021", Img = "cerveza.png", Categoria = "Alcohol", Nombre = "Six Pack Cerveza presidente", Proveedor = "Cervecería Nacional", Marca = "Presidente", Estado = "Activo", Stock = 500, PrecioCompra = 550.00, PrecioVenta = 660.00 }
+                                })
+                {
+                    <tr>
+                        <td>@producto.Codigo</td>
+                        <td><img src="img/@producto.Img" alt="@producto.Nombre" width="45" /></td>
+                        <td>@producto.Categoria</td>
+                        <td>@producto.Nombre</td>
+                        <td>@producto.Proveedor</td>
+                        <td>@producto.Marca</td>
+                        <td>
+                            <span class="badge @(producto.Estado == "Activo" ? "bg-success" : "bg-secondary")">@producto.Estado</span>
+                        </td>
+                        <td>@producto.Stock</td>
+                        <td>@producto.PrecioCompra.ToString("0.00")</td>
+                        <td>@producto.PrecioVenta.ToString("0.00")</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="action-btn" type="button" data-bs-toggle="dropdown">
+                                    ⋮
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -164,5 +132,4 @@
             </ul>
         </nav>
     </div>
-
 </div>
