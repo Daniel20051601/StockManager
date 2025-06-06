@@ -4,7 +4,7 @@
 @rendermode InteractiveServer
 
 <PageTitle>Crear Orden de Compra</PageTitle>
-<div class="header-section">
+<div class="header-section mt-5">
     <div class="row d-flex justify-content-between">
         <div class="col-auto">
             <h3 class="fw-semibold">Compras</h3>
@@ -143,21 +143,31 @@
 
 @if (MostrarModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal fade show d-block bg-opacity-50" tabindex="-1" role="dialog">
         <div class="modal-dialog">
-            <div class="modal-header">
-                <h3>Agregar productos</h3>
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h3 class="modal-title text-center">Agregar productos</h3>
+                   
+                </div>
+
+                <div class="modal-body text-center mb-3">
+                    <p>Agregar nuevos productos</p>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-center">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" @onclick="CerrarModal">
+                            <span class="bi bi-box-arrow-left"></span> Volver
+                        </button>
+                        <button type="button" class="btn btn-outline-primary">
+                            <span class="bi bi-plus"> Agregar</span>
+                        </button>
+                    </div>
+                    
+                </div>
             </div>
 
-            <div class="modal-body text-center mb-3">
-                <p>Agregar nuevos productos</p>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn btn-outline-secondary" @onclick="CerrarModal">
-                    <span class="bi bi-box-arrow-left"></span> Volver
-                </button>
-            </div>
         </div>
     </div>
 
