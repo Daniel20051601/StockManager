@@ -11,7 +11,36 @@
         </div>
         <div class="col-auto mb-3">
             <div class="d-flex justify-content-around">
-                <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4" />
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4" data-bs-toggle="dropdown" aria-expanded="false">
+                    </button>
+                    <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
+                        <div class="mb-3">
+
+                            <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                            </div>
+
+                            <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras pol&iacute;ticas</strong></label>
+                                <p class="fw-light">Mira cuales son las novedades</p>
+                            </div>
+
+                            <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
+                                <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
+                            </div>
+
+                            <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -81,7 +110,7 @@
                 </tr>
             </tbody>
         </table>
-        
+
     </div>
     <div class="d-flex justify-content-end mb-5 mx-5 ">
         <a href="#" class="btn btn-primary bi bi-plus-circle shadow-sm"> Agregar</a>
@@ -103,13 +132,13 @@
 
 
 <div class="container mb-5 d-flex justify-content-center">
-   
-     <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm ">  Cancelar</a>
+
+    <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm ">  Cancelar</a>
     <button class="btn btn-success bi bi-check2-circle shadow-sm ms-2" @onclick="Guardar">  Guardar</button>
     <button class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir">  Imprimir</button>
-        
-    
-    
+
+
+
 </div>
 @code {
     private string proveedor { get; set; } = string.Empty;
