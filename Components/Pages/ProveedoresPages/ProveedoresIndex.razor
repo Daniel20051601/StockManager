@@ -1,47 +1,23 @@
-﻿@page "/Proveedores/Agregar"
+﻿@page "/Proveedores/Index"
 @rendermode InteractiveServer
 
-<PageTitle>Agregar Proveedor</PageTitle>
+<PageTitle>Proveedores</PageTitle>
 
 <style>
-    .form-container {
+    .table-striped-custom tbody tr:nth-child(odd) {
         background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 2rem;
     }
 
-    .form-header {
-        border-bottom: 1px solid #e9ecef;
-        padding-bottom: 1rem;
-        margin-bottom: 2rem;
+    .table-striped-custom tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
     }
-
-    .btn-cancel {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: white;
-    }
-
-        .btn-cancel:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
-            color: white;
-        }
 </style>
 
 <div class="mt-5">
 
-    <div class="row mb-4">
+    <div class="row mb-5">
         <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="/Proveedores/Index" class="text-decoration-none">Proveedores</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">Agregar Proveedor</li>
-                </ol>
-            </nav>
+            <h3 class="fw-semibold">Proveedores</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
             <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
@@ -50,67 +26,143 @@
         </div>
     </div>
 
-    <div class="form-container">
-        <div class="form-header">
-            <h4 class="fw-semibold text-dark mb-1">Agregar Nuevo Proveedor</h4>
-            <p class="text-muted mb-0">Complete la información del proveedor</p>
+    <div class="row d-flex justify-content-between mb-5">
+        <div class="col-auto">
+            <button type="button" class="btn btn-outline">Resumen</button>
+            <button type="button" class="btn btn-outline text-secondary ms-4">Solicitudes</button>
+            <button type="button" class="btn btn-outline text-secondary ms-4">Notificaciones</button>
         </div>
-
-        <form>
-            <div class="row">
- 
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label fw-semibold required-field">Nombre del Proveedor</label>
-                        <input type="text" id="nombre" class="form-control shadow-sm" placeholder="Ingrese el nombre del proveedor" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="contacto" class="form-label fw-semibold required-field">Persona de Contacto</label>
-                        <input type="text" id="contacto" class="form-control shadow-sm" placeholder="Nombre del contacto principal" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="telefono" class="form-label fw-semibold required-field">Teléfono</label>
-                        <input type="tel" id="telefono" class="form-control shadow-sm" placeholder="(809) 555-0000" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold required-field">Email</label>
-                        <input type="email" id="email" class="form-control shadow-sm" placeholder="contacto@proveedor.com" required />
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="direccion" class="form-label fw-semibold required-field">Dirección</label>
-                        <textarea id="direccion" class="form-control shadow-sm" rows="3" placeholder="Dirección completa del proveedor" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="estado" class="form-label fw-semibold">Estado</label>
-                        <select id="estado" class="form-select shadow-sm">
-                            <option value="true" selected>Activo</option>
-                            <option value="false">Inactivo</option>
-                        </select>
-                    </div>
+        <div class="col-auto">
+            <div class="d-flex align-items-center">
+                <a href="/Proveedores/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
+                    <i class="bi bi-plus-circle me-2"></i> Agregar
+                </a>
+                <div class="dropdown ms-3">
+                    <button class="btn btn-outline dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                        Estado
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Activos</a></li>
+                        <li><a class="dropdown-item" href="#">Inactivos</a></li>
+                        <li><a class="dropdown-item" href="#">Todos</a></li>
+                    </ul>
                 </div>
             </div>
-
-            <div class="row mt-4">
-                <div class="col-12">
-                    <hr class="mb-4">
-                    <div class="d-flex justify-content-end gap-3">
-                        <a href="/Proveedores/Index" class="btn btn-cancel shadow-sm px-4">
-                            <i class="bi bi-x-circle me-2"></i>Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-success shadow-sm px-4">
-                            <i class="bi bi-check-circle me-2"></i>
-                            <span>Guardar Proveedor</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <h5 class="fw-semibold text-dark">Lista de proveedores</h5>
+        </div>
+    </div>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-hover align-middle shadow-sm table-striped-custom">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 180px;">Nombre</th>
+                    <th style="width: 150px;">Contacto</th>
+                    <th style="width: 130px;">Teléfono</th>
+                    <th style="width: 200px;">Email</th>
+                    <th style="width: 200px;">Dirección</th>
+                    <th style="width: 100px;">Estado</th>
+                    <th style="width: 100px;">Productos</th>
+                    <th style="width: 150px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Agua Randy</td>
+                    <td>Luis Fernández</td>
+                    <td>(809) 555-0104</td>
+                    <td>distribucion@aguarandy.do</td>
+                    <td>Calle Principal, Los Alcarrizos</td>
+                    <td><span class="badge bg-success">Activo</span></td>
+                    <td><span class="badge bg-light text-dark">12</span></td>
+                    <td>
+                        <a href="/Proveedores/Editar/1" class="btn btn-success btn-sm me-1">Editar</a>
+                        <button class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sosua Import</td>
+                    <td>Ana García</td>
+                    <td>(809) 555-0105</td>
+                    <td>info@sosuaimport.com</td>
+                    <td>Puerto Plata, Sosúa</td>
+                    <td><span class="badge bg-success">Activo</span></td>
+                    <td><span class="badge bg-light text-dark">15</span></td>
+                    <td>
+                        <a href="/Proveedores/Editar/2" class="btn btn-success btn-sm me-1">Editar</a>
+                        <button class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Ley's Dominican Republic</td>
+                    <td>Pedro Martínez</td>
+                    <td>(809) 555-0103</td>
+                    <td>pedidos@leysdr.com</td>
+                    <td>Km 22 Autopista Duarte</td>
+                    <td><span class="badge bg-secondary">Inactivo</span></td>
+                    <td><span class="badge bg-light text-dark">0</span></td>
+                    <td>
+                        <a href="/Proveedores/Editar/3" class="btn btn-success btn-sm me-1">Editar</a>
+                        <button class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Pescadería Mar y Sol</td>
+                    <td>José Morales</td>
+                    <td>(809) 555-0107</td>
+                    <td>pedidos@marysol.do</td>
+                    <td>Malecón de Puerto Plata</td>
+                    <td><span class="badge bg-success">Activo</span></td>
+                    <td><span class="badge bg-light text-dark">6</span></td>
+                    <td>
+                        <a href="/Proveedores/Editar/4" class="btn btn-success btn-sm me-1">Editar</a>
+                        <button class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Lacteo Caribe</td>
+                    <td>Roberto Jiménez</td>
+                    <td>(809) 555-0106</td>
+                    <td>ventas@lacteocaribe.do</td>
+                    <td>Av. 27 de Febrero, Santiago</td>
+                    <td><span class="badge bg-secondary">Inactivo</span></td>
+                    <td><span class="badge bg-light text-dark">0</span></td>
+                    <td>
+                        <a href="/Proveedores/Editar/5" class="btn btn-success btn-sm me-1">Editar</a>
+                        <button class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Pescadería Mar y Sol</td>
+                    <td>José Morales</td>
+                    <td>(809) 555-0107</td>
+                    <td>pedidos@marysol.do</td>
+                    <td>Malecón de Puerto Plata</td>
+                    <td><span class="badge bg-success">Activo</span></td>
+                    <td><span class="badge bg-light text-dark">6</span></td>
+                    <td>
+                        <a href="/Proveedores/Editar/6" class="btn btn-success btn-sm me-1">Editar</a>
+                        <button class="btn btn-danger btn-sm">Eliminar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+            </ul>
+        </nav>
+    </div>
+
 </div>
