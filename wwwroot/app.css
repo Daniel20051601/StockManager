@@ -58,3 +58,53 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.sidebar-bg {
+    background-color: rgba(4, 35, 53, 1) !important;
+    min-height: 100vh;
+    border-radius: 15px;
+    overflow: hidden;
+    height: 100vh;
+    margin-right: 3px;
+    margin-bottom: 1px;
+    margin-top: 1px;
+    margin-left: 1px;
+    display: flex; 
+    flex-direction: column;
+}
+
+.top-row.navbar {
+    background-color: rgba(4, 35, 53, 1) !important;
+    color: rgba(4, 35, 53, 1) !important;
+}
+
+body {
+    background-color: rgba(243, 244, 246, 1) !important;
+}
+
+.sidebar{
+    background-image: none !important;
+}
+
+.nav-scrollable {
+    height: 100vh; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center; 
+}
+
+@media (min-width: 1200px) {
+    .nav-scrollable {
+        max-width: 300px;
+    }
+}
+
+.profile-picture-container img {
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    margin-left: 2px;
+}
+
