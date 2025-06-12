@@ -1,5 +1,9 @@
 ﻿@page "/Productos/Index"
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
 @rendermode InteractiveServer
+
+@inject Contexto _contexto
 
 <PageTitle>Productos</PageTitle>
 
@@ -84,33 +88,28 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var producto in new[] {
-                                new { Codigo = "0007", Img = "pollo.png", Categoria = "Carnes", Nombre = "Pollo entero", Proveedor = "Distribuidora La Granja", Marca = "Granja Feliz", Estado = "Activo", Stock = 30, PrecioCompra = 50.00, PrecioVenta = 65.00 },
-                                new { Codigo = "0018", Img = "yogur.png", Categoria = "Lacteos", Nombre = "Yogur-natural", Proveedor = "Lácteos del Valle", Marca = "Danone", Estado = "Inactivo", Stock = 0, PrecioCompra = 150.00, PrecioVenta = 175.00 },
-                                new { Codigo = "0017", Img = "queso.png", Categoria = "Lacteos", Nombre = "Queso Mozzarella", Proveedor = "Lácteos El Buen Sabor", Marca = "MozzaDelight", Estado = "Activo", Stock = 18, PrecioCompra = 100.00, PrecioVenta = 135.00 },
-                                new { Codigo = "0012", Img = "crisol.png", Categoria = "Abarrotes", Nombre = "Aceite Crisol (1 L)", Proveedor = "Aceites de calidad", Marca = "Crisol", Estado = "Activo", Stock = 35, PrecioCompra = 150.00, PrecioVenta = 175.00 },
-                                new { Codigo = "0020", Img = "arroz.png", Categoria = "Cereal", Nombre = "Arroz Pinco (10Lbs)", Proveedor = "Arroz Muy Feliz", Marca = "Pinco", Estado = "Activo", Stock = 133, PrecioCompra = 375.00, PrecioVenta = 425.00 },
-                                new { Codigo = "0021", Img = "cerveza.png", Categoria = "Alcohol", Nombre = "Six Pack Cerveza presidente", Proveedor = "Cervecería Nacional", Marca = "Presidente", Estado = "Activo", Stock = 500, PrecioCompra = 550.00, PrecioVenta = 660.00 }
-                                })
+                @foreach (var producto in productos)
                 {
                     <tr>
                         <td>@producto.Codigo</td>
-                        <td><img src="img/@producto.Img" alt="@producto.Nombre" width="45" /></td>
-                        <td>@producto.Categoria</td>
+                        <td>
+                            <img src="imagenes/productos/@producto.ImagenURL" alt="@producto.Nombre" width="45" />
+                        </td>
+                        <td>@producto.Categoria?.Nombre</td>
                         <td>@producto.Nombre</td>
                         <td>@producto.Proveedor</td>
-                        <td>@producto.Marca</td>
+                        <td>@producto.Marca?.Nombre</td>
                         <td>
-                            <span class="badge @(producto.Estado == "Activo" ? "bg-success" : "bg-secondary")">@producto.Estado</span>
+                            <span class="badge @(producto.EstadoProductoId == 1 ? "bg-success" : "bg-secondary")">
+                                @(producto.EstadoProductoId == 1 ? "Activo" : "Inactivo")
+                            </span>
                         </td>
                         <td>@producto.Stock</td>
                         <td>@producto.PrecioCompra.ToString("0.00")</td>
                         <td>@producto.PrecioVenta.ToString("0.00")</td>
                         <td>
                             <div class="dropdown">
-                                <button class="action-btn" type="button" data-bs-toggle="dropdown">
-                                    ⋮
-                                </button>
+                                <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
                                 </ul>
@@ -133,3 +132,15 @@
         </nav>
     </div>
 </div>
+
+@code {
+    private List<Producto> productos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await _contexto.productos
+            .Include(p => p.Categoria)
+            .Include(p => p.Marca)
+            .ToListAsync();
+    }
+}

@@ -1,11 +1,16 @@
 ﻿@page "/Productos/Nuevo"
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@inject Contexto _contexto
+@inject NavigationManager NavigationManager
+
 <PageTitle>Registrar Producto</PageTitle>
 
 <div class="container mt-4">
     <h3 class="fw-semibold">Producto</h3>
 
     <div class="row mt-4">
-        
+
         <div class="col-md-7">
             <div class="card shadow-sm">
                 <div class="card-header">
@@ -18,7 +23,13 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Categoría</label>
-                        <input class="form-control" @bind="producto.Categoria" />
+                        <select class="form-select" @bind="producto.CategoriaId">
+                            <option value="">-- Selecciona una categoría --</option>
+                            @foreach (var cat in categorias)
+                            {
+                                <option value="@cat.CategoriaId">@cat.Nombre</option>
+                            }
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Producto</label>
@@ -30,7 +41,13 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Marca</label>
-                        <input class="form-control" @bind="producto.Marca" />
+                        <select class="form-select" @bind="producto.MarcaId">
+                            <option value="">-- Selecciona una marca --</option>
+                            @foreach (var mar in marcas)
+                            {
+                                <option value="@mar.MarcaId">@mar.Nombre</option>
+                            }
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Stock</label>
@@ -48,13 +65,12 @@
                     </div>
                     <div class="mt-4 d-flex justify-content-center">
                         <a href="/Productos/Index" class="btn btn-danger me-2">Cancelar</a>
-                        <button class="btn btn-success" @onclick="GuardarProducto">Guardar</button>
+                        <button type="button" class="btn btn-success" @onclick="GuardarProducto">Guardar</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        
         <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
             <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
                 <i class="bi bi-image fs-1 text-muted"></i>
@@ -65,30 +81,92 @@
     </div>
 </div>
 
+
 @code {
     private ProductoModel producto = new();
+    private List<Categoria> categorias = new();
+    private List<Marca> marcas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categorias = await _contexto.Categorias.ToListAsync();
+        marcas = await _contexto.Marcas.ToListAsync();
+        Console.WriteLine($"Se cargaron {categorias.Count} categorías");
+        Console.WriteLine($"Se cargaron {marcas.Count} marcas");
+    }
+
 
     private async Task GuardarProducto()
     {
-        
-        Console.WriteLine($"Guardando producto: {producto.Nombre}");
+        Console.WriteLine($"Guardando: {producto.Nombre} - {producto.Codigo}");
+
+        var nuevoProducto = new Producto
+        {
+            Codigo = producto.Codigo,
+            Nombre = producto.Nombre,
+            Proveedor = producto.Proveedor,
+            CategoriaId = producto.CategoriaId,
+            MarcaId = producto.MarcaId,
+            Stock = producto.Stock,
+            PrecioCompra = producto.PrecioCompra,
+            PrecioVenta = producto.PrecioVenta,
+            ImagenURL = imagenNombre ?? "sin_imagen.png",
+            EstadoProductoId = 1,
+            FechaRegistro = DateTime.Now,
+            StockMinimo = 0,
+            Descripcion = "",
+        };
+
+        _contexto.productos.Add(nuevoProducto);
+        await _contexto.SaveChangesAsync();
+
+        Console.WriteLine("Producto guardado correctamente");
+
+        NavigationManager.NavigateTo("/Productos/Index", forceLoad: true);
     }
+
+
+
+
+    private string imagenNombre = string.Empty;
 
     private async Task SubirImagen(InputFileChangeEventArgs e)
     {
         var archivo = e.File;
-        Console.WriteLine($"Imagen subida: {archivo.Name}");
+
+        if (archivo != null)
+        {
+            var nombreUnico = $"{Guid.NewGuid()}_{archivo.Name}";
+            var ruta = Path.Combine("wwwroot", "imagenes", "productos", nombreUnico);
+
+
+            var pathAbsoluto = Path.Combine(Directory.GetCurrentDirectory(), ruta);
+            Directory.CreateDirectory(Path.GetDirectoryName(pathAbsoluto)!);
+
+            using (var stream = File.Create(pathAbsoluto))
+            {
+                await archivo.OpenReadStream().CopyToAsync(stream);
+            }
+
+            imagenNombre = nombreUnico;
+        }
     }
+
 
     public class ProductoModel
     {
         public string Codigo { get; set; } = string.Empty;
-        public string Categoria { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
         public string Proveedor { get; set; } = string.Empty;
-        public string Marca { get; set; } = string.Empty;
+        public int CategoriaId { get; set; }
+        public int MarcaId { get; set; }
         public int Stock { get; set; }
         public decimal PrecioCompra { get; set; }
         public decimal PrecioVenta { get; set; }
     }
 }
+
+
+
+
+
