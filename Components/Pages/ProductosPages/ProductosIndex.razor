@@ -142,5 +142,15 @@
             .Include(p => p.Categoria)
             .Include(p => p.Marca)
             .ToListAsync();
+
+        foreach (var producto in productos)
+        {
+            if (string.IsNullOrEmpty(producto.ImagenURL))
+            {
+                producto.ImagenURL = "default-image.jpg"; 
+            }
+        }
+
+            StateHasChanged();
     }
 }

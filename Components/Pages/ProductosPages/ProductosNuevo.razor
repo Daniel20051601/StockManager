@@ -3,87 +3,104 @@
 @using StockManager.Dal
 @inject Contexto _contexto
 @inject NavigationManager NavigationManager
+@inject ProductoService productoService
+@inject IToastService toastService
+@rendermode InteractiveServer
 
 <PageTitle>Registrar Producto</PageTitle>
 
-<div class="container mt-4">
-    <h3 class="fw-semibold">Producto</h3>
+<EditForm Model="producto" OnValidSubmit="GuardarProducto">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-    <div class="row mt-4">
+    <div class="container mt-4">
+        <h3 class="fw-semibold">Producto</h3>
 
-        <div class="col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <strong>Registrar Producto</strong>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Código</label>
-                        <input class="form-control" @bind="producto.Codigo" />
+        <div class="row mt-4">
+
+            <div class="col-md-7">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <strong>Registrar Producto</strong>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Categoría</label>
-                        <select class="form-select" @bind="producto.CategoriaId">
-                            <option value="">-- Selecciona una categoría --</option>
-                            @foreach (var cat in categorias)
-                            {
-                                <option value="@cat.CategoriaId">@cat.Nombre</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Producto</label>
-                        <input class="form-control" @bind="producto.Nombre" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Proveedor</label>
-                        <input class="form-control" @bind="producto.Proveedor" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Marca</label>
-                        <select class="form-select" @bind="producto.MarcaId">
-                            <option value="">-- Selecciona una marca --</option>
-                            @foreach (var mar in marcas)
-                            {
-                                <option value="@mar.MarcaId">@mar.Nombre</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Stock</label>
-                        <input type="number" class="form-control" @bind="producto.Stock" />
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <label class="form-label">Precio de compra</label>
-                            <input type="number" class="form-control" step="0.01" @bind="producto.PrecioCompra" />
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Código</label>
+                            <input class="form-control" @bind="producto.Codigo" />
                         </div>
-                        <div class="col">
-                            <label class="form-label">Precio de venta</label>
-                            <input type="number" class="form-control" step="0.01" @bind="producto.PrecioVenta" />
+                        <div class="mb-3">
+                            <label class="form-label">Categoría</label>
+                            <select class="form-select" @bind="producto.CategoriaId">
+                                <option value="">-- Selecciona una categoría --</option>
+                                @foreach (var cat in categorias)
+                                {
+                                    <option value="@cat.CategoriaId">@cat.Nombre</option>
+                                }
+                            </select>
                         </div>
-                    </div>
-                    <div class="mt-4 d-flex justify-content-center">
-                        <a href="/Productos/Index" class="btn btn-danger me-2">Cancelar</a>
-                        <button type="button" class="btn btn-success" @onclick="GuardarProducto">Guardar</button>
+                        <div class="mb-3">
+                            <label class="form-label">Producto</label>
+                            <input class="form-control" @bind="producto.Nombre" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proveedor</label>
+                            <input class="form-control" @bind="producto.Proveedor" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Marca</label>
+                            <select class="form-select" @bind="producto.MarcaId">
+                                <option value="">-- Selecciona una marca --</option>
+                                @foreach (var mar in marcas)
+                                {
+                                    <option value="@mar.MarcaId">@mar.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stock</label>
+                            <input type="number" class="form-control" @bind="producto.Stock" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripcion</label>
+                            <textarea class="form-control" @bind="producto.Descripcion"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label class="form-label">Precio de compra</label>
+                                <input type="number" class="form-control" step="0.01" @bind="producto.PrecioCompra" />
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Precio de venta</label>
+                                <input type="number" class="form-control" step="0.01" @bind="producto.PrecioVenta" />
+                            </div>
+                        </div>
+                        <div class="mt-4 d-flex justify-content-center">
+                            <a href="/Productos/Index" class="btn btn-danger me-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Guardar</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
-            <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
-                <i class="bi bi-image fs-1 text-muted"></i>
-                <p class="text-muted">Subir Imagen</p>
-                <InputFile OnChange="SubirImagen" />
+            <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
+                <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
+                    <i class="bi bi-image fs-1 text-muted"></i>
+                    <p class="text-muted">Subir Imagen</p>
+                    <InputFile OnChange="SubirImagen" />
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+
+
+</EditForm>
+
+
 
 
 @code {
-    private ProductoModel producto = new();
+    private Producto producto = new();
     private List<Categoria> categorias = new();
     private List<Marca> marcas = new();
 
@@ -94,39 +111,6 @@
         Console.WriteLine($"Se cargaron {categorias.Count} categorías");
         Console.WriteLine($"Se cargaron {marcas.Count} marcas");
     }
-
-
-    private async Task GuardarProducto()
-    {
-        Console.WriteLine($"Guardando: {producto.Nombre} - {producto.Codigo}");
-
-        var nuevoProducto = new Producto
-        {
-            Codigo = producto.Codigo,
-            Nombre = producto.Nombre,
-            Proveedor = producto.Proveedor,
-            CategoriaId = producto.CategoriaId,
-            MarcaId = producto.MarcaId,
-            Stock = producto.Stock,
-            PrecioCompra = producto.PrecioCompra,
-            PrecioVenta = producto.PrecioVenta,
-            ImagenURL = imagenNombre ?? "sin_imagen.png",
-            EstadoProductoId = 1,
-            FechaRegistro = DateTime.Now,
-            StockMinimo = 0,
-            Descripcion = "",
-        };
-
-        _contexto.productos.Add(nuevoProducto);
-        await _contexto.SaveChangesAsync();
-
-        Console.WriteLine("Producto guardado correctamente");
-
-        NavigationManager.NavigateTo("/Productos/Index", forceLoad: true);
-    }
-
-
-
 
     private string imagenNombre = string.Empty;
 
@@ -149,22 +133,30 @@
             }
 
             imagenNombre = nombreUnico;
+            producto.ImagenURL = nombreUnico;
+        }
+    }
+    private async Task GuardarProducto()
+    {
+        producto.FechaRegistro = producto.FechaRegistro.ToUniversalTime();
+
+        if (await productoService.Guardar(producto))
+        {
+            toastService.ShowSuccess("Producto guardado exitosamente.");
+            Nuevo();
+        }
+        else
+        {
+            toastService.ShowError("Error al guardar el producto. Por favor, verifica los datos ingresados.");
         }
     }
 
-
-    public class ProductoModel
+    private void Nuevo()
     {
-        public string Codigo { get; set; } = string.Empty;
-        public string Nombre { get; set; } = string.Empty;
-        public string Proveedor { get; set; } = string.Empty;
-        public int CategoriaId { get; set; }
-        public int MarcaId { get; set; }
-        public int Stock { get; set; }
-        public decimal PrecioCompra { get; set; }
-        public decimal PrecioVenta { get; set; }
+        producto = new Producto();
     }
 }
+
 
 
 
