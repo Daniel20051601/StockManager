@@ -30,10 +30,10 @@ namespace StockManager.Models
         public decimal PrecioCompra { get; set; }
         public decimal PrecioVenta { get; set; }
 
-        public string ImagenURL { get; set; } = null!;
+        public string? ImagenURL { get; set; }
 
         [ForeignKey("EstadoProducto")]
-        public int EstadoProductoId { get; set; }
+        public int EstadoProductoId { get; set; } = 1; 
         public EstadoProducto EstadoProducto { get; set; } = null!;
 
         public DateTime FechaRegistro { get; set; } = DateTime.Now;

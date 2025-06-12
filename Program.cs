@@ -2,6 +2,7 @@ using Blazored.Toast;
 using Microsoft.EntityFrameworkCore;
 using StockManager.Components;
 using StockManager.Dal;
+using StockManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddBlazoredToast();
+
+builder.Services.AddScoped<ProductoService>();
 
 var ConStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
