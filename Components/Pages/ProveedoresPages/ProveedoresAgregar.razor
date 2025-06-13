@@ -1,20 +1,87 @@
 ﻿@page "/Proveedores/Nuevo"
 @rendermode InteractiveServer
+@inject NavigationManager Navigation
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Nuevo Proveedor</PageTitle>
 
 <style>
     .form-container {
         background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 30px;
     }
 
     .form-header {
         border-bottom: 1px solid #e9ecef;
-        padding-bottom: 1rem;
-        margin-bottom: 2rem;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 12px 15px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+    .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 12px 30px;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 12px 30px;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 12px 30px;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    .breadcrumb-item a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #6c757d;
     }
 
     .required-field::after {
@@ -22,102 +89,222 @@
         color: #dc3545;
     }
 
-    .btn-cancel {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: white;
+    .alert {
+        border-radius: 6px;
+        margin-bottom: 20px;
     }
-
-        .btn-cancel:hover {
-            background-color: #5a6268;
-            border-color: #545b62;
-            color: white;
-        }
 </style>
 
 <div class="mt-5">
 
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/Proveedores/Index">Proveedores</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Nuevo Proveedor</li>
+        </ol>
+    </nav>
+
     <div class="row mb-4">
         <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="/Proveedores/Index" class="text-decoration-none">Proveedores</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">Nuevo Proveedor</li>
-                </ol>
-            </nav>
-        </div>
-        <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-            <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm"></a>
-            <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
+            <h3 class="fw-semibold">Nuevo Proveedor</h3>
+            <p class="text-muted">Complete la información para agregar un nuevo proveedor</p>
         </div>
     </div>
 
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(esError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+            @mensaje
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
     <div class="form-container">
         <div class="form-header">
-            <h4 class="fw-semibold text-dark mb-1">Agregar Nuevo Proveedor</h4>
-            <p class="text-muted mb-0">Complete la información del proveedor</p>
+            <h5 class="fw-semibold mb-0">Información del Proveedor</h5>
         </div>
 
-        <form>
+        <EditForm Model="nuevoProveedor" OnValidSubmit="GuardarProveedor">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
             <div class="row">
-
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label fw-semibold required-field">Nombre del Proveedor</label>
-                        <input type="text" id="nombre" class="form-control shadow-sm" placeholder="Ingrese el nombre del proveedor" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="contacto" class="form-label fw-semibold required-field">Persona de Contacto</label>
-                        <input type="text" id="contacto" class="form-control shadow-sm" placeholder="Nombre del contacto principal" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="telefono" class="form-label fw-semibold required-field">Teléfono</label>
-                        <input type="tel" id="telefono" class="form-control shadow-sm" placeholder="(809) 555-0000" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold required-field">Email</label>
-                        <input type="email" id="email" class="form-control shadow-sm" placeholder="contacto@proveedor.com" required />
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label for="nombreProveedor" class="form-label required-field">Nombre del Proveedor</label>
+                    <InputText @bind-Value="nuevoProveedor.Nombre" class="form-control" id="nombreProveedor" placeholder="Ingrese el nombre del proveedor" />
+                    <ValidationMessage For="@(() => nuevoProveedor.Nombre)" class="text-danger" />
                 </div>
 
-
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="direccion" class="form-label fw-semibold required-field">Dirección</label>
-                        <textarea id="direccion" class="form-control shadow-sm" rows="3" placeholder="Dirección completa del proveedor" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="estado" class="form-label fw-semibold">Estado</label>
-                        <select id="estado" class="form-select shadow-sm">
-                            <option value="true" selected>Activo</option>
-                            <option value="false">Inactivo</option>
-                        </select>
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label for="contacto" class="form-label required-field">Persona de Contacto</label>
+                    <InputText @bind-Value="nuevoProveedor.Contacto" class="form-control" id="contacto" placeholder="Nombre del contacto principal" />
+                    <ValidationMessage For="@(() => nuevoProveedor.Contacto)" class="text-danger" />
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-12">
-                    <hr class="mb-4">
-                    <div class="d-flex justify-content-end gap-3">
-                        <a href="/Proveedores/Index" class="btn btn-cancel shadow-sm px-4">
-                            <i class="bi bi-x-circle me-2"></i>Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-success shadow-sm px-4">
-                            <i class="bi bi-check-circle me-2"></i>
-                            <span>Guardar Proveedor</span>
-                        </button>
-                    </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="telefono" class="form-label required-field">Teléfono</label>
+                    <InputText @bind-Value="nuevoProveedor.Telefono" class="form-control" id="telefono" placeholder="(809) 555-0000" />
+                    <ValidationMessage For="@(() => nuevoProveedor.Telefono)" class="text-danger" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label required-field">Email</label>
+                    <InputText @bind-Value="nuevoProveedor.Email" class="form-control" id="email" type="email" placeholder="contacto@proveedor.com" />
+                    <ValidationMessage For="@(() => nuevoProveedor.Email)" class="text-danger" />
                 </div>
             </div>
-        </form>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="direccion" class="form-label required-field">Dirección</label>
+                    <InputText @bind-Value="nuevoProveedor.Direccion" class="form-control" id="direccion" placeholder="Dirección completa del proveedor" />
+                    <ValidationMessage For="@(() => nuevoProveedor.Direccion)" class="text-danger" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="estado" class="form-label required-field">Estado</label>
+                    <InputSelect @bind-Value="nuevoProveedor.Estado" class="form-select" id="estado">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </InputSelect>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="rnc" class="form-label">RNC/Cédula</label>
+                    <InputText @bind-Value="nuevoProveedor.RNC" class="form-control" id="rnc" placeholder="Ej: 130-12345-6" />
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                <a href="/Proveedores/Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-success" disabled="@guardando">
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-circle me-2"></i>
+                        <span>Guardar Proveedor</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
     </div>
 </div>
+
+@code {
+    public class NuevoProveedor
+    {
+        [Required(ErrorMessage = "El nombre del proveedor es requerido")]
+        [StringLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres")]
+        public string Nombre { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La persona de contacto es requerida")]
+        [StringLength(100, ErrorMessage = "El nombre del contacto no puede exceder 100 caracteres")]
+        public string Contacto { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El teléfono es requerido")]
+        public string Telefono { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El email es requerido")]
+        [EmailAddress(ErrorMessage = "Formato de email inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La dirección es requerida")]
+        [StringLength(200, ErrorMessage = "La dirección no puede exceder 200 caracteres")]
+        public string Direccion { get; set; } = string.Empty;
+
+        public bool Estado { get; set; } = true;
+
+        [StringLength(15, ErrorMessage = "El RNC no puede exceder 15 caracteres")]
+        public string RNC { get; set; } = string.Empty;
+
+        public int CantidadProductos { get; set; } = 0;
+    }
+
+    private NuevoProveedor nuevoProveedor = new();
+    private bool guardando = false;
+    private string mensaje = string.Empty;
+    private bool esError = false;
+
+    
+    private static List<NuevoProveedor> proveedoresGuardados = new();
+
+    protected override void OnInitialized()
+    {
+       
+        nuevoProveedor.Estado = true;
+        nuevoProveedor.CantidadProductos = 0;
+    }
+
+    private async Task GuardarProveedor()
+    {
+        guardando = true;
+        mensaje = string.Empty;
+        esError = false;
+
+        try
+        {
+            
+            if (await ValidarProveedorExistente())
+            {
+                mensaje = "Ya existe un proveedor con ese nombre o email.";
+                esError = true;
+                return;
+            }
+
+            await Task.Delay(1500);
+
+
+            var proveedorParaGuardar = new NuevoProveedor
+                {
+                    Nombre = nuevoProveedor.Nombre,
+                    Contacto = nuevoProveedor.Contacto,
+                    Telefono = nuevoProveedor.Telefono,
+                    Email = nuevoProveedor.Email,
+                    Direccion = nuevoProveedor.Direccion,
+                    Estado = nuevoProveedor.Estado,
+                    RNC = nuevoProveedor.RNC,
+                    CantidadProductos = 0
+                };
+
+            proveedoresGuardados.Add(proveedorParaGuardar);
+
+            mensaje = "El proveedor se ha creado correctamente.";
+            esError = false;
+
+            StateHasChanged();
+
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/Proveedores/Index");
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al guardar el proveedor: {ex.Message}";
+            esError = true;
+        }
+        finally
+        {
+            guardando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<bool> ValidarProveedorExistente()
+    {
+
+        await Task.Delay(200);
+
+        return proveedoresGuardados.Any(p =>
+            p.Nombre.Equals(nuevoProveedor.Nombre, StringComparison.OrdinalIgnoreCase) ||
+            p.Email.Equals(nuevoProveedor.Email, StringComparison.OrdinalIgnoreCase));
+    }
+}
