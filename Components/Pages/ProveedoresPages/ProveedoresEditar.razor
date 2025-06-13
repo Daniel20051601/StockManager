@@ -1,12 +1,10 @@
 ﻿@page "/Proveedores/Editar/{id:int}"
 @rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Editar Proveedor</PageTitle>
-
-@code {
-    [Parameter]
-    public int Id { get; set; }
-}
 
 <style>
     .form-container {
@@ -91,6 +89,11 @@
         content: " *";
         color: #dc3545;
     }
+
+    .alert {
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
 </style>
 
 <div class="mt-5">
@@ -109,67 +112,240 @@
         </div>
     </div>
 
+    @if (!string.IsNullOrEmpty(mensaje))
+    {
+        <div class="alert @(esError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+            @mensaje
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
     <div class="form-container">
         <div class="form-header">
             <h5 class="fw-semibold mb-0">Información del Proveedor</h5>
         </div>
 
-        <form>
+        <EditForm Model="proveedor" OnValidSubmit="GuardarCambios">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="nombreProveedor" class="form-label required-field">Nombre del Proveedor</label>
-                    <input type="text" class="form-control" id="nombreProveedor" value="Agua Randy" required>
+                    <InputText @bind-Value="proveedor.Nombre" class="form-control" id="nombreProveedor" />
+                    <ValidationMessage For="@(() => proveedor.Nombre)" class="text-danger" />
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label for="contacto" class="form-label required-field">Persona de Contacto</label>
-                    <input type="text" class="form-control" id="contacto" value="Luis Fernández" required>
+                    <InputText @bind-Value="proveedor.Contacto" class="form-control" id="contacto" />
+                    <ValidationMessage For="@(() => proveedor.Contacto)" class="text-danger" />
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="telefono" class="form-label required-field">Teléfono</label>
-                    <input type="tel" class="form-control" id="telefono" value="(809) 555-0104" required>
+                    <InputText @bind-Value="proveedor.Telefono" class="form-control" id="telefono" />
+                    <ValidationMessage For="@(() => proveedor.Telefono)" class="text-danger" />
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label for="email" class="form-label required-field">Email</label>
-                    <input type="email" class="form-control" id="email" value="distribucion@aguarandy.do" required>
+                    <InputText @bind-Value="proveedor.Email" class="form-control" id="email" type="email" />
+                    <ValidationMessage For="@(() => proveedor.Email)" class="text-danger" />
                 </div>
             </div>
 
             <div class="row">
-
                 <div class="col-md-8 mb-3">
                     <label for="direccion" class="form-label required-field">Dirección</label>
-                    <input type="text" class="form-control" id="direccion" value="Calle Principal, Los Alcarrizos" required>
+                    <InputText @bind-Value="proveedor.Direccion" class="form-control" id="direccion" />
+                    <ValidationMessage For="@(() => proveedor.Direccion)" class="text-danger" />
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <label for="estado" class="form-label required-field">Estado</label>
-                    <select class="form-select" id="estado" required>
-                        <option value="activo" selected>Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                    </select>
+                    <InputSelect @bind-Value="proveedor.Estado" class="form-select" id="estado" @onchange="OnEstadoChanged">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </InputSelect>
                 </div>
             </div>
 
             <div class="row">
-
                 <div class="col-md-6 mb-3">
                     <label for="rnc" class="form-label">RNC/Cédula</label>
-                    <input type="text" class="form-control" id="rnc" value="130-12345-6" placeholder="Ej: 130-12345-6">
+                    <InputText @bind-Value="proveedor.RNC" class="form-control" id="rnc" placeholder="Ej: 130-12345-6" />
                 </div>
             </div>
+
             <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
                 <a href="/Proveedores/Index" class="btn btn-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Cancelar
                 </a>
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                <button type="submit" class="btn btn-success" disabled="@guardando">
+                    @if (guardando)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Guardando...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-check-circle me-2"></i>
+                        <span>Guardar Cambios</span>
+                    }
                 </button>
             </div>
-        </form>
+        </EditForm>
     </div>
 </div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public class Proveedor
+    {
+        [Required(ErrorMessage = "El nombre del proveedor es requerido")]
+        public string Nombre { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La persona de contacto es requerida")]
+        public string Contacto { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El teléfono es requerido")]
+        public string Telefono { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El email es requerido")]
+        [EmailAddress(ErrorMessage = "Formato de email inválido")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La dirección es requerida")]
+        public string Direccion { get; set; } = string.Empty;
+
+        public bool Estado { get; set; }
+        public string RNC { get; set; } = string.Empty;
+        public int CantidadProductos { get; set; }
+    }
+
+    private Proveedor proveedor = new();
+    private bool guardando = false;
+    private string mensaje = string.Empty;
+    private bool esError = false;
+    private bool estadoAnterior;
+
+
+    private static List<Proveedor> proveedoresData = new()
+    {
+        new Proveedor { Nombre = "Agua Randy", Contacto = "Luis Fernández", Telefono = "(809) 555-0104", Email = "distribucion@aguarandy.do", Direccion = "Calle Principal, Los Alcarrizos", Estado = true, RNC = "130-12345-6", CantidadProductos = 12 },
+        new Proveedor { Nombre = "Sosua Import", Contacto = "Ana García", Telefono = "(809) 555-0105", Email = "info@sosuaimport.com", Direccion = "Puerto Plata, Sosúa", Estado = true, RNC = "130-12345-7", CantidadProductos = 15 },
+        new Proveedor { Nombre = "Ley's Dominican Republic", Contacto = "Pedro Martínez", Telefono = "(809) 555-0103", Email = "pedidos@leysdr.com", Direccion = "Km 22 Autopista Duarte", Estado = false, RNC = "130-12345-8", CantidadProductos = 0 },
+        new Proveedor { Nombre = "Pescadería Mar y Sol", Contacto = "José Morales", Telefono = "(809) 555-0107", Email = "pedidos@marysol.do", Direccion = "Malecón de Puerto Plata", Estado = true, RNC = "130-12345-9", CantidadProductos = 6 },
+        new Proveedor { Nombre = "Lacteo Caribe", Contacto = "Roberto Jiménez", Telefono = "(809) 555-0106", Email = "ventas@lacteocaribe.do", Direccion = "Av. 27 de Febrero, Santiago", Estado = false, RNC = "130-12345-10", CantidadProductos = 0 }
+    };
+
+    protected override void OnInitialized()
+    {
+        CargarProveedor();
+    }
+
+    private void CargarProveedor()
+    {
+
+        var proveedorExistente = proveedoresData.FirstOrDefault(p => p.Nombre == GetProveedorPorId(Id));
+
+        if (proveedorExistente != null)
+        {
+            proveedor = new Proveedor
+                {
+                    Nombre = proveedorExistente.Nombre,
+                    Contacto = proveedorExistente.Contacto,
+                    Telefono = proveedorExistente.Telefono,
+                    Email = proveedorExistente.Email,
+                    Direccion = proveedorExistente.Direccion,
+                    Estado = proveedorExistente.Estado,
+                    RNC = proveedorExistente.RNC,
+                    CantidadProductos = proveedorExistente.CantidadProductos
+                };
+            estadoAnterior = proveedor.Estado;
+        }
+    }
+
+    private string GetProveedorPorId(int id)
+    {
+        return id switch
+        {
+            1 => "Agua Randy",
+            2 => "Sosua Import",
+            3 => "Ley's Dominican Republic",
+            4 => "Pescadería Mar y Sol",
+            5 => "Lacteo Caribe",
+            6 => "Pescadería Mar y Sol",
+            _ => "Agua Randy"
+        };
+    }
+
+    private async Task OnEstadoChanged(ChangeEventArgs e)
+    {
+        bool nuevoEstado = bool.Parse(e.Value?.ToString() ?? "false");
+
+        if (estadoAnterior != nuevoEstado)
+        {
+            string estadoTexto = nuevoEstado ? "activo" : "inactivo";
+            bool confirmacion = await JSRuntime.InvokeAsync<bool>("confirm",
+                $"¿Está seguro de cambiar el estado del proveedor a {estadoTexto}?");
+
+            if (!confirmacion)
+            {
+                proveedor.Estado = estadoAnterior;
+                StateHasChanged();
+                return;
+            }
+        }
+
+        proveedor.Estado = nuevoEstado;
+    }
+
+    private async Task GuardarCambios()
+    {
+        guardando = true;
+        mensaje = string.Empty;
+
+        try
+        {
+
+            await Task.Delay(1000);
+
+
+            var proveedorExistente = proveedoresData.FirstOrDefault(p => p.Nombre == GetProveedorPorId(Id));
+            if (proveedorExistente != null)
+            {
+                proveedorExistente.Nombre = proveedor.Nombre;
+                proveedorExistente.Contacto = proveedor.Contacto;
+                proveedorExistente.Telefono = proveedor.Telefono;
+                proveedorExistente.Email = proveedor.Email;
+                proveedorExistente.Direccion = proveedor.Direccion;
+                proveedorExistente.Estado = proveedor.Estado;
+                proveedorExistente.RNC = proveedor.RNC;
+            }
+
+            estadoAnterior = proveedor.Estado;
+            mensaje = "Los cambios se han guardado correctamente.";
+            esError = false;
+
+
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/Proveedores/Index");
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al guardar los cambios: {ex.Message}";
+            esError = true;
+        }
+        finally
+        {
+            guardando = false;
+            StateHasChanged();
+        }
+    }
+}

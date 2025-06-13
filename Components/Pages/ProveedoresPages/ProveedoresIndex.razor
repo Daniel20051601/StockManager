@@ -1,5 +1,6 @@
 ﻿@page "/Proveedores/Index"
 @rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Proveedores</PageTitle>
 
@@ -20,8 +21,7 @@
             <h3 class="fw-semibold">Proveedores</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-            <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm"></a>
+            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." @bind="searchTerm" @oninput="OnSearchChanged" />
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
         </div>
     </div>
@@ -42,10 +42,11 @@
                         Estado
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Activos</a></li>
-                        <li><a class="dropdown-item" href="#">Inactivos</a></li>
-                        <li><a class="dropdown-item" href="#">Todos</a></li>
+                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("activo")'>Activos</a></li>
+                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("inactivo")'>Inactivos</a></li>
+                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("todos")'>Todos</a></li>
                     </ul>
+
                 </div>
             </div>
         </div>
@@ -72,84 +73,26 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Agua Randy</td>
-                    <td>Luis Fernández</td>
-                    <td>(809) 555-0104</td>
-                    <td>distribucion@aguarandy.do</td>
-                    <td>Calle Principal, Los Alcarrizos</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">12</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/1" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Sosua Import</td>
-                    <td>Ana García</td>
-                    <td>(809) 555-0105</td>
-                    <td>info@sosuaimport.com</td>
-                    <td>Puerto Plata, Sosúa</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">15</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/2" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Ley's Dominican Republic</td>
-                    <td>Pedro Martínez</td>
-                    <td>(809) 555-0103</td>
-                    <td>pedidos@leysdr.com</td>
-                    <td>Km 22 Autopista Duarte</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td><span class="badge bg-light text-dark">0</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/3" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Pescadería Mar y Sol</td>
-                    <td>José Morales</td>
-                    <td>(809) 555-0107</td>
-                    <td>pedidos@marysol.do</td>
-                    <td>Malecón de Puerto Plata</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">6</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/4" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Lacteo Caribe</td>
-                    <td>Roberto Jiménez</td>
-                    <td>(809) 555-0106</td>
-                    <td>ventas@lacteocaribe.do</td>
-                    <td>Av. 27 de Febrero, Santiago</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td><span class="badge bg-light text-dark">0</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/5" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Pescadería Mar y Sol</td>
-                    <td>José Morales</td>
-                    <td>(809) 555-0107</td>
-                    <td>pedidos@marysol.do</td>
-                    <td>Malecón de Puerto Plata</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td><span class="badge bg-light text-dark">6</span></td>
-                    <td>
-                        <a href="/Proveedores/Editar/6" class="btn btn-success btn-sm me-1">Editar</a>
-                        <button class="btn btn-danger btn-sm">Eliminar</button>
-                    </td>
-                </tr>
+                @foreach (var proveedor in filteredProveedores)
+                {
+                    <tr>
+                        <td>@proveedor.Nombre</td>
+                        <td>@proveedor.Contacto</td>
+                        <td>@proveedor.Telefono</td>
+                        <td>@proveedor.Email</td>
+                        <td>@proveedor.Direccion</td>
+                        <td>
+                            <span class="badge @(proveedor.Estado ? "bg-success" : "bg-secondary")">
+                                @(proveedor.Estado ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td><span class="badge bg-light text-dark">@proveedor.CantidadProductos</span></td>
+                        <td>
+                            <a href="/Proveedores/Editar/@proveedor.Id" class="btn btn-success btn-sm me-1">Editar</a>
+                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarProveedor(proveedor.Id)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
@@ -166,3 +109,84 @@
     </div>
 
 </div>
+
+@code {
+    public class Proveedor
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Contacto { get; set; } = string.Empty;
+        public string Telefono { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Direccion { get; set; } = string.Empty;
+        public bool Estado { get; set; }
+        public int CantidadProductos { get; set; }
+    }
+
+    private List<Proveedor> proveedores = new();
+    private List<Proveedor> filteredProveedores = new();
+    private string searchTerm = string.Empty;
+    private string statusFilter = "todos";
+
+    protected override void OnInitialized()
+    {
+
+        proveedores = new List<Proveedor>
+        {
+            new Proveedor { Id = 1, Nombre = "Agua Randy", Contacto = "Luis Fernández", Telefono = "(809) 555-0104", Email = "distribucion@aguarandy.do", Direccion = "Calle Principal, Los Alcarrizos", Estado = true, CantidadProductos = 12 },
+            new Proveedor { Id = 2, Nombre = "Sosua Import", Contacto = "Ana García", Telefono = "(809) 555-0105", Email = "info@sosuaimport.com", Direccion = "Puerto Plata, Sosúa", Estado = true, CantidadProductos = 15 },
+            new Proveedor { Id = 3, Nombre = "Ley's Dominican Republic", Contacto = "Pedro Martínez", Telefono = "(809) 555-0103", Email = "pedidos@leysdr.com", Direccion = "Km 22 Autopista Duarte", Estado = false, CantidadProductos = 0 },
+            new Proveedor { Id = 4, Nombre = "Pescadería Mar y Sol", Contacto = "José Morales", Telefono = "(809) 555-0107", Email = "pedidos@marysol.do", Direccion = "Malecón de Puerto Plata", Estado = true, CantidadProductos = 6 },
+            new Proveedor { Id = 5, Nombre = "Lacteo Caribe", Contacto = "Roberto Jiménez", Telefono = "(809) 555-0106", Email = "ventas@lacteocaribe.do", Direccion = "Av. 27 de Febrero, Santiago", Estado = false, CantidadProductos = 0 }
+        };
+
+        ApplyFilters();
+    }
+
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+        ApplyFilters();
+    }
+
+    private void FilterByStatus(string status)
+    {
+        statusFilter = status;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredProveedores = proveedores.Where(p =>
+            (string.IsNullOrEmpty(searchTerm) ||
+             p.Nombre.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+             p.Contacto.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+             p.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (statusFilter == "todos" ||
+             (statusFilter == "activo" && p.Estado) ||
+             (statusFilter == "inactivo" && !p.Estado))
+        ).ToList();
+    }
+
+    private void EliminarProveedor(int id)
+    {
+        var proveedor = proveedores.FirstOrDefault(p => p.Id == id);
+        if (proveedor != null)
+        {
+            proveedores.Remove(proveedor);
+            ApplyFilters();
+        }
+    }
+
+
+    public void ActualizarProveedor(Proveedor proveedorActualizado)
+    {
+        var index = proveedores.FindIndex(p => p.Id == proveedorActualizado.Id);
+        if (index != -1)
+        {
+            proveedores[index] = proveedorActualizado;
+            ApplyFilters();
+            StateHasChanged();
+        }
+    }
+}
