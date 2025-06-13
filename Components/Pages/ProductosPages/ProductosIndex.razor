@@ -40,15 +40,11 @@
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
             <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
-
             <a class="profile-picture-container" href="#">
                 <img src="img/Logo/bohemio-hombre-cruzar-brazos.jpg" alt="Foto de perfil" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;" />
             </a>
-
         </div>
-
     </div>
 
     <div class="row d-flex justify-content-between mb-5">
@@ -84,6 +80,7 @@
                     <th style="width: 80px;">Imagen</th>
                     <th style="width: 100px;">Categoría</th>
                     <th style="width: 180px;">Producto</th>
+                    <th style="width: 200px;">Descripción</th>
                     <th style="width: 180px;">Proveedor</th>
                     <th style="width: 120px;">Marca</th>
                     <th style="width: 80px;">Estado</th>
@@ -103,6 +100,7 @@
                         </td>
                         <td>@producto.Categoria?.Nombre</td>
                         <td>@producto.Nombre</td>
+                        <td>@producto.Descripcion</td>
                         <td>@producto.Proveedor</td>
                         <td>@producto.Marca?.Nombre</td>
                         <td>
@@ -118,6 +116,7 @@
                                 <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
+                                    <li><button class="dropdown-item text-danger" @onclick="() => EliminarProducto(producto.ProductoId)">Eliminar</button></li>
                                 </ul>
                             </div>
                         </td>
@@ -130,10 +129,18 @@
     <div class="d-flex justify-content-end mt-3">
         <nav>
             <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+                <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+                </li>
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="page-item @(paginaActual == i ? "active" : "")">
+                        <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                    </li>
+                }
+                <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                    <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                </li>
             </ul>
         </nav>
     </div>
@@ -141,22 +148,71 @@
 
 @code {
     private List<Producto> productos = new();
+    private int paginaActual = 1;
+    private int totalPaginas;
+    private int cantidadPorPagina = 10;
 
     protected override async Task OnInitializedAsync()
     {
+        await CargarProductos();
+    }
+
+    private async Task CargarProductos()
+    {
+        var totalRegistros = await _contexto.productos.CountAsync();
+        totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
+
         productos = await _contexto.productos
             .Include(p => p.Categoria)
             .Include(p => p.Marca)
+            .OrderBy(p => p.ProductoId)
+            .Skip((paginaActual - 1) * cantidadPorPagina)
+            .Take(cantidadPorPagina)
             .ToListAsync();
 
         foreach (var producto in productos)
         {
             if (string.IsNullOrEmpty(producto.ImagenURL))
             {
-                producto.ImagenURL = "default-image.jpg"; 
+                producto.ImagenURL = "default-image.jpg";
             }
         }
+    }
 
-            StateHasChanged();
+    private async Task PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            await CargarProductos();
+        }
+    }
+
+    private async Task PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            await CargarProductos();
+        }
+    }
+
+    private async Task CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+        await CargarProductos();
+    }
+
+    private async Task EliminarProducto(int id)
+    {
+        var producto = await _contexto.productos.FindAsync(id);
+        if (producto != null)
+        {
+            _contexto.productos.Remove(producto);
+            await _contexto.SaveChangesAsync();
+
+            productos.Remove(productos.First(p => p.ProductoId == id));
+            await CargarProductos();
+        }
     }
 }
