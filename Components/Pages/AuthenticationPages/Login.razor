@@ -1,0 +1,120 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject ILogger<Login> Logger
+
+<PageTitle>Iniciar Sesión - StockManager</PageTitle>
+
+<div class="login-container">
+    <div class="login-box">
+        <div class="card shadow border-0">
+            <div class="card-header bgApp text-white d-flex justify-content-center">
+                <h3 class="card-title mb-0">Iniciar Sesión</h3>
+            </div>
+            <div class="card-body">
+                <EditForm Model="loginModel" OnValidSubmit="IniciarSesion">
+                    <DataAnnotationsValidator />
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @errorMessage
+                            <button type="button" class="btn-close" @onclick="@(() => errorMessage = null)" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <strong>Correo electrónico</strong>
+                        </label>
+                        <InputText @bind-Value="loginModel.Email" class="form-control" placeholder="ejemplo@correo.com" />
+                        <ValidationMessage For="@(() => loginModel.Email)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <strong>Contraseña</strong>
+                        </label>
+                        <div class="input-group">
+                            <InputText @bind-Value="loginModel.Password"
+                                       type="@(showPassword ? "text" : "password")"
+                                       class="form-control"
+                                       placeholder="Ingrese su contraseña" />
+                            <button class="btn btn-outline-secondary" type="button" @onclick="TogglePasswordVisibility">
+                                <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+                            </button>
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Password)" class="text-danger" />
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                <span>Iniciando sesión...</span>
+                            }
+                            else
+                            {
+                                <span>Iniciar Sesión</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isLoading;
+    private string? errorMessage;
+    private bool showPassword;
+
+    private class LoginModel
+    {
+        [Required(ErrorMessage = "El correo electrónico es requerido")]
+        [EmailAddress(ErrorMessage = "Formato de correo electrónico inválido")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "La contraseña es requerida")]
+        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        public string Password { get; set; } = "";
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    private async Task IniciarSesion()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            var success = await AuthService.LoginAsync(loginModel.Email, loginModel.Password);
+            if (success)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Credenciales inválidas. Por favor, verifique su correo y contraseña.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error al iniciar sesión");
+            errorMessage = "Ha ocurrido un error al intentar iniciar sesión. Por favor, inténtelo de nuevo.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

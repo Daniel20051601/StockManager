@@ -1,4 +1,6 @@
 ﻿@page "/Compras/Index"
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Ordenes de Compra</PageTitle>
@@ -14,9 +16,6 @@
                 <div class="dropdown">
                     <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
                     </button>
-                    <a class="profile-picture-container" href="#">
-                        <img src="img/Logo/bohemio-hombre-cruzar-brazos.jpg" alt="Foto de perfil" />
-                    </a>
                     <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
                         <div class="mb-3">
 
@@ -116,12 +115,21 @@
         </div>
     </div>
 </div>
+
+<div class="container mt-1">
+
+</div>
+
 @code {
     private string filtro { get; set; } = "Resumen";
     private string filtroSeleccionado { get; set; } = "titulo";
     private DateTime? fechaDesde { get; set; }
     private DateTime? fechaHasta { get; set; }
     private int precio { get; set; } = 1000000;
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
 
     private void Buscar()
     {
