@@ -8,14 +8,14 @@ public class Usuario
     [Key]
     public int UsuarioId { get; set; }
 
+    [Required]
+    public string SupabaseId { get; set; } = string.Empty;
+
     [Required, MaxLength(100)]
     public string Nombre { get; set; } = null!;
 
     [Required, MaxLength(50)]
     public string NombreUsuario { get; set; } = null!;
-
-    [Required]
-    public string Contraseña { get; set; } = null!;
 
     [Required, EmailAddress]
     public string Email { get; set; } = null!;

@@ -1,4 +1,5 @@
 using Blazored.Toast;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using StockManager.Components;
 using StockManager.Dal;
@@ -11,6 +12,20 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddBlazoredToast();
+
+
+
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddAuthorizationCore();
+
+builder.Services.AddSingleton(new Supabase.Client(
+    builder.Configuration["Supabase:Url"],
+    builder.Configuration["Supabase:AnonKey"]
+));
+builder.Services.AddCascadingAuthenticationState();
+
+
 
 builder.Services.AddScoped<ProductoService>();
 
@@ -30,8 +45,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-
+app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapStaticAssets();

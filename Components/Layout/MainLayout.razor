@@ -1,21 +1,59 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject AuthService AuthService
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <div class="page">
+                <div class="sidebar">
+                    <NavMenu />
+                </div>
 
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+                <main>
+                    <div class="top-row px-4">
+                        <span><strong class="text-secondary"><span style="color: rgba(4, 35, 53, 1)">Bienvenido</span></strong>, @context.User.Identity?.Name</span>
+                        <a class="profile-picture-container" href="/Perfil/Index">
+                            <img src="img/Logo/bohemio-hombre-cruzar-brazos.jpg" alt="Foto de perfil" />
+                        </a>
+                    </div>
+
+                    <article class="content px-4">
+                        @Body
+                    </article>
+                </main>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            @if (NavigationManager.Uri.Contains("/login"))
+            {
+                <div class="auth-page">
+                    @Body
+                </div>
+            }
+            else
+            {
+                <RedirectToLogin />
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
 
 <BlazoredToasts @rendermode="RenderMode.InteractiveServer" />
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        NavigationManager.NavigateTo("/login");
+        StateHasChanged();
+    }
+}
