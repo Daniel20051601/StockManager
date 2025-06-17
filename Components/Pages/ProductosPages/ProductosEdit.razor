@@ -1,6 +1,7 @@
-﻿@page "/Productos/Nuevo"
+﻿@page "/Productos/Editar/{ProductoId:int}"
 @using Microsoft.EntityFrameworkCore
 @using StockManager.Dal
+@using StockManager.Services
 @using StockManager.Models
 @inject IDbContextFactory<Contexto> DbContextFactory
 @inject NavigationManager NavigationManager
@@ -8,26 +9,26 @@
 @inject IToastService toastService
 @rendermode InteractiveServer
 
-<PageTitle>Registrar Producto</PageTitle>
+<PageTitle>Editar Producto</PageTitle>
 
 <EditForm Model="producto" OnValidSubmit="GuardarProducto">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="container mt-4">
-        <h3 class="fw-semibold">Producto</h3>
+        <h3 class="fw-semibold">Editar Producto</h3>
 
         <div class="row mt-4">
 
             <div class="col-md-7">
                 <div class="card shadow-sm">
                     <div class="card-header">
-                        <strong>Registrar Producto</strong>
+                        <strong>Editar Producto</strong>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label class="form-label"><strong>ProductoId</strong></label>
-                            <InputNumber class="form-control" @bind-Value="producto.ProductoId" readonly></InputNumber>
+                            <label class="form-label">Código</label>
+                            <input class="form-control" @bind="producto.Codigo" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Categoría</label>
@@ -62,7 +63,7 @@
                             <input type="number" class="form-control" @bind="producto.Stock" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Descripción</label>
+                            <label class="form-label">Descripcion</label>
                             <textarea class="form-control" @bind="producto.Descripcion"></textarea>
                         </div>
                         <div class="row">
@@ -76,11 +77,10 @@
                             </div>
                         </div>
                         <div class="mt-4 d-flex justify-content-center">
-                            <a href="/Productos/Index" class="btn btn-outline-danger">
-                                <span class="bi bi-arrow-left"></span> Volver
+                            <a href="/Productos/Index" class="btn btn-outline-danger me-2">
+                                <span class="bi bi-x-circle"></span> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-outline-success bi bi-floppy"> Guardar</button>
-                            <button type="button" class="btn btn-outline-primary bi bi-plus" @onclick="Nuevo"> Limpiar</button>
+                            <button type="submit" class="btn btn-outline-success bi bi-floppy"> Guardar Cambios</button>
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,14 @@
 
             <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
                 <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
-                    <i class="bi bi-image fs-1 text-muted"></i>
+                    @if (!string.IsNullOrEmpty(producto.ImagenURL) && producto.ImagenURL != "default-image.jpg")
+                    {
+                        <img src="/imagenes/productos/@producto.ImagenURL" class="img-fluid mb-3" alt="Imagen del producto" style="max-height: 200px; object-fit: contain;" />
+                    }
+                    else
+                    {
+                        <i class="bi bi-image fs-1 text-muted"></i>
+                    }
                     <p class="text-muted">Subir Imagen</p>
                     <InputFile OnChange="SubirImagen" />
                 </div>
@@ -98,18 +105,33 @@
 </EditForm>
 
 @code {
-    public Producto producto { get; set; } = new Producto();
+    [Parameter]
+    public int ProductoId { get; set; }
+
+    private Producto producto = new();
     private List<Categoria> categorias = new();
     private List<Marca> marcas = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await using var contexto = await DbContextFactory.CreateDbContextAsync();
-        categorias = await contexto.Categorias.ToListAsync();
-        marcas = await contexto.Marcas.ToListAsync();
-    }
+        await using var dbContextForLists = await DbContextFactory.CreateDbContextAsync();
+        categorias = await dbContextForLists.Categorias.ToListAsync();
+        marcas = await dbContextForLists.Marcas.ToListAsync();
 
-    private string imagenNombre = string.Empty;
+        if (ProductoId > 0)
+        {
+            producto = await productoService.GetProductoById(ProductoId);
+            if (producto == null)
+            {
+                toastService.ShowError("Producto no encontrado.");
+                NavigationManager.NavigateTo("/Productos/Index");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/Productos/Index");
+        }
+    }
 
     private async Task SubirImagen(InputFileChangeEventArgs e)
     {
@@ -128,45 +150,20 @@
                 await archivo.OpenReadStream().CopyToAsync(stream);
             }
 
-            imagenNombre = nombreUnico;
             producto.ImagenURL = nombreUnico;
         }
     }
 
-    public async Task GuardarProducto()
+    private async Task GuardarProducto()
     {
-        producto.FechaRegistro = producto.FechaRegistro.ToUniversalTime();
-
-        bool guardadoExitoso = await productoService.Guardar(producto);
-
-        if (guardadoExitoso)
+        if (await productoService.Guardar(producto))
         {
-            if (string.IsNullOrEmpty(producto.Codigo))
-            {
-                producto.Codigo = producto.ProductoId.ToString();
-
-                if (!await productoService.Guardar(producto))
-                {
-                    toastService.ShowError("Error al actualizar el código del producto en la base de datos.");
-                    return;
-                }
-            }
-
-            
-            toastService.ShowSuccess("Producto creado exitosamente.");
-
-            Nuevo();
+            toastService.ShowSuccess("Producto actualizado exitosamente.");
+            NavigationManager.NavigateTo("/Productos/Index");
         }
         else
         {
-            toastService.ShowError("No se pudo guardar correctamente el producto. Por favor, verifica los datos.");
+            toastService.ShowError("Error al actualizar el producto. Por favor, verifica los datos ingresados.");
         }
-    }
-
-    private void Nuevo()
-    {
-        producto = new Producto();
-        imagenNombre = string.Empty;
-        StateHasChanged();
     }
 }

@@ -1,37 +1,12 @@
 ﻿@page "/Productos/Index"
 @using Microsoft.EntityFrameworkCore
 @using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-@inject Contexto _contexto
-
 <PageTitle>Productos</PageTitle>
-
-<style>
-    .table-striped-custom tbody tr:nth-child(odd) {
-        background-color: #ffffff;
-    }
-
-    .table-striped-custom tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    .dropdown-toggle::after {
-        display: none;
-    }
-
-    .action-btn {
-        border: none;
-        background: transparent;
-        font-size: 1.5rem;
-        line-height: 1;
-        color: #6c757d;
-    }
-
-    .dropdown-menu {
-        font-size: 0.9rem;
-    }
-</style>
 
 <div class="mt-5">
     <div class="row mb-5">
@@ -112,8 +87,9 @@
                             <div class="dropdown">
                                 <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
+                                    <li><a class="dropdown-item" href="/Productos/Editar/@producto.ProductoId">Editar</a></li>
                                     <li><button class="dropdown-item text-danger" @onclick="() => EliminarProducto(producto.ProductoId)">Eliminar</button></li>
+                                    <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -151,15 +127,34 @@
 
     protected override async Task OnInitializedAsync()
     {
+        NavigationManager.LocationChanged += HandleLocationChanged;
         await CargarProductos();
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (e.Location.EndsWith("/Productos/Index", StringComparison.OrdinalIgnoreCase))
+        {
+            InvokeAsync(async () =>
+            {
+                await CargarProductos();
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 
     private async Task CargarProductos()
     {
-        var totalRegistros = await _contexto.productos.CountAsync();
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        var totalRegistros = await contexto.productos.CountAsync();
         totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
 
-        productos = await _contexto.productos
+        productos = await contexto.productos
             .Include(p => p.Categoria)
             .Include(p => p.Marca)
             .OrderBy(p => p.ProductoId)
@@ -202,13 +197,12 @@
 
     private async Task EliminarProducto(int id)
     {
-        var producto = await _contexto.productos.FindAsync(id);
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        var producto = await contexto.productos.FindAsync(id);
         if (producto != null)
         {
-            _contexto.productos.Remove(producto);
-            await _contexto.SaveChangesAsync();
-
-            productos.Remove(productos.First(p => p.ProductoId == id));
+            contexto.productos.Remove(producto);
+            await contexto.SaveChangesAsync();
             await CargarProductos();
         }
     }
