@@ -117,7 +117,54 @@
 </div>
 
 <div class="container mt-1">
-
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach(var ordenCompra in OrdenesCompra)
+        {
+            <div class="col">
+                <div class="card shadow-lg h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">@ordenCompra.NumeroOrden</h5>
+                            <span class="badge @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
+                                "pendiente" => "bg-warning",
+                                "aceptada" => "bg-success",
+                                "cancelada" => "bg-danger",
+                                _ => "bg-secondary"
+                            })">
+                                @ordenCompra.EstadoOrdenCompra?.Nombre
+                            </span>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">@ordenCompra.Proveedor?.Nombre</h6>
+                        <div class="mt-3">
+                            <p class="mb-1">
+                                <i class="bi bi-calendar3"></i>
+                                <small class="text-muted ms-2">@ordenCompra.FechaCreacion.ToString("dd/MM/yyyy")</small>
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-person"></i>
+                                <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
+                            </p>
+                            @if (ordenCompra.FechaEntregaEstimada.HasValue)
+                            {
+                                <p class="mb-1">
+                                    <i class="bi bi-truck"></i>
+                                    <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.Value.ToString("dd/MM/yyyy")</small>
+                                </p>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong class="text-success">RD$ @ordenCompra.Total.ToString("N2")</strong>
+                            <a href="/Compras/Details/@ordenCompra.OrdenCompraId" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> Ver detalles
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -126,6 +173,8 @@
     private DateTime? fechaDesde { get; set; }
     private DateTime? fechaHasta { get; set; }
     private int precio { get; set; } = 1000000;
+
+    private List<OrdenCompra> OrdenesCompra = new List<OrdenCompra>();
 
     protected override async Task OnInitializedAsync()
     {

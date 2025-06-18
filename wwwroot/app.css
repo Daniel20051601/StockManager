@@ -165,15 +165,29 @@ body {
 .login-container {
     width: 100vw;
     height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; /* Mantén flexbox para centrar contenido */
+    flex-direction: column; /* ¡CAMBIO CLAVE: Apila los elementos verticalmente! */
+    align-items: center; /* Centra horizontalmente los elementos hijos */
+    justify-content: center; /* Centra verticalmente los elementos hijos */
     background: linear-gradient(135deg, rgba(4, 35, 53, 0.95) 0%, rgba(27, 110, 194, 0.85) 100%);
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
 }
+
+    /* Agrega un estilo para el contenedor de la imagen para centrarla y darle un margen */
+    .login-container .img-fluid {
+        margin-bottom: 20px; /* Espacio entre la imagen y la caja de login */
+        text-align: center; /* Asegura que la imagen dentro de img-fluid esté centrada si su contenedor es más ancho */
+    }
+
+        /* Puedes añadir esto si la imagen necesita centrarse dentro de su propio div */
+        .login-container .img-fluid img {
+            display: block; /* Asegura que la imagen sea un bloque para que text-align funcione en el padre */
+            margin-left: auto;
+            margin-right: auto;
+        }
 
 .login-box {
     width: 100%;
