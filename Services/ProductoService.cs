@@ -12,6 +12,15 @@ public class ProductoService(IDbContextFactory<Contexto> DbContext)
         return await contexto.productos.AnyAsync(p => p.ProductoId == productoId);
     }
 
+    public async Task<Producto?> GetProductoById(int productoId)
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        return await contexto.productos
+                             .Include(p => p.Categoria)
+                             .Include(p => p.Marca)
+                             .FirstOrDefaultAsync(p => p.ProductoId == productoId);
+    }
+
     public async Task<bool> Modificar(Producto producto)
     {
         await using var contexto = await DbContext.CreateDbContextAsync();
@@ -28,14 +37,27 @@ public class ProductoService(IDbContextFactory<Contexto> DbContext)
 
     public async Task<bool> Guardar(Producto producto)
     {
-        if(await Existe(producto.ProductoId))
+        if (producto.ProductoId == 0)
         {
-            return await Modificar(producto);
+            await using var contexto = await DbContext.CreateDbContextAsync();
+            contexto.productos.Add(producto);
+            await contexto.SaveChangesAsync();
+            return true;
         }
         else
         {
-            return await Insertar(producto);
+            return await Modificar(producto);
         }
-            
+    }
+
+    public async Task<bool> Eliminar(int productoId)
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        var producto = await contexto.productos.FindAsync(productoId);
+        if (producto == null)
+            return false;
+
+        contexto.productos.Remove(producto);
+        return await contexto.SaveChangesAsync() > 0;
     }
 }

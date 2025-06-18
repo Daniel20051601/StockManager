@@ -8,8 +8,8 @@ namespace StockManager.Models
         [Key]
         public int ProductoId { get; set; }
 
-        [Required, MaxLength(50)]
-        public string Codigo { get; set; }  = null!;
+        [MaxLength(50)]
+        public string? Codigo { get; set; } = string.Empty;
 
         [Required, MaxLength(100)]
         public string Nombre { get; set; } = null!;

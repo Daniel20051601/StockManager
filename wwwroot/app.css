@@ -297,3 +297,30 @@ body {
 .bgApp {
     background-color: rgba(4, 35, 53, 1);
 }
+
+/*Estilos de productos :)*/
+.table-striped-custom tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.table-striped-custom tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.action-btn {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #6c757d;
+}
+
+.dropdown-menu {
+    font-size: 0.9rem;
+}
+/*Hasta aqui ;)*/
+
