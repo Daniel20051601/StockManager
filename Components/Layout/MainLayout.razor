@@ -27,7 +27,7 @@
             </div>
         </Authorized>
         <NotAuthorized>
-            @if (NavigationManager.Uri.Contains("/login"))
+            @if (NavigationManager.Uri.Contains("/login", StringComparison.OrdinalIgnoreCase))
             {
                 <div class="auth-page">
                     @Body
@@ -50,10 +50,19 @@
 </div>
 
 @code {
-    private async Task Logout()
+    public MainLayout()
+    {
+        // Constructor público explícito
+    }
+
+    public async Task Logout()
     {
         await AuthService.LogoutAsync();
-        NavigationManager.NavigateTo("/login");
-        StateHasChanged();
+        NavigationManager.NavigateTo("/login", forceLoad: true);
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
     }
 }

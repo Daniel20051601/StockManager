@@ -298,7 +298,19 @@ body {
     background-color: rgba(4, 35, 53, 1);
 }
 
-/*Estilos de productos :)*/
+.btnApp {
+    border-color: rgba(4, 35, 53, 1) !important;
+    color: rgba(4, 35, 53, 1) !important;
+}
+
+.indicadorOrdenes {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
 .table-striped-custom tbody tr:nth-child(odd) {
     background-color: #ffffff;
 }
@@ -322,5 +334,26 @@ body {
 .dropdown-menu {
     font-size: 0.9rem;
 }
-/*Hasta aqui ;)*/
+.estado-orden {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.estado-pendiente {
+    background-color: var(--bs-warning);
+}
+
+.estado-aceptada {
+    background-color: var(--bs-success);
+}
+
+.estado-cancelada {
+    background-color: var(--bs-danger);
+}
+
+.estado-default {
+    background-color: var(--bs-secondary);
+}
 

@@ -2,6 +2,8 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@inject ComprasService comprasService
+@inject IToastService toastService
 
 <PageTitle>Ordenes de Compra</PageTitle>
 
@@ -116,23 +118,21 @@
     </div>
 </div>
 
-<div class="container mt-1">
+<div class="container mt-4">
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @foreach(var ordenCompra in OrdenesCompra)
         {
             <div class="col">
-                <div class="card shadow-lg h-100">
+                <div class="card shadow-sm h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <h5 class="card-title">@ordenCompra.NumeroOrden</h5>
-                            <span class="badge @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
-                                "pendiente" => "bg-warning",
-                                "aceptada" => "bg-success",
-                                "cancelada" => "bg-danger",
-                                _ => "bg-secondary"
-                            })">
-                                @ordenCompra.EstadoOrdenCompra?.Nombre
-                            </span>
+                            <div class="estado-orden @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
+                                "pendiente" => "estado-pendiente",
+                                "aceptada" => "estado-aceptada",
+                                "cancelada" => "estado-cancelada",
+                                _ => "estado-default"
+                            })"></div>
                         </div>
                         <h6 class="card-subtitle mb-2 text-muted">@ordenCompra.Proveedor?.Nombre</h6>
                         <div class="mt-3">
@@ -144,20 +144,20 @@
                                 <i class="bi bi-person"></i>
                                 <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
                             </p>
-                            @if (ordenCompra.FechaEntregaEstimada.HasValue)
-                            {
+
+                            
                                 <p class="mb-1">
                                     <i class="bi bi-truck"></i>
-                                    <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.Value.ToString("dd/MM/yyyy")</small>
+                                    <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.ToString("dd/MM/yyyy")</small>
                                 </p>
-                            }
+
                         </div>
                     </div>
                     <div class="card-footer bg-transparent">
                         <div class="d-flex justify-content-between align-items-center">
                             <strong class="text-success">RD$ @ordenCompra.Total.ToString("N2")</strong>
-                            <a href="/Compras/Details/@ordenCompra.OrdenCompraId" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-eye"></i> Ver detalles
+                            <a href="/Compras/Edit/@ordenCompra.OrdenCompraId" class="btn btn-outline-primary btnApp btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
                             </a>
                         </div>
                     </div>
@@ -178,6 +178,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        OrdenesCompra = await comprasService.Listar(o => true);
+        if(OrdenesCompra.Count == 0)
+        {
+            toastService.ShowInfo("No se encontro ninguna orden");
+        }
+        StateHasChanged();
     }
 
     private void Buscar()

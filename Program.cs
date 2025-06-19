@@ -7,48 +7,57 @@ using StockManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-builder.Services.AddBlazoredToast();
-
-
-
-builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-builder.Services.AddAuthorizationCore();
+// 1. Servicios Base
+builder.Services.AddDbContextFactory<Contexto>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSingleton(new Supabase.Client(
     builder.Configuration["Supabase:Url"],
     builder.Configuration["Supabase:AnonKey"]
 ));
+
+// 2. Autenticación y Autorización
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+    });
+
+builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthService>();
 
-
-
+// 3. Servicios de la Aplicación
 builder.Services.AddScoped<ProductoService>();
+builder.Services.AddScoped<ComprasService>();
+builder.Services.AddScoped<ProveedorService>();
+builder.Services.AddBlazoredToast();
 
-var ConStr = builder.Configuration.GetConnectionString("DefaultConnection");
+// 4. Componentes Blazor y configuración relacionada
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 
-builder.Services.AddDbContextFactory<Contexto>(options =>
-    options.UseNpgsql(ConStr));
-
+// Construir la aplicación
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Pipeline de la aplicación
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+// Middleware en orden correcto
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseAntiforgery();
 
-app.MapStaticAssets();
+// Mapeo de componentes
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StockManager.Dal;
@@ -11,9 +12,11 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250618051309_AgregaRequerimientoACantidad")]
+    partial class AgregaRequerimientoACantidad
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -420,7 +423,7 @@ namespace StockManager.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("FechaEntregaEstimada")
+                    b.Property<DateTime?>("FechaEntregaEstimada")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Impuestos")
@@ -440,10 +443,6 @@ namespace StockManager.Migrations
 
                     b.Property<decimal>("Subtotal")
                         .HasColumnType("numeric");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
@@ -483,6 +482,7 @@ namespace StockManager.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Subtotal")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("numeric");
 
                     b.HasKey("OrdenCompraDetalleId");
