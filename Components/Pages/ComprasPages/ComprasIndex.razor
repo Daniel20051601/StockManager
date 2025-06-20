@@ -2,6 +2,8 @@
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@inject ComprasService comprasService
+@inject IToastService toastService
 
 <PageTitle>Ordenes de Compra</PageTitle>
 
@@ -47,10 +49,10 @@
     </div>
     <div class="row d-flex justify-content-between mt-4">
         <div class="col-auto">
-            <button type="button" class="btn btn-outline" onclick="">Resumen</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4 " onclick="">Aceptadas</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4" onclick="">Pendientes</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4" onclick="">Canceladas</button>
+            <button type="button" class="btn btn-outline @(filtro == "Resumen" ? "btn-custom-primary" : "text-secondary")" @onclick="() => FiltrarOrdenes(Resumen)">Resumen</button>
+            <button type="button" class="btn btn-outline @(filtro == "Aceptadas" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Aceptada)" >Aceptadas</button>
+            <button type="button" class="btn btn-outline @(filtro == "Pendientes" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Pendiente)">Pendientes</button>
+            <button type="button" class="btn btn-outline @(filtro == "Canceladas" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Cancelada)">Canceladas</button>
         </div>
         <div class="col-auto">
             <div class="d-flex justify-content-around align-items-lg-baseline">
@@ -116,8 +118,53 @@
     </div>
 </div>
 
-<div class="container mt-1">
+<div class="container mt-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach(var ordenCompra in OrdenesCompra)
+        {
+            <div class="col">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">@ordenCompra.NumeroOrden</h5>
+                            <div class="estado-orden @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
+                                "pendiente" => "estado-pendiente",
+                                "aceptada" => "estado-aceptada",
+                                "cancelada" => "estado-cancelada",
+                                _ => "estado-default"
+                            })"></div>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">@ordenCompra.Proveedor?.Nombre</h6>
+                        <div class="mt-3">
+                            <p class="mb-1">
+                                <i class="bi bi-calendar3"></i>
+                                <small class="text-muted ms-2">@ordenCompra.FechaCreacion.ToString("dd/MM/yyyy")</small>
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-person"></i>
+                                <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
+                            </p>
 
+                            
+                                <p class="mb-1">
+                                    <i class="bi bi-truck"></i>
+                                    <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.ToString("dd/MM/yyyy")</small>
+                                </p>
+
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong class="text-success">RD$ @ordenCompra.Total.ToString("N2")</strong>
+                            <a href="/Compras/Edit/@ordenCompra.OrdenCompraId" class="btn btn-outline-success btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
 
 @code {
@@ -127,9 +174,40 @@
     private DateTime? fechaHasta { get; set; }
     private int precio { get; set; } = 1000000;
 
+    private List<OrdenCompra> OrdenesCompra = new List<OrdenCompra>();
+    private List<OrdenCompra> TodasLasOrdenes = new List<OrdenCompra>();
+
+    public string Resumen= "Resumen";
+    public string Aceptada= "Aceptadas";
+    public string Pendiente= "Pendientes";
+    public string Cancelada= "Canceladas";
+
     protected override async Task OnInitializedAsync()
     {
+        TodasLasOrdenes = await comprasService.Listar(o => true);
+    FiltrarOrdenes("Resumen");
+    if (OrdenesCompra.Count == 0)
+    {
+        toastService.ShowInfo("No se encontró ninguna orden");
     }
+    StateHasChanged();
+    }
+
+    private void FiltrarOrdenes(string tipoFiltro)
+{
+    filtro = tipoFiltro;
+
+    OrdenesCompra = tipoFiltro switch
+    {
+        "Resumen" => TodasLasOrdenes,
+        "Aceptadas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aceptada").ToList(),
+        "Pendientes" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "pendiente").ToList(),
+        "Canceladas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
+        _ => TodasLasOrdenes
+    };
+
+    StateHasChanged();
+}
 
     private void Buscar()
     {

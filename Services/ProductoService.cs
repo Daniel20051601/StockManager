@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StockManager.Dal;
 using StockManager.Models;
+using System.Linq.Expressions;
 
 namespace StockManager.Services;
 
@@ -59,5 +60,16 @@ public class ProductoService(IDbContextFactory<Contexto> DbContext)
 
         contexto.productos.Remove(producto);
         return await contexto.SaveChangesAsync() > 0;
+    }
+
+    public async Task<List<Producto>> Listar(Expression<Func<Producto, bool>> criterio)
+    {
+        using var contexto = DbContext.CreateDbContext();
+        return await contexto.productos
+            .Include(m => m.Marca)
+            .Include(c => c.Categoria)
+            .Where(criterio)
+            .AsNoTracking()
+            .ToListAsync();
     }
 }

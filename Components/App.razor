@@ -23,32 +23,17 @@
 
 <body>
     <CascadingAuthenticationState>
-        <Router AppAssembly="@typeof(App).Assembly">
-            <Found Context="routeData">
-                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                    <NotAuthorized>
-                        @if (context?.User?.Identity?.IsAuthenticated != true)
-                        {
-                            <RedirectToLogin />
-                        }
-                        else
-                        {
-                            <p>No tienes autorización para acceder a esta página.</p>
-                        }
-                    </NotAuthorized>
-                </AuthorizeRouteView>
-                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-            </Found>
-            <NotFound>
-                <PageTitle>Not found</PageTitle>
-                <LayoutView Layout="@typeof(MainLayout)">
-                    <p role="alert">Lo sentimos, no hay nada en esta dirección.</p>
-                </LayoutView>
-            </NotFound>
-        </Router>
+        <Routes />
     </CascadingAuthenticationState>
     <script src="_framework/blazor.web.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
+
+@code {
+    public App()
+    {
+        // Constructor público explícito
+    }
+}

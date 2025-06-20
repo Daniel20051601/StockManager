@@ -15,6 +15,8 @@ public class AuthService
     private Action? _userLogoutCallback;
     private readonly Contexto _context;
 
+    public int CurrentLoggedInUserId { get; private set; } = 0;
+
     public AuthService(Client supabaseClient, Contexto context)
     {
         _supabaseClient = supabaseClient;

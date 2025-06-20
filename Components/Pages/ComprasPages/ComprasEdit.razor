@@ -1,4 +1,4 @@
-﻿@page "/Compras/Create"
+﻿@page "/Compras/Edit/{OrdenCompraId:int}"
 @inject IToastService toastService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
@@ -7,9 +7,9 @@
 @inject ComprasService comprasService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Crear Orden de Compra</PageTitle>
+<PageTitle>Editar Orden de Compra</PageTitle>
 <EditForm Model="ordenCompra" OnValidSubmit="Guardar">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <div>
         <div class="header-section mt-5">
             <div class="row d-flex justify-content-between">
@@ -51,7 +51,7 @@
                     </div>
                 </div>
             </div>
-            <h3 class=" text-center mb-5">Crear Orden de Compra</h3>
+            <h3 class=" text-center mb-5">Editar Orden de Compra</h3>
         </div>
         <div class="container">
             <div class="mb-3 mx-5">
@@ -104,7 +104,7 @@
                                     <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
                                 </td>
                                 <td>
-                                    <button class="btn btn-danger bi bi-trash shadow-sm"
+                                    <button type="button" class="btn btn-danger bi bi-trash shadow-sm"
                                             @onclick="() => QuitarProducto(detalle)">
                                     </button>
                                 </td>
@@ -157,10 +157,10 @@
         </div>
 
         <div class="container mb-5 d-flex justify-content-center">
-
-            <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm ">  Cancelar</a>
+            <a href="/Compras/Index" class="btn btn-secondary bi bi-arrow-left shadow-sm ">  Volver</a>
             <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2">  Guardar</button>
             <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir">  Imprimir</button>
+            <button type="button" class="btn btn-danger bi bi-trash shadow-sm ms-2" @onclick="() => MostrarModalEliminar = true"> Eliminar</button>
         </div>
     </div>
 
@@ -214,7 +214,7 @@
                                 <tr>
                                     <td>@producto.ProductoId</td>
                                     <td>@producto.Nombre</td>
-                                    
+
                                     <td>@producto.Categoria.Nombre</td>
                                     <td>@producto.Marca.Nombre</td>
                                     <td>@producto.PrecioCompra</td>
@@ -245,39 +245,68 @@
 
 }
 
+
+@if (MostrarModalEliminar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalEliminar" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar la orden de compra <strong>@ordenCompra?.NumeroOrden</strong>?</p>
+           
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarConfirmado">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
 @code {
-    string proveedor { get; set; } = string.Empty;
-    private OrdenCompra ordenCompra = new()
+    [Parameter]
+    public int OrdenCompraId { get; set; }
+    private OrdenCompra? ordenCompra = new()
     {
-        Detalles = new List<OrdenCompraDetalle>(),
-        FechaCreacion = DateTime.Now
+        Detalles = new List<OrdenCompraDetalle>()
     };
     List<Proveedor> proveedores { get; set; } = new List<Proveedor>();
     List<Producto> productos { get; set; } = new List<Producto>();
 
+
     private Boolean MostrarModal = false;
+    private bool MostrarModalEliminar = false;
 
     string valorBuscado { get; set; } = string.Empty;
     string valorSelect { get; set; } = "ProductoId";
 
+    protected override async Task OnInitializedAsync()
+    {
+        ordenCompra = await comprasService.Buscar(OrdenCompraId);
+        productos = await productoService.Listar(p => true);
+        proveedores = await proveedorService.Listar(p => true);
 
-    protected override async Task OnInitializedAsync()  
-    {  
-        productos = await productoService.Listar(p => true);  
-        proveedores = await proveedorService.Listar(p => true);  
-
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();  
-        var user = authState.User;  
-
-        if (user?.Identity?.IsAuthenticated == true)
-        {  
-            ordenCompra.UsuarioId = int.Parse(user.FindFirst("UsuarioId")?.Value ?? "0");  
-        }  
     }
 
 
     private async Task Guardar()
     {
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            ordenCompra.UsuarioId = int.Parse(user.FindFirst("UsuarioId")?.Value ?? "0");
+        }
         if (ordenCompra.UsuarioId == 0)
         {
             toastService.ShowError("Usuario no válido");
@@ -306,12 +335,12 @@
             var guardado = await comprasService.Guardar(ordenCompra);
             if (guardado)
             {
-                toastService.ShowSuccess("Orden de compra guardada exitosamente");
+                toastService.ShowSuccess("Orden de compra actualizada exitosamente");
                 navigationManager.NavigateTo("/Compras/Index");
             }
             else
             {
-                toastService.ShowError("Error al guardar la orden de compra");
+                toastService.ShowError("Error al actualizar la Orden de compra");
             }
         }
         catch (Exception ex)
@@ -377,5 +406,42 @@
         toastService.ShowSuccess("Producto Eliminado de la Orden");
         Calculos();
     }
+    
+    private void CerrarModalEliminar()
+    {
+        MostrarModalEliminar = false;
+    }
 
+    private void Eliminar()
+    {
+        MostrarModalEliminar = true;
+    }
+
+
+    private async Task EliminarConfirmado()
+    {
+        try
+        {
+            var resultado = await comprasService.Eliminar(OrdenCompraId);
+            if (resultado)
+            {
+                toastService.ShowSuccess("Orden de compra eliminada exitosamente");
+                navigationManager.NavigateTo("/Compras/Index");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo eliminar la orden de compra");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error al eliminar: {ex.Message}");
+            Console.WriteLine($"Error completo: {ex}");
+        }
+        finally
+        {
+            MostrarModalEliminar = false;
+        }
+    }
 }
+

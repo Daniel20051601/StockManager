@@ -8,6 +8,9 @@ public class OrdenCompra
     [Key]
     public int OrdenCompraId { get; set; }
 
+    [Required(ErrorMessage ="Debe agregar un nombre de para la Orden de Compra")]
+    public string Titulo { get; set; } = null!;
+
     [Required, MaxLength(50)]
     public string NumeroOrden { get; set; } = null!;
 
@@ -24,7 +27,8 @@ public class OrdenCompra
     public EstadoOrdenCompra EstadoOrdenCompra { get; set; } = null!;
 
     public DateTime FechaCreacion { get; set; } = DateTime.Now;
-    public DateTime? FechaEntregaEstimada { get; set; }
+    [Required]
+    public DateTime FechaEntregaEstimada { get; set; }  = DateTime.Now;
 
     public decimal Subtotal { get; set; }
     public decimal Impuestos { get; set; }
