@@ -251,18 +251,6 @@ body {
 }
 
 /* Componentes UI */
-.btn-primary {
-    background-color: rgba(4, 35, 53, 1);
-    border-color: rgba(4, 35, 53, 1);
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-}
-
-    .btn-primary:hover {
-        background-color: rgba(4, 35, 53, 0.9);
-        transform: translateY(-1px);
-    }
 
 .validation-message {
     color: #dc3545;
@@ -357,3 +345,47 @@ body {
     background-color: var(--bs-secondary);
 }
 
+.btn-custom-primary {
+    display: inline-block;
+    font-weight: 400;
+    color: #fff; /* Color del texto blanco */
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+    background-color: rgba(4, 35, 53, 1); /* Tu color base */
+    border: 1px solid rgba(4, 35, 53, 1); /* Borde con tu color base */
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+    .btn-custom-primary:hover {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 0.9); /* Un poco más oscuro al pasar el ratón */
+        border-color: rgba(4, 35, 53, 0.9);
+    }
+
+    .btn-custom-primary:focus {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 0.9);
+        border-color: rgba(4, 35, 53, 0.9);
+        box-shadow: 0 0 0 0.25rem rgba(4, 35, 53, 0.5); /* Sombra para el enfoque */
+        outline: 0; /* Elimina el outline por defecto del navegador */
+    }
+
+    .btn-custom-primary:active {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 1);
+        border-color: rgba(4, 35, 53, 1);
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); /* Sombra interior para el estado activo */
+    }
+
+    .btn-custom-primary:disabled {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 0.6); /* Más claro para el estado deshabilitado */
+        border-color: rgba(4, 35, 53, 0.6);
+        opacity: 0.65; /* Opacidad para indicar que está deshabilitado */
+        pointer-events: none; /* Evita que el ratón interactúe */
+    }
