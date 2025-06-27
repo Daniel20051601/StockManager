@@ -24,7 +24,20 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
     public async Task<bool> Insertar(OrdenCompra ordenCompra)
     {
         await using var contexto = await DbContext.CreateDbContextAsync();
-        contexto.OrdenesCompras.Add(ordenCompra);
+        // Clear any tracked entities
+        contexto.ChangeTracker.Clear();
+
+        // Attach the order without its relationships first
+        var entry = contexto.OrdenesCompras.Add(ordenCompra);
+
+        // If needed, explicitly set foreign key values instead of navigation properties
+        foreach (var detalle in ordenCompra.Detalles)
+        {
+            detalle.OrdenCompraId = ordenCompra.OrdenCompraId;
+            // Ensure we only set the foreign key, not the full navigation property
+            detalle.Producto = null;
+        }
+
         return await contexto.SaveChangesAsync() > 0;
     }
 
@@ -32,15 +45,24 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
     {
         try
         {
+            await using var contexto = await DbContext.CreateDbContextAsync();
+            contexto.ChangeTracker.Clear();
+
             if (ordenCompra.OrdenCompraId == 0)
             {
-                return await Insertar(ordenCompra);
+                // For new orders, only set the foreign keys
+                foreach (var detalle in ordenCompra.Detalles)
+                {
+                    var productoId = detalle.ProductoId;
+                    detalle.Producto = null;  // Don't track the navigation property
+                    detalle.ProductoId = productoId;
+                }
+
+                contexto.OrdenesCompras.Add(ordenCompra);
             }
             else
             {
-                await using var contexto = await DbContext.CreateDbContextAsync();
-                contexto.ChangeTracker.Clear();
-
+                // For existing orders, update with careful navigation property handling
                 var ordenExistente = await contexto.OrdenesCompras
                     .Include(o => o.Detalles)
                     .FirstOrDefaultAsync(o => o.OrdenCompraId == ordenCompra.OrdenCompraId);
@@ -48,9 +70,10 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
                 if (ordenExistente == null)
                     return false;
 
+                // Update only scalar properties
                 contexto.Entry(ordenExistente).CurrentValues.SetValues(ordenCompra);
 
-                // Manejar detalles
+                // Handle details separately
                 foreach (var detalleExistente in ordenExistente.Detalles.ToList())
                 {
                     if (!ordenCompra.Detalles.Any(d => d.OrdenCompraDetalleId == detalleExistente.OrdenCompraDetalleId))
@@ -66,6 +89,7 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
 
                     if (detalleExistente == null)
                     {
+                        detalle.Producto = null;  // Don't track navigation property
                         ordenExistente.Detalles.Add(detalle);
                     }
                     else
@@ -73,9 +97,9 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
                         contexto.Entry(detalleExistente).CurrentValues.SetValues(detalle);
                     }
                 }
-
-                return await contexto.SaveChangesAsync() > 0;
             }
+
+            return await contexto.SaveChangesAsync() > 0;
         }
         catch (Exception ex)
         {

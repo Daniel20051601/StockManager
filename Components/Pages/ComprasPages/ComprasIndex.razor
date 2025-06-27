@@ -23,11 +23,11 @@
 
                             <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
                                 <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
-                                <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                                <p class="fw-light">Algunos productos están apunto de vencer</p>
                             </div>
 
                             <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
-                                <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras pol&iacute;ticas</strong></label>
+                                <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras políticas</strong></label>
                                 <p class="fw-light">Mira cuales son las novedades</p>
                             </div>
 
@@ -38,7 +38,7 @@
 
                             <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
                                 <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
-                                <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                                <p class="fw-light">Algunos productos están apunto de vencer</p>
                             </div>
 
                         </div>
@@ -145,7 +145,6 @@
                                 <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
                             </p>
 
-                            
                                 <p class="mb-1">
                                     <i class="bi bi-truck"></i>
                                     <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.ToString("dd/MM/yyyy")</small>
@@ -177,41 +176,53 @@
     private List<OrdenCompra> OrdenesCompra = new List<OrdenCompra>();
     private List<OrdenCompra> TodasLasOrdenes = new List<OrdenCompra>();
 
-    public string Resumen= "Resumen";
-    public string Aceptada= "Aceptadas";
-    public string Pendiente= "Pendientes";
-    public string Cancelada= "Canceladas";
+    public string Resumen = "Resumen";
+    public string Aceptada = "Aceptadas";
+    public string Pendiente = "Pendientes";
+    public string Cancelada = "Canceladas";
 
     protected override async Task OnInitializedAsync()
     {
         TodasLasOrdenes = await comprasService.Listar(o => true);
-    FiltrarOrdenes("Resumen");
-    if (OrdenesCompra.Count == 0)
-    {
-        toastService.ShowInfo("No se encontró ninguna orden");
-    }
-    StateHasChanged();
+        FiltrarOrdenes("Resumen");
+
+        // Check for success parameter from the URL
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("success", out var successValue))
+        {
+            if (successValue == "true")
+            {
+                toastService.ShowSuccess("Orden de compra guardada exitosamente.");
+            }
+            // Optional: Clean up the URL so the toast doesn't show again on refresh
+            NavigationManager.NavigateTo("/Compras/Index", replace: true);
+        }
+
+        if (OrdenesCompra.Count == 0)
+        {
+            toastService.ShowInfo("No se encontró ninguna orden");
+        }
+        StateHasChanged();
     }
 
     private void FiltrarOrdenes(string tipoFiltro)
-{
-    filtro = tipoFiltro;
-
-    OrdenesCompra = tipoFiltro switch
     {
-        "Resumen" => TodasLasOrdenes,
-        "Aceptadas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aceptada").ToList(),
-        "Pendientes" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "pendiente").ToList(),
-        "Canceladas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
-        _ => TodasLasOrdenes
-    };
+        filtro = tipoFiltro;
 
-    StateHasChanged();
-}
+        OrdenesCompra = tipoFiltro switch
+        {
+            "Resumen" => TodasLasOrdenes,
+            "Aceptadas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aceptada").ToList(),
+            "Pendientes" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "pendiente").ToList(),
+            "Canceladas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
+            _ => TodasLasOrdenes
+        };
+
+        StateHasChanged();
+    }
 
     private void Buscar()
     {
         Console.WriteLine($"Filtro: {filtroSeleccionado}, Fecha: {fechaDesde} - {fechaHasta}, Precio: {precio}");
     }
-
 }
