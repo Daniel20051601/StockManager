@@ -14,7 +14,62 @@
         </div>
         <div class="col mb-3">
             <div class="d-flex justify-content-end">
-                <input class="form-control shadow-sm text-secondary w-25" placeholder="Buscar..." />
+                @*Dropdown*@
+                <div class="dropdown mx-2">
+                    <button class="btn btn-outline dropdown-toggle shadow-sm bg-white " type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="d-flex align-items-end">
+                            Filtrar por <i class="bi bi-caret-down ms-2 text-secondary"></i>
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 300px;">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filtro" @bind-value="filtroSeleccionado" />
+                                <label class="form-check-label">Título de Orden de Compra</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filtro" @bind-value="filtroSeleccionado">
+                                <label class="form-check-label">Número de Orden de Compra</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="filtro" @bind-value="filtroSeleccionado">
+                                <label class="form-check-label">Proveedor</label>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <label class="mb-3"><strong>Fecha</strong></label>
+                            <div class="row d-flex justify-content-center">
+                                <div class="col-auto">
+                                    <label class="d-flex justify-content-center">Desde</label>
+                                    <input type="date" class="form-control mb-2" @bind="fechaDesde" placeholder="Desde" />
+                                </div>
+                                <div class="col-auto">
+                                    <label class=" d-flex justify-content-center">Hasta</label>
+                                    <input type="date" class="form-control" @bind="fechaHasta" placeholder="Hasta" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <label><strong>Precio</strong></label>
+                            <input type="range" class="form-range" min="0" max="1000000" step="10000" @bind="precio" />
+                            <small class="text-muted">RD$0 - RD$@precio.ToString("N0")</small>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <button class="btn btn-secondary bi bi-x-lg" @onclick="LimpiarFiltros"> Limpiar</button>
+                            <button class="btn btn-primary bi bi-search shadow-sm ms-2" @onclick="Buscar">
+                                Buscar
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+                <input class="form-control shadow-sm text-secondary w-25" placeholder="Buscar..." @bind="terminoBusqueda" @onkeyup="@((e) => { if (e.Key == "Enter") BuscarPorTexto(); })" />
                 <div class="dropdown">
                     <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
                     </button>
@@ -50,65 +105,15 @@
     <div class="row d-flex justify-content-between mt-4">
         <div class="col-auto">
             <button type="button" class="btn btn-outline @(filtro == "Resumen" ? "btn-custom-primary" : "text-secondary")" @onclick="() => FiltrarOrdenes(Resumen)">Resumen</button>
-            <button type="button" class="btn btn-outline @(filtro == "Aceptadas" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Aceptada)" >Aceptadas</button>
-            <button type="button" class="btn btn-outline @(filtro == "Pendientes" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Pendiente)">Pendientes</button>
+            <button type="button" class="btn btn-outline @(filtro == "Creada" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Creada)" >Creada</button>
+            <button type="button" class="btn btn-outline @(filtro == "Revisada" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Revisada)">Revisada</button>
+            <button type="button" class="btn btn-outline @(filtro == "Aprovada" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Aprovada)">Aprovada</button>
+            <button type="button" class="btn btn-outline @(filtro == "Procesada" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Procesada)">Procesada</button>
+            <button type="button" class="btn btn-outline @(filtro == "Liquidada" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Liquidada)">Liquidada</button>
             <button type="button" class="btn btn-outline @(filtro == "Canceladas" ? "btn-custom-primary" : "text-secondary") ms-4" @onclick="() => FiltrarOrdenes(Cancelada)">Canceladas</button>
         </div>
         <div class="col-auto">
             <div class="d-flex justify-content-around align-items-lg-baseline">
-                @*Dropdown*@
-                <div class="dropdown">
-                    <button class="btn btn-outline dropdown-toggle shadow-sm bg-white" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Filtrar por
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 300px;">
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="filtro" value="titulo">
-                                <label class="form-check-label">Título de Orden de Compra</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="filtro" value="numero">
-                                <label class="form-check-label">Número de Orden de Compra</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="filtro" value="proveedor">
-                                <label class="form-check-label">Proveedor</label>
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <div class="mb-3">
-                            <label class="mb-3"><strong>Fecha</strong></label>
-                            <div class="row d-flex justify-content-center">
-                                <div class="col-auto">
-                                    <label class="d-flex justify-content-center">Desde</label>
-                                    <input type="date" class="form-control mb-2" @bind="fechaDesde" placeholder="Desde" />
-                                </div>
-                                <div class="col-auto">
-                                    <label class=" d-flex justify-content-center">Hasta</label>
-                                    <input type="date" class="form-control" @bind="fechaHasta" placeholder="Hasta" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr />
-
-                        <div class="mb-3">
-                            <label><strong>Precio</strong></label>
-                            <input type="range" class="form-range" min="0" max="1000000" step="10000" @bind="precio" />
-                            <small class="text-muted">RD$0 - RD$@precio.ToString("N0")</small>
-                        </div>
-                        <div class="d-flex justify-content-center">
-                            <button class="btn btn-secondary bi bi-x-lg"> Limpiar</button>
-                            <button class="btn btn-primary bi bi-search shadow-sm ms-2" @onclick="Buscar">
-                                Buscar
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
                 <a href="/Compras/Create" class="btn btn-success ms-4 shadow-sm d-flex align-items-center">
                     <i class="bi bi-plus-circle me-2"></i> Crear
                 </a>
@@ -118,75 +123,127 @@
     </div>
 </div>
 
-<div class="container mt-4">
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @foreach(var ordenCompra in OrdenesCompra)
-        {
-            <div class="col">
-                <div class="card shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">@ordenCompra.NumeroOrden</h5>
-                            <div class="estado-orden @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
-                                "pendiente" => "estado-pendiente",
-                                "aceptada" => "estado-aceptada",
-                                "cancelada" => "estado-cancelada",
-                                _ => "estado-default"
-                            })"></div>
-                        </div>
-                        <h6 class="card-subtitle mb-2 text-muted">@ordenCompra.Proveedor?.Nombre</h6>
-                        <div class="mt-3">
-                            <p class="mb-1">
-                                <i class="bi bi-calendar3"></i>
-                                <small class="text-muted ms-2">@ordenCompra.FechaCreacion.ToString("dd/MM/yyyy")</small>
-                            </p>
-                            <p class="mb-1">
-                                <i class="bi bi-person"></i>
-                                <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
-                            </p>
+@if(isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach(var ordenCompra in OrdenesCompra)
+            {
+                <div class="col">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-subtitle mb-2 text-muted">@ordenCompra.Titulo</h5>
+                                <div class="estado-orden @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
+    "creada" => "estado-creada",
+    "revisada" => "estado-revisada", 
+    "aprovada" => "estado-aprovada",
+    "procesada" => "estado-procesada",
+    "liquidada" => "estado-liquidada",
+    "cancelada" => "estado-cancelada",
+    _ => "estado-default"
+})">
+</div>
+                            </div>
+                            
+                            <h6 class="card-title">@ordenCompra.NumeroOrden</h6>
+                            <div class="mt-3">
+                                <p class="mb-1">
+                                   <i class="bi bi-person-badge"></i>
+                                   <small class="card-subtitle mb-2 text-muted">@ordenCompra.Proveedor?.Nombre</small>
+                                </p>
+                                <p class="mb-1">
+                                    <i class="bi bi-calendar3"></i>
+                                    <small class="text-muted ms-2">@ordenCompra.FechaCreacion.ToString("dd/MM/yyyy")</small>
+                                </p>
+                                <p class="mb-1">
+                                    <i class="bi bi-person"></i>
+                                    <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
+                                </p>
 
                                 <p class="mb-1">
                                     <i class="bi bi-truck"></i>
                                     <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.ToString("dd/MM/yyyy")</small>
                                 </p>
 
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-footer bg-transparent">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong class="text-success">RD$ @ordenCompra.Total.ToString("N2")</strong>
-                            <a href="/Compras/Edit/@ordenCompra.OrdenCompraId" class="btn btn-outline-success btn-sm">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong class="text-success">RD$ @ordenCompra.Total.ToString("N2")</strong>
+                                <a href="/Compras/Edit/@ordenCompra.OrdenCompraId" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
+
+        <!-- Sección de paginación -->
+        <div class="d-flex justify-content-end mt-3">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+                    </li>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(paginaActual == i ? "active" : "")">
+                            <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
-</div>
+}
 
 @code {
     private string filtro { get; set; } = "Resumen";
     private string filtroSeleccionado { get; set; } = "titulo";
+    private string terminoBusqueda { get; set; } = "";
     private DateTime? fechaDesde { get; set; }
     private DateTime? fechaHasta { get; set; }
     private int precio { get; set; } = 1000000;
+    private bool isLoading = true;
 
-    private List<OrdenCompra> OrdenesCompra = new List<OrdenCompra>();
-    private List<OrdenCompra> TodasLasOrdenes = new List<OrdenCompra>();
+    private List<OrdenCompra> OrdenesCompra = new List<OrdenCompra>(); 
+    private List<OrdenCompra> TodasLasOrdenes = new List<OrdenCompra>(); 
+    private List<OrdenCompra> OrdenesCompraFiltradas = new List<OrdenCompra>(); 
+
+    private int paginaActual = 1;
+    private int totalPaginas;
+    private int cantidadPorPagina = 6;
 
     public string Resumen = "Resumen";
-    public string Aceptada = "Aceptadas";
-    public string Pendiente = "Pendientes";
-    public string Cancelada = "Canceladas";
+    public string Creada = "Creada";
+    public string Revisada = "Revisada";
+    public string Aprovada = "Aprovada";
+    public string Procesada = "Procesada";
+    public string Cancelada = "Cancelada";
+    public string Liquidada = "Liquidada";
+
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         TodasLasOrdenes = await comprasService.Listar(o => true);
+        isLoading = false;
         FiltrarOrdenes("Resumen");
 
-        // Check for success parameter from the URL
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("success", out var successValue))
         {
@@ -194,7 +251,7 @@
             {
                 toastService.ShowSuccess("Orden de compra guardada exitosamente.");
             }
-            // Optional: Clean up the URL so the toast doesn't show again on refresh
+
             NavigationManager.NavigateTo("/Compras/Index", replace: true);
         }
 
@@ -208,21 +265,164 @@
     private void FiltrarOrdenes(string tipoFiltro)
     {
         filtro = tipoFiltro;
-
-        OrdenesCompra = tipoFiltro switch
+        var ordenesFiltradas = tipoFiltro switch
         {
             "Resumen" => TodasLasOrdenes,
-            "Aceptadas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aceptada").ToList(),
-            "Pendientes" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "pendiente").ToList(),
-            "Canceladas" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
+            "Creada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "creada").ToList(),
+            "Revisada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "revisada").ToList(),
+            "Aprovada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aprovada").ToList(),
+            "Procesada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "procesada").ToList(),
+            "Liquidada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "liquidada").ToList(),
+            "Cancelada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
             _ => TodasLasOrdenes
         };
+
+    // Aplicar filtros adicionales si existen
+    OrdenesCompraFiltradas = AplicarFiltrosAdicionales(ordenesFiltradas);
+
+    paginaActual = 1;
+    ActualizarPaginacion();
+}
+
+    private List<OrdenCompra> AplicarFiltrosAdicionales(List<OrdenCompra> ordenes)
+    {
+        var resultado = ordenes.AsEnumerable();
+
+        // Filtro por término de búsqueda
+        if (!string.IsNullOrEmpty(terminoBusqueda))
+        {
+            resultado = resultado.Where(o => 
+                (o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false)
+            );
+        }
+
+        // Filtro por fecha
+        if (fechaDesde.HasValue)
+        {
+            resultado = resultado.Where(o => o.FechaCreacion >= fechaDesde.Value);
+        }
+
+        if (fechaHasta.HasValue)
+        {
+            resultado = resultado.Where(o => o.FechaCreacion <= fechaHasta.Value);
+        }
+
+        // Filtro por precio
+        if (precio < 1000000)
+        {
+            resultado = resultado.Where(o => o.Total <= precio);
+        }
+
+        return resultado.ToList();
+    }
+
+    private void ActualizarPaginacion()
+    {
+        var totalRegistros = OrdenesCompraFiltradas.Count;
+        totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
+
+        OrdenesCompra = OrdenesCompraFiltradas
+            .Skip((paginaActual - 1) * cantidadPorPagina)
+            .Take(cantidadPorPagina)
+            .ToList();
 
         StateHasChanged();
     }
 
     private void Buscar()
+{
+    // Aplicar filtros específicos del dropdown
+    var ordenesFiltradas = filtro switch
     {
-        Console.WriteLine($"Filtro: {filtroSeleccionado}, Fecha: {fechaDesde} - {fechaHasta}, Precio: {precio}");
+        "Resumen" => TodasLasOrdenes,
+        "Creada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "creada").ToList(),
+        "Revisada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "revisada").ToList(),
+        "Aprovada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aprovada").ToList(),
+        "Procesada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "procesada").ToList(),
+        "Liquidada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "liquidada").ToList(),
+        "Cancelada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
+        _ => TodasLasOrdenes
+    };
+
+    // Aplicar filtros específicos del dropdown
+    var resultado = ordenesFiltradas.AsEnumerable();
+
+    // Filtro por tipo seleccionado en radio buttons
+    if (!string.IsNullOrEmpty(terminoBusqueda))
+    {
+        resultado = filtroSeleccionado switch
+        {
+            "titulo" => resultado.Where(o => o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
+            "numero" => resultado.Where(o => o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
+            "proveedor" => resultado.Where(o => o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
+            _ => resultado.Where(o => 
+                (o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false)
+            )
+        };
+    }
+
+    // Filtro por fecha
+    if (fechaDesde.HasValue)
+    {
+        resultado = resultado.Where(o => o.FechaCreacion >= fechaDesde.Value);
+    }
+
+    if (fechaHasta.HasValue)
+    {
+        resultado = resultado.Where(o => o.FechaCreacion <= fechaHasta.Value);
+    }
+
+    // Filtro por precio
+    if (precio < 1000000)
+    {
+        resultado = resultado.Where(o => o.Total <= precio);
+    }
+
+    OrdenesCompraFiltradas = resultado.ToList();
+    paginaActual = 1;
+    ActualizarPaginacion();
+}
+
+    private void BuscarPorTexto()
+    {
+        FiltrarOrdenes(filtro);
+    }
+
+    private void LimpiarFiltros()
+    {
+        filtroSeleccionado = "titulo";
+        terminoBusqueda = "";
+        fechaDesde = null;
+        fechaHasta = null;
+        precio = 1000000;
+        FiltrarOrdenes(filtro);
+    }
+
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            ActualizarPaginacion();
+        }
+    }
+
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            ActualizarPaginacion();
+        }
+    }
+
+    private void CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+        ActualizarPaginacion();
     }
 }

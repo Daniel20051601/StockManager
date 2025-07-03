@@ -11,153 +11,167 @@
 
 <EditForm Model="ordenCompra" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
-    <div>
-        <div class="header-section mt-5">
-            <div class="row d-flex justify-content-between">
-                <div class="col-auto">
-                    <h3 class="fw-semibold">Compras</h3>
-                </div>
-                <div class="col-auto mb-3">
-                    <div class="d-flex justify-content-around">
-                        <div class="dropdown">
-                            <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
-                            </button>
-                            <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
-                                <div class="mb-3">
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else
+    {
 
-                                    <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
-                                        <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
-                                        <p class="fw-light">Algunos productos están apunto de vencer</p>
+        <div>
+            <div class="header-section mt-5">
+                <div class="row d-flex justify-content-between">
+                    <div class="col-auto">
+                        <h3 class="fw-semibold">Compras</h3>
+                    </div>
+
+                    <div class="col-auto mb-3">
+                        <div class="d-flex justify-content-around">
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
+                                </button>
+                                <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
+                                    <div class="mb-3">
+
+                                        <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                            <p class="fw-light">Algunos productos están apunto de vencer</p>
+                                        </div>
+
+                                        <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras políticas</strong></label>
+                                            <p class="fw-light">Mira cuales son las novedades</p>
+                                        </div>
+
+                                        <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
+                                            <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
+                                        </div>
+
+                                        <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                            <p class="fw-light">Algunos productos están apunto de vencer</p>
+                                        </div>
+
                                     </div>
-
-                                    <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
-                                        <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras políticas</strong></label>
-                                        <p class="fw-light">Mira cuales son las novedades</p>
-                                    </div>
-
-                                    <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
-                                        <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
-                                        <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
-                                    </div>
-
-                                    <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
-                                        <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
-                                        <p class="fw-light">Algunos productos están apunto de vencer</p>
-                                    </div>
-
                                 </div>
                             </div>
-                        </div>
 
+                        </div>
+                    </div>
+                </div>
+                <h3 class=" text-center mb-5">Crear Orden de Compra</h3>
+            </div>
+            <div class="container">
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Título</label>
+                    <InputText type="text" class="form-control" placeholder="Ingrese el título de la orden de compra" required @bind-Value="ordenCompra.Titulo" />
+                </div>
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Numero de Orden de Compra</label>
+                    <InputText class="form-control" placeholder="Ingrese el número de la orden de compra" required @bind-Value="ordenCompra.NumeroOrden" />
+                </div>
+
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Proveedor</label>
+                    <InputSelect class="form-select" @bind-Value="ordenCompra.ProveedorId">
+                        <option value="">Seleccione un proveedor</option>
+                        @foreach (var proveedor in proveedores)
+                        {
+                            <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Fecha de entrega estimada</label>
+                    <InputDate class="form-control mb-2" @bind-Value="ordenCompra.FechaEntregaEstimada" />
+                </div>
+                <div class=" mx-5">
+                    <label class="form-label fs-4">Agregar productos</label>
+                    <table class="table table-hover">
+                        <thead class="table table-striped text-black">
+                            <tr>
+                                <th>Producto Id</th>
+                                <th>Nombre</th>
+                                <th>Marca</th>
+                                <th>Precio de Compra</th>
+                                <th>Cantidad</th>
+                                <th>Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in ordenCompra.Detalles)
+                            {
+                                <tr>
+                                    <td>@detalle.Producto?.ProductoId</td> @* Added null-conditional operator *@
+                                    <td>@detalle.Producto?.Nombre</td> @* Added null-conditional operator *@
+                                    <td>@(detalle.Producto?.Marca?.Nombre ?? "-")</td> @* Defensive check for Producto and Marca *@
+                                    <td>@detalle.PrecioCompraUnitario</td>
+                                    <td>
+                                        <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger bi bi-trash shadow-sm"
+                                                @onclick="() => QuitarProducto(detalle)">
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-end mb-3  mx-5">
+                    <button type="button" class="btn btn-primary bi bi-plus-circle shadow-sm" @onclick="() => MostrarModal = true">
+                        Agregar
+                    </button>
+                </div>
+
+                <div class="mb-5 mx-5">
+                    <label class="form-label fs-4 ">Notas Adicionales</label>
+                    <InputTextArea type="text" class="form-control" placeholder="" @bind-Value="@ordenCompra.Notas" />
+                </div>
+
+                <div class="d-flex justify-content-between mx-5 mt-3 mb-5">
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">Subtotal General</label>
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Subtotal.ToString("N2")</span>
+                        </label>
+                    </div>
+
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">ITBIS</label><br />
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Impuestos.ToString("N2")</span>
+                        </label>
+                    </div>
+
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">Total de la Orden</label>
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Total.ToString("N2")</span>
+                        </label>
                     </div>
                 </div>
             </div>
-            <h3 class=" text-center mb-5">Crear Orden de Compra</h3>
-        </div>
-        <div class="container">
-            <div class="mb-3 mx-5">
-                <label class="form-label fs-4">Título</label>
-                <InputText type="text" class="form-control" placeholder="Ingrese el título de la orden de compra" required @bind-Value="ordenCompra.Titulo" />
-            </div>
-            <div class="mb-3 mx-5">
-                <label class="form-label fs-4">Numero de Orden de Compra</label>
-                <InputText class="form-control" placeholder="Ingrese el número de la orden de compra" required @bind-Value="ordenCompra.NumeroOrden" />
-            </div>
 
-            <div class="mb-3 mx-5">
-                <label class="form-label fs-4">Proveedor</label>
-                <InputSelect class="form-select" @bind-Value="ordenCompra.ProveedorId">
-                    <option value="">Seleccione un proveedor</option>
-                    @foreach (var proveedor in proveedores)
-                    {
-                        <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
-                    }
-                </InputSelect>
-            </div>
-            <div class="mb-3 mx-5">
-                <label class="form-label fs-4">Fecha de entrega estimada</label>
-                <InputDate class="form-control mb-2" @bind-Value="ordenCompra.FechaEntregaEstimada" />
-            </div>
-            <div class=" mx-5">
-                <label class="form-label fs-4">Agregar productos</label>
-                <table class="table table-hover">
-                    <thead class="table table-striped text-black">
-                        <tr>
-                            <th>Producto Id</th>
-                            <th>Nombre</th>
-                            <th>Marca</th>
-                            <th>Precio de Compra</th>
-                            <th>Cantidad</th>
-                            <th>Eliminar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var detalle in ordenCompra.Detalles)
-                        {
-                            <tr>
-                                <td>@detalle.Producto?.ProductoId</td> @* Added null-conditional operator *@
-                                <td>@detalle.Producto?.Nombre</td> @* Added null-conditional operator *@
-                                <td>@(detalle.Producto?.Marca?.Nombre ?? "-")</td> @* Defensive check for Producto and Marca *@
-                                <td>@detalle.PrecioCompraUnitario</td>
-                                <td>
-                                    <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
-                                </td>
-                                <td>
-                                    <button class="btn btn-danger bi bi-trash shadow-sm"
-                                            @onclick="() => QuitarProducto(detalle)">
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+            <div class="container mb-5 d-flex justify-content-center">
 
-            <div class="d-flex justify-content-end mb-3  mx-5">
-                <button type="button" class="btn btn-primary bi bi-plus-circle shadow-sm" @onclick="() => MostrarModal = true">
-                    Agregar
-                </button>
-            </div>
-
-            <div class="mb-5 mx-5">
-                <label class="form-label fs-4 ">Notas Adicionales</label>
-                <InputTextArea type="text" class="form-control" placeholder="" @bind-Value="@ordenCompra.Notas" />
-            </div>
-
-            <div class="d-flex justify-content-between mx-5 mt-3 mb-5">
-                <div class="col-3 mx-5 text-center">
-                    <label class="form-label fs-4">Subtotal General</label>
-                    <label class="form-label">
-                        <strong>RD$</strong>
-                        <span class="text-success">@ordenCompra.Subtotal.ToString("N2")</span>
-                    </label>
-                </div>
-
-                <div class="col-3 mx-5 text-center">
-                    <label class="form-label fs-4">ITBIS</label><br />
-                    <label class="form-label">
-                        <strong>RD$</strong>
-                        <span class="text-success">@ordenCompra.Impuestos.ToString("N2")</span>
-                    </label>
-                </div>
-
-                <div class="col-3 mx-5 text-center">
-                    <label class="form-label fs-4">Total de la Orden</label>
-                    <label class="form-label">
-                        <strong>RD$</strong>
-                        <span class="text-success">@ordenCompra.Total.ToString("N2")</span>
-                    </label>
-                </div>
+                <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm "> Cancelar</a>
+                <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2"> Guardar</button>
+                <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir"> Imprimir</button>
             </div>
         </div>
+    }
 
-        <div class="container mb-5 d-flex justify-content-center">
-
-            <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm "> Cancelar</a>
-            <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2"> Guardar</button>
-            <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir"> Imprimir</button>
-        </div>
-    </div>
 
 </EditForm>
 
@@ -171,7 +185,7 @@
                     <button type="button" class="btn-close" @onclick="() => MostrarModal = false" aria-label="Cerrar"></button>
                 </div>
 
-                <div class="modal-body mb-3">
+                <div class="modal-body mb-3" style="height: 400px; overflow-y: auto;">
                     <div class="row">
                         <div class="col-3">
                             <InputSelect class="form-select col-3" @bind-Value="valorSelect">
@@ -182,42 +196,43 @@
                         <div class="col-4">
                             <div class="input-group">
                                 <input class="form-control" @bind="valorBuscado" />
-                                <button type="button" class="btn btn-success">
+                                <button type="button" class="btn btn-success" @onclick="BuscarProductos">
                                     Buscar
                                 </button>
                             </div>
                         </div>
 
                     </div>
-
-                    <table class="table table-hover">
-                        <thead class="table table-striped text-black">
-                            <tr>
-                                <th>Producto Id</th>
-                                <th>Nombre</th>
-                                <th>Categoria</th>
-                                <th>Marca</th>
-                                <th>Precio de Compra</th>
-                                <th>Agregar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var producto in productos)
-                            {
+                    <div style="height: 300px; overflow-y: auto; margin-top: 15px;">
+                        <table class="table table-hover">
+                            <thead class="table table-striped text-black" style="position: sticky; top: 0; z-index: 1;">
                                 <tr>
-                                    <td>@producto.ProductoId</td>
-                                    <td>@producto.Nombre</td>
-                                    <td>@producto.Categoria?.Nombre</td> @* Added null-conditional operator *@
-                                    <td>@producto.Marca?.Nombre</td> @* Added null-conditional operator *@
-                                    <td>@producto.PrecioCompra</td>
-                                    <td>
-                                        <button type="button" class="btn btn-outline-primary bi bi-plus shadow-sm"
-                                                @onclick="() => AgregarProducto(producto)"></button>
-                                    </td>
+                                    <th>Producto Id</th>
+                                    <th>Nombre</th>
+                                    <th>Categoria</th>
+                                    <th>Marca</th>
+                                    <th>Precio de Compra</th>
+                                    <th>Agregar</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach (var producto in productos)
+                                {
+                                    <tr>
+                                        <td>@producto.ProductoId</td>
+                                        <td>@producto.Nombre</td>
+                                        <td>@producto.Categoria?.Nombre</td>
+                                        <td>@producto.Marca?.Nombre</td>
+                                        <td>@producto.PrecioCompra</td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-primary bi bi-plus shadow-sm"
+                                                    @onclick="() => AgregarProducto(producto)"></button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
 
                 </div>
 
@@ -246,6 +261,7 @@
     List<Producto> productos { get; set; } = new List<Producto>();
 
     private Boolean MostrarModal = false;
+    private Boolean isLoading = true;
 
     string valorBuscado { get; set; } = string.Empty;
     string valorSelect { get; set; } = "ProductoId";
@@ -253,8 +269,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Ensure your productoService.Listar method eager loads Marca and Categoria
-        // Example: return await _context.Productos.Include(p => p.Marca).Include(p => p.Categoria).Where(predicate).ToListAsync();
+        isLoading = true;
         productos = await productoService.Listar(p => true);
         proveedores = await proveedorService.Listar(p => true);
 
@@ -265,6 +280,7 @@
         {
             ordenCompra.UsuarioId = int.Parse(user.FindFirst("UsuarioId")?.Value ?? "0");
         }
+        isLoading = false;
     }
 
 
@@ -299,8 +315,6 @@
             var guardado = await comprasService.Guardar(ordenCompra);
             if (guardado)
             {
-                // NO MOVER el Task.Delay, pero MOVER el toast a la página de Index
-                // Esto elimina la carrera de la JSDisconnectedException
                 toastService.ShowSuccess("Orden Creada");
 
             }
@@ -336,6 +350,24 @@
     private void Imprimir()
     {
         toastService.ShowInfo("Impresión en curso...");
+    }
+
+    private async Task BuscarProductos()
+    {
+        if (string.IsNullOrWhiteSpace(valorBuscado))
+        {
+            productos = await productoService.Listar(p => true);
+            return;
+        }
+
+        productos = valorSelect switch
+        {
+            "ProductoId" => await productoService.Listar(p => p.ProductoId.ToString().Contains(valorBuscado)),
+            "Nombre" => await productoService.Listar(p => p.Nombre.Contains(valorBuscado)),
+            _ => await productoService.Listar(p => p.Nombre.Contains(valorBuscado))
+        };
+
+        StateHasChanged();
     }
 
     private void CerrarModal()
