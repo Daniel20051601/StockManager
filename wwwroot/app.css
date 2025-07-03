@@ -162,6 +162,10 @@ body {
     flex-direction: column;
 }
 
+.imgLogin {
+    object-fit: contain;
+}
+
 .login-container {
     width: 100vw;
     height: 100vh;
@@ -322,6 +326,7 @@ body {
 .dropdown-menu {
     font-size: 0.9rem;
 }
+/* Clases de estado para órdenes de compra */
 .estado-orden {
     width: 15px;
     height: 15px;
@@ -329,22 +334,34 @@ body {
     display: inline-block;
 }
 
-.estado-pendiente {
-    background-color: var(--bs-warning);
+/* Versión con mayor especificidad para evitar conflictos */
+.card .card-body .estado-orden.estado-creada {
+    background-color: var(--bs-primary) !important;
 }
 
-.estado-aceptada {
-    background-color: var(--bs-success);
+.card .card-body .estado-orden.estado-revisada {
+    background-color: var(--bs-warning) !important;
 }
 
-.estado-cancelada {
-    background-color: var(--bs-danger);
+.card .card-body .estado-orden.estado-aprovada {
+    background-color: var(--bs-success) !important;
 }
 
-.estado-default {
-    background-color: var(--bs-secondary);
+.card .card-body .estado-orden.estado-procesada {
+    background-color: var(--bs-info) !important;
 }
 
+.card .card-body .estado-orden.estado-liquidada {
+    background-color: var(--bs-success) !important;
+}
+
+.card .card-body .estado-orden.estado-cancelada {
+    background-color: var(--bs-danger) !important;
+}
+
+.card .card-body .estado-orden.estado-default {
+    background-color: var(--bs-secondary) !important;
+}
 .btn-custom-primary {
     display: inline-block;
     font-weight: 400;
