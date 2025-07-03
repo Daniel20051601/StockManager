@@ -1,4 +1,4 @@
-﻿@page "/Compras/Create"
+@page "/Compras/Create"
 @inject IToastService toastService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
@@ -21,14 +21,12 @@
     }
     else
     {
-
         <div>
             <div class="header-section mt-5">
                 <div class="row d-flex justify-content-between">
                     <div class="col-auto">
                         <h3 class="fw-semibold">Compras</h3>
                     </div>
-
                     <div class="col-auto mb-3">
                         <div class="d-flex justify-content-around">
                             <div class="dropdown">
@@ -171,8 +169,6 @@
             </div>
         </div>
     }
-
-
 </EditForm>
 
 @if (MostrarModal)

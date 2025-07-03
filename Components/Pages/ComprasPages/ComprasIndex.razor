@@ -1,4 +1,4 @@
-﻿@page "/Compras/Index"
+@page "/Compras/Index"
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -143,15 +143,15 @@ else
                             <div class="d-flex justify-content-between align-items-start">
                                 <h5 class="card-subtitle mb-2 text-muted">@ordenCompra.Titulo</h5>
                                 <div class="estado-orden @(ordenCompra.EstadoOrdenCompra?.Nombre?.ToLower() switch {
-    "creada" => "estado-creada",
-    "revisada" => "estado-revisada", 
-    "aprovada" => "estado-aprovada",
-    "procesada" => "estado-procesada",
-    "liquidada" => "estado-liquidada",
-    "cancelada" => "estado-cancelada",
-    _ => "estado-default"
-})">
-</div>
+                                    "creada" => "estado-creada",
+                                    "revisada" => "estado-revisada", 
+                                    "aprovada" => "estado-aprovada",
+                                    "procesada" => "estado-procesada",
+                                    "liquidada" => "estado-liquidada",
+                                    "cancelada" => "estado-cancelada",
+                                    _ => "estado-default"
+                                })">
+                                </div>
                             </div>
                             
                             <h6 class="card-title">@ordenCompra.NumeroOrden</h6>
@@ -168,7 +168,6 @@ else
                                     <i class="bi bi-person"></i>
                                     <small class="text-muted ms-2">@ordenCompra.Usuario?.Nombre</small>
                                 </p>
-
                                 <p class="mb-1">
                                     <i class="bi bi-truck"></i>
                                     <small class="text-muted ms-2">Entrega: @ordenCompra.FechaEntregaEstimada.ToString("dd/MM/yyyy")</small>
@@ -236,7 +235,6 @@ else
     public string Cancelada = "Cancelada";
     public string Liquidada = "Liquidada";
 
-
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
@@ -251,7 +249,6 @@ else
             {
                 toastService.ShowSuccess("Orden de compra guardada exitosamente.");
             }
-
             NavigationManager.NavigateTo("/Compras/Index", replace: true);
         }
 
@@ -277,12 +274,12 @@ else
             _ => TodasLasOrdenes
         };
 
-    // Aplicar filtros adicionales si existen
-    OrdenesCompraFiltradas = AplicarFiltrosAdicionales(ordenesFiltradas);
+        // Aplicar filtros adicionales si existen
+        OrdenesCompraFiltradas = AplicarFiltrosAdicionales(ordenesFiltradas);
 
-    paginaActual = 1;
-    ActualizarPaginacion();
-}
+        paginaActual = 1;
+        ActualizarPaginacion();
+    }
 
     private List<OrdenCompra> AplicarFiltrosAdicionales(List<OrdenCompra> ordenes)
     {
@@ -332,60 +329,59 @@ else
     }
 
     private void Buscar()
-{
-    // Aplicar filtros específicos del dropdown
-    var ordenesFiltradas = filtro switch
     {
-        "Resumen" => TodasLasOrdenes,
-        "Creada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "creada").ToList(),
-        "Revisada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "revisada").ToList(),
-        "Aprovada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aprovada").ToList(),
-        "Procesada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "procesada").ToList(),
-        "Liquidada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "liquidada").ToList(),
-        "Cancelada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
-        _ => TodasLasOrdenes
-    };
-
-    // Aplicar filtros específicos del dropdown
-    var resultado = ordenesFiltradas.AsEnumerable();
-
-    // Filtro por tipo seleccionado en radio buttons
-    if (!string.IsNullOrEmpty(terminoBusqueda))
-    {
-        resultado = filtroSeleccionado switch
+        // Aplicar filtros específicos del dropdown
+        var ordenesFiltradas = filtro switch
         {
-            "titulo" => resultado.Where(o => o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
-            "numero" => resultado.Where(o => o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
-            "proveedor" => resultado.Where(o => o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
-            _ => resultado.Where(o => 
-                (o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false)
-            )
+            "Resumen" => TodasLasOrdenes,
+            "Creada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "creada").ToList(),
+            "Revisada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "revisada").ToList(),
+            "Aprovada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "aprovada").ToList(),
+            "Procesada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "procesada").ToList(),
+            "Liquidada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "liquidada").ToList(),
+            "Cancelada" => TodasLasOrdenes.Where(o => o.EstadoOrdenCompra?.Nombre?.ToLower() == "cancelada").ToList(),
+            _ => TodasLasOrdenes
         };
-    }
 
-    // Filtro por fecha
-    if (fechaDesde.HasValue)
-    {
-        resultado = resultado.Where(o => o.FechaCreacion >= fechaDesde.Value);
-    }
+        var resultado = ordenesFiltradas.AsEnumerable();
 
-    if (fechaHasta.HasValue)
-    {
-        resultado = resultado.Where(o => o.FechaCreacion <= fechaHasta.Value);
-    }
+        // Filtro por tipo seleccionado en radio buttons
+        if (!string.IsNullOrEmpty(terminoBusqueda))
+        {
+            resultado = filtroSeleccionado switch
+            {
+                "titulo" => resultado.Where(o => o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
+                "numero" => resultado.Where(o => o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
+                "proveedor" => resultado.Where(o => o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false),
+                _ => resultado.Where(o => 
+                    (o.Titulo?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (o.NumeroOrden?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (o.Proveedor?.Nombre?.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ?? false)
+                )
+            };
+        }
 
-    // Filtro por precio
-    if (precio < 1000000)
-    {
-        resultado = resultado.Where(o => o.Total <= precio);
-    }
+        // Filtro por fecha
+        if (fechaDesde.HasValue)
+        {
+            resultado = resultado.Where(o => o.FechaCreacion >= fechaDesde.Value);
+        }
 
-    OrdenesCompraFiltradas = resultado.ToList();
-    paginaActual = 1;
-    ActualizarPaginacion();
-}
+        if (fechaHasta.HasValue)
+        {
+            resultado = resultado.Where(o => o.FechaCreacion <= fechaHasta.Value);
+        }
+
+        // Filtro por precio
+        if (precio < 1000000)
+        {
+            resultado = resultado.Where(o => o.Total <= precio);
+        }
+
+        OrdenesCompraFiltradas = resultado.ToList();
+        paginaActual = 1;
+        ActualizarPaginacion();
+    }
 
     private void BuscarPorTexto()
     {
