@@ -26,16 +26,18 @@
             <h3 class="fw-semibold">Proveedores</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." @bind="searchTerm" @oninput="OnSearchChanged" />
+            <div class="input-group" style="width: 300px;">
+                <input class="form-control shadow-sm text-secondary" placeholder="Buscar..." @bind="searchTerm" @onkeypress="OnKeyPress" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="OnSearchClick">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
         </div>
     </div>
 
     <div class="row d-flex justify-content-between mb-5">
         <div class="col-auto">
-            <button type="button" class="btn btn-outline">Resumen</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Solicitudes</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Notificaciones</button>
         </div>
         <div class="col-auto">
             <div class="d-flex align-items-center">
@@ -44,12 +46,12 @@
                 </a>
                 <div class="dropdown ms-3">
                     <button class="btn btn-outline dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                        Estado
+                        Estado (@GetStatusDisplayText())
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("activo")'>Activos</a></li>
-                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("inactivo")'>Inactivos</a></li>
-                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("todos")'>Todos</a></li>
+                        <li><button class="dropdown-item @(statusFilter == "activo" ? "active" : "")" @onclick='() => FilterByStatus("activo")'>Activos</button></li>
+                        <li><button class="dropdown-item @(statusFilter == "inactivo" ? "active" : "")" @onclick='() => FilterByStatus("inactivo")'>Inactivos</button></li>
+                        <li><button class="dropdown-item @(statusFilter == "todos" ? "active" : "")" @onclick='() => FilterByStatus("todos")'>Todos</button></li>
                     </ul>
                 </div>
             </div>
@@ -59,6 +61,7 @@
     <div class="row mb-3">
         <div class="col">
             <h5 class="fw-semibold text-dark">Lista de proveedores</h5>
+            <small class="text-muted">Mostrando @filteredProveedores.Count de @totalRegistros proveedores</small>
         </div>
     </div>
 
@@ -77,28 +80,39 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var proveedor in filteredProveedores)
+                @if (filteredProveedores.Any())
+                {
+                    @foreach (var proveedor in filteredProveedores)
+                    {
+                        <tr>
+                            <td>@proveedor.Nombre</td>
+                            <td>@proveedor.NombreContacto</td>
+                            <td>@proveedor.Telefono</td>
+                            <td>@proveedor.Email</td>
+                            <td>@proveedor.Direccion</td>
+                            <td>
+                                <span class="badge @(IsProveedorActivo(proveedor) ? "bg-success" : "bg-secondary")">
+                                    @(IsProveedorActivo(proveedor) ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td><span class="badge bg-light text-dark">@GetCantidadProductos(proveedor.ProveedorId)</span></td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/Proveedores/Editar/@proveedor.ProveedorId">Editar</a></li>
+                                        <li><button class="dropdown-item text-danger" @onclick="() => EliminarProveedor(proveedor.ProveedorId)">Eliminar</button></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@proveedor.Nombre</td>
-                        <td>@proveedor.NombreContacto</td>
-                        <td>@proveedor.Telefono</td>
-                        <td>@proveedor.Email</td>
-                        <td>@proveedor.Direccion</td>
-                        <td>
-                            <span class="badge @(proveedor.EstadoProveedorId == 1 ? "bg-success" : "bg-secondary")">
-                                @(proveedor.EstadoProveedorId == 1 ? "Activo" : "Inactivo")
-                            </span>
-                        </td>
-                        <td><span class="badge bg-light text-dark">@GetCantidadProductos(proveedor.ProveedorId)</span></td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/Proveedores/Editar/@proveedor.ProveedorId">Editar</a></li>
-                                    <li><button class="dropdown-item text-danger" @onclick="() => EliminarProveedor(proveedor.ProveedorId)">Eliminar</button></li>
-                                </ul>
-                            </div>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No se encontraron proveedores que coincidan con los filtros aplicados.
                         </td>
                     </tr>
                 }
@@ -106,39 +120,46 @@
         </table>
     </div>
 
-    <div class="d-flex justify-content-end mt-3">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
-                    <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
-                </li>
-                @for (int i = 1; i <= totalPaginas; i++)
-                {
-                    <li class="page-item @(paginaActual == i ? "active" : "")">
-                        <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+    @if (totalPaginas > 1)
+    {
+        <div class="d-flex justify-content-end mt-3">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
                     </li>
-                }
-                <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
-                    <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
-                </li>
-            </ul>
-        </nav>
-    </div>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(paginaActual == i ? "active" : "")">
+                            <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 
 </div>
 
 @code {
     private List<Proveedor> proveedores = new();
     private List<Proveedor> filteredProveedores = new();
+    private List<EstadoProveedor> estadosProveedor = new();
     private string searchTerm = string.Empty;
     private string statusFilter = "todos";
     private int paginaActual = 1;
     private int totalPaginas;
     private int cantidadPorPagina = 10;
+    private int totalRegistros;
+    private int estadoActivoId = 1; 
 
     protected override async Task OnInitializedAsync()
     {
         NavigationManager.LocationChanged += HandleLocationChanged;
+        await CargarEstadosProveedor();
         await CargarProveedores();
     }
 
@@ -159,6 +180,20 @@
         NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 
+    private async Task CargarEstadosProveedor()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        estadosProveedor = await contexto.EstadosProveedores.ToListAsync();
+
+        var estadoActivo = estadosProveedor.FirstOrDefault(e =>
+            e.Nombre.Equals("Activo", StringComparison.OrdinalIgnoreCase));
+
+        if (estadoActivo != null)
+        {
+            estadoActivoId = estadoActivo.EstadoProveedorId;
+        }
+    }
+
     private async Task CargarProveedores()
     {
         await using var contexto = await DbContextFactory.CreateDbContextAsync();
@@ -175,15 +210,21 @@
 
         if (statusFilter == "activo")
         {
-            query = query.Where(p => p.EstadoProveedorId == 1);
+            query = query.Where(p => p.EstadoProveedorId == estadoActivoId);
         }
         else if (statusFilter == "inactivo")
         {
-            query = query.Where(p => p.EstadoProveedorId != 1);
+            query = query.Where(p => p.EstadoProveedorId != estadoActivoId);
         }
 
-        var totalRegistros = await query.CountAsync();
+
+        totalRegistros = await query.CountAsync();
         totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
+
+        if (paginaActual > totalPaginas && totalPaginas > 0)
+        {
+            paginaActual = totalPaginas;
+        }
 
         proveedores = await query
             .Include(p => p.EstadoProveedor)
@@ -198,15 +239,31 @@
     private async Task OnSearchChanged(ChangeEventArgs e)
     {
         searchTerm = e.Value?.ToString() ?? string.Empty;
-        paginaActual = 1; 
+        paginaActual = 1;
         await CargarProveedores();
+    }
+
+    private async Task OnSearchClick()
+    {
+        paginaActual = 1;
+        await CargarProveedores();
+        StateHasChanged();
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await OnSearchClick();
+        }
     }
 
     private async Task FilterByStatus(string status)
     {
         statusFilter = status;
-        paginaActual = 1; 
+        paginaActual = 1;
         await CargarProveedores();
+        StateHasChanged();
     }
 
     private async Task PaginaAnterior()
@@ -247,8 +304,22 @@
 
     private int GetCantidadProductos(int proveedorId)
     {
-
         using var contexto = DbContextFactory.CreateDbContext();
         return contexto.OrdenesCompras.Count(o => o.ProveedorId == proveedorId);
+    }
+
+    private bool IsProveedorActivo(Proveedor proveedor)
+    {
+        return proveedor.EstadoProveedorId == estadoActivoId;
+    }
+
+    private string GetStatusDisplayText()
+    {
+        return statusFilter switch
+        {
+            "activo" => "Activos",
+            "inactivo" => "Inactivos",
+            _ => "Todos"
+        };
     }
 }
