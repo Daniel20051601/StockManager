@@ -5,111 +5,145 @@
 @inject IDbContextFactory<Contexto> DbContextFactory
 @inject NavigationManager NavigationManager
 @inject ProductoService productoService
+@inject ProveedorService proveedorService
 @inject IToastService toastService
 @rendermode InteractiveServer
 
 <PageTitle>Registrar Producto</PageTitle>
 
-<EditForm Model="producto" OnValidSubmit="GuardarProducto">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+}
+else
+{
+    <EditForm Model="producto" OnValidSubmit="GuardarProducto">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-    <div class="container mt-4">
-        <h3 class="fw-semibold">Producto</h3>
+        <div class="container mt-4">
+            <h3 class="fw-semibold">Producto</h3>
 
-        <div class="row mt-4">
-
-            <div class="col-md-7">
-                <div class="card shadow-sm">
-                    <div class="card-header">
-                        <strong>Registrar Producto</strong>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label"><strong>ProductoId</strong></label>
-                            <InputNumber class="form-control" @bind-Value="producto.ProductoId" readonly></InputNumber>
+            <div class="row mt-4">
+                <div class="col-md-7">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <strong>Registrar Producto</strong>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Categoría</label>
-                            <select class="form-select" @bind="producto.CategoriaId">
-                                <option value="">-- Selecciona una categoría --</option>
-                                @foreach (var cat in categorias)
-                                {
-                                    <option value="@cat.CategoriaId">@cat.Nombre</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Producto</label>
-                            <input class="form-control" @bind="producto.Nombre" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Proveedor</label>
-                            <input class="form-control" @bind="producto.Proveedor" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Marca</label>
-                            <select class="form-select" @bind="producto.MarcaId">
-                                <option value="">-- Selecciona una marca --</option>
-                                @foreach (var mar in marcas)
-                                {
-                                    <option value="@mar.MarcaId">@mar.Nombre</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Stock</label>
-                            <input type="number" class="form-control" @bind="producto.Stock" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Descripción</label>
-                            <textarea class="form-control" @bind="producto.Descripcion"></textarea>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <label class="form-label">Precio de compra</label>
-                                <input type="number" class="form-control" step="0.01" @bind="producto.PrecioCompra" />
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>ProductoId</strong></label>
+                                <InputNumber class="form-control" @bind-Value="producto.ProductoId" readonly />
                             </div>
-                            <div class="col">
-                                <label class="form-label">Precio de venta</label>
-                                <input type="number" class="form-control" step="0.01" @bind="producto.PrecioVenta" />
+
+                            <div class="mb-3">
+                                <label class="form-label">Categoría</label>
+                                <select class="form-select" @bind="producto.CategoriaId">
+                                    <option value="">-- Selecciona una categoría --</option>
+                                    @foreach (var cat in categorias)
+                                    {
+                                        <option value="@cat.CategoriaId">@cat.Nombre</option>
+                                    }
+                                </select>
                             </div>
-                        </div>
-                        <div class="mt-4 d-flex justify-content-center">
-                            <a href="/Productos/Index" class="btn btn-outline-danger">
-                                <span class="bi bi-arrow-left"></span> Volver
-                            </a>
-                            <button type="submit" class="btn btn-outline-success bi bi-floppy"> Guardar</button>
-                            <button type="button" class="btn btn-outline-primary bi bi-plus" @onclick="Nuevo"> Limpiar</button>
+
+                            <div class="mb-3">
+                                <label class="form-label">Producto</label>
+                                <InputText class="form-control" @bind-Value="producto.Nombre" />
+                                <ValidationMessage For="@(() => producto.Nombre)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Proveedor</label>
+                                <InputSelect class="form-select" @bind-Value="producto.ProveedorId">
+                                    <option value="">-- Selecciona un proveedor --</option>
+                                    @foreach (var proveedor in proveedores)
+                                    {
+                                        <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.ProveedorId)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Marca</label>
+                                <select class="form-select" @bind="producto.MarcaId">
+                                    <option value="">-- Selecciona una marca --</option>
+                                    @foreach (var mar in marcas)
+                                    {
+                                        <option value="@mar.MarcaId">@mar.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Stock</label>
+                                <InputNumber class="form-control" @bind-Value="producto.Stock" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <InputTextArea class="form-control" @bind-Value="producto.Descripcion" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <label class="form-label">Precio de compra</label>
+                                    <InputNumber class="form-control" step="0.01" @bind-Value="producto.PrecioCompra" />
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Precio de venta</label>
+                                    <InputNumber class="form-control" step="0.01" @bind-Value="producto.PrecioVenta" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-center">
+                                <a href="/Productos/Index" class="btn btn-outline-danger">
+                                    <span class="bi bi-arrow-left"></span> Volver
+                                </a>
+                                <button type="submit" class="btn btn-outline-success bi bi-floppy ms-2"> Guardar</button>
+                                <button type="button" class="btn btn-outline-primary bi bi-plus ms-2" @onclick="Nuevo"> Limpiar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
-                <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
-                    <i class="bi bi-image fs-1 text-muted"></i>
-                    <p class="text-muted">Subir Imagen</p>
-                    <InputFile OnChange="SubirImagen" />
+                <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
+                    <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
+                        <i class="bi bi-image fs-1 text-muted"></i>
+                        <p class="text-muted">Subir Imagen</p>
+                        <InputFile OnChange="SubirImagen" />
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</EditForm>
+    </EditForm>
+}
 
 @code {
     public Producto producto { get; set; } = new Producto();
+
     private List<Categoria> categorias = new();
     private List<Marca> marcas = new();
+    private List<Proveedor> proveedores = new();
+    private string imagenNombre = string.Empty;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
+
         await using var contexto = await DbContextFactory.CreateDbContextAsync();
         categorias = await contexto.Categorias.ToListAsync();
         marcas = await contexto.Marcas.ToListAsync();
-    }
+        proveedores = await proveedorService.Listar(p => true);
 
-    private string imagenNombre = string.Empty;
+        isLoading = false;
+    }
 
     private async Task SubirImagen(InputFileChangeEventArgs e)
     {
@@ -119,8 +153,8 @@
         {
             var nombreUnico = $"{Guid.NewGuid()}_{archivo.Name}";
             var ruta = Path.Combine("wwwroot", "imagenes", "productos", nombreUnico);
-
             var pathAbsoluto = Path.Combine(Directory.GetCurrentDirectory(), ruta);
+
             Directory.CreateDirectory(Path.GetDirectoryName(pathAbsoluto)!);
 
             using (var stream = File.Create(pathAbsoluto))
@@ -152,9 +186,7 @@
                 }
             }
 
-            
             toastService.ShowSuccess("Producto creado exitosamente.");
-
             Nuevo();
         }
         else

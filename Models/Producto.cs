@@ -13,7 +13,11 @@ namespace StockManager.Models
 
         [Required, MaxLength(100)]
         public string Nombre { get; set; } = null!;
-        public string Proveedor { get; set; } = string.Empty;
+        [ForeignKey("Proveedor")]
+        public int ProveedorId { get; set; }
+        
+        public Proveedor Proveedor { get; set; } = null!;
+
         public string Descripcion { get; set; } = null!;
 
         [ForeignKey("Categoria")]
