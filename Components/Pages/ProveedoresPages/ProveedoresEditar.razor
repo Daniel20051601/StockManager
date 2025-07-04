@@ -145,57 +145,49 @@
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger" />
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="nombreProveedor" class="form-label required-field">Nombre del Proveedor</label>
-                        <InputText @bind-Value="proveedor.Nombre" class="form-control" id="nombreProveedor" />
-                        <ValidationMessage For="() => proveedor.Nombre" class="text-danger" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="contacto" class="form-label required-field">Persona de Contacto</label>
-                        <InputText @bind-Value="proveedor.NombreContacto" class="form-control" id="contacto" />
-                        <ValidationMessage For="() => proveedor.NombreContacto" class="text-danger" />
-                    </div>
+                <div class="mb-3">
+                    <label for="nombreProveedor" class="form-label required-field">Nombre del Proveedor</label>
+                    <InputText @bind-Value="proveedor.Nombre" class="form-control" id="nombreProveedor" />
+                    <ValidationMessage For="() => proveedor.Nombre" class="text-danger" />
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="telefono" class="form-label required-field">Teléfono</label>
-                        <InputText @bind-Value="proveedor.Telefono" class="form-control" id="telefono" />
-                        <ValidationMessage For="() => proveedor.Telefono" class="text-danger" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="email" class="form-label required-field">Email</label>
-                        <InputText @bind-Value="proveedor.Email" class="form-control" id="email" type="email" />
-                        <ValidationMessage For="() => proveedor.Email" class="text-danger" />
-                    </div>
+                <div class="mb-3">
+                    <label for="contacto" class="form-label required-field">Persona de Contacto</label>
+                    <InputText @bind-Value="proveedor.NombreContacto" class="form-control" id="contacto" />
+                    <ValidationMessage For="() => proveedor.NombreContacto" class="text-danger" />
                 </div>
 
-                <div class="row">
-                    <div class="col-md-8 mb-3">
-                        <label for="direccion" class="form-label required-field">Dirección</label>
-                        <InputText @bind-Value="proveedor.Direccion" class="form-control" id="direccion" />
-                        <ValidationMessage For="() => proveedor.Direccion" class="text-danger" />
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="estado" class="form-label required-field">Estado</label>
-                        <InputSelect @bind-Value="proveedor.EstadoProveedorId" class="form-select" id="estado" @onchange="OnEstadoChanged">
-                            @foreach (var estado in estadosProveedor)
-                            {
-                                <option value="@estado.EstadoProveedorId">@estado.Nombre</option>
-                            }
-                        </InputSelect>
-                    </div>
+                <div class="mb-3">
+                    <label for="telefono" class="form-label required-field">Teléfono</label>
+                    <InputText @bind-Value="proveedor.Telefono" class="form-control" id="telefono" />
+                    <ValidationMessage For="() => proveedor.Telefono" class="text-danger" />
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="rnc" class="form-label">RNC/Cédula</label>
-                        <InputText @bind-Value="proveedor.RNC" class="form-control" id="rnc" placeholder="Ej: 130-12345-6" />
-                    </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label required-field">Email</label>
+                    <InputText @bind-Value="proveedor.Email" class="form-control" id="email" type="email" />
+                    <ValidationMessage For="() => proveedor.Email" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="direccion" class="form-label required-field">Dirección</label>
+                    <InputText @bind-Value="proveedor.Direccion" class="form-control" id="direccion" />
+                    <ValidationMessage For="() => proveedor.Direccion" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="estado" class="form-label required-field">Estado</label>
+                    <InputSelect @bind-Value="proveedor.EstadoProveedorId" class="form-select" id="estado" @onchange="OnEstadoChanged">
+                        @foreach (var estado in estadosProveedor)
+                        {
+                            <option value="@estado.EstadoProveedorId">@estado.Nombre</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label for="rnc" class="form-label">RNC/Cédula</label>
+                    <InputText @bind-Value="proveedor.RNC" class="form-control" id="rnc" placeholder="Ej: 130-12345-6" />
                 </div>
 
                 <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
