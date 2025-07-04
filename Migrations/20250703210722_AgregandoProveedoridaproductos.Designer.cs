@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StockManager.Dal;
@@ -11,9 +12,11 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250703210722_AgregandoProveedoridaproductos")]
+    partial class AgregandoProveedoridaproductos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -536,8 +539,9 @@ namespace StockManager.Migrations
                     b.Property<decimal>("PrecioVenta")
                         .HasColumnType("numeric");
 
-                    b.Property<int>("ProveedorId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Proveedor")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
@@ -552,8 +556,6 @@ namespace StockManager.Migrations
                     b.HasIndex("EstadoProductoId");
 
                     b.HasIndex("MarcaId");
-
-                    b.HasIndex("ProveedorId");
 
                     b.ToTable("productos");
                 });
@@ -883,19 +885,11 @@ namespace StockManager.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StockManager.Models.Proveedor", "Proveedor")
-                        .WithMany()
-                        .HasForeignKey("ProveedorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Categoria");
 
                     b.Navigation("EstadoProducto");
 
                     b.Navigation("Marca");
-
-                    b.Navigation("Proveedor");
                 });
 
             modelBuilder.Entity("StockManager.Models.Proveedor", b =>
