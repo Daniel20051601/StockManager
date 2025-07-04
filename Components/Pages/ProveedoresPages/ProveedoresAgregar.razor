@@ -132,13 +132,15 @@
             <ValidationSummary class="text-danger" />
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label for="nombreProveedor" class="form-label required-field">Nombre del Proveedor</label>
                     <InputText @bind-Value="nuevoProveedor.Nombre" class="form-control" id="nombreProveedor" placeholder="Ingrese el nombre del proveedor" />
                     <ValidationMessage For="() => nuevoProveedor.Nombre" class="text-danger" />
                 </div>
+            </div>
 
-                <div class="col-md-6 mb-3">
+            <div class="row">
+                <div class="col-12 mb-3">
                     <label for="contacto" class="form-label required-field">Persona de Contacto</label>
                     <InputText @bind-Value="nuevoProveedor.NombreContacto" class="form-control" id="contacto" placeholder="Nombre del contacto principal" />
                     <ValidationMessage For="() => nuevoProveedor.NombreContacto" class="text-danger" />
@@ -146,13 +148,15 @@
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label for="telefono" class="form-label required-field">Teléfono</label>
                     <InputText @bind-Value="nuevoProveedor.Telefono" class="form-control" id="telefono" placeholder="(809) 555-0000" />
                     <ValidationMessage For="() => nuevoProveedor.Telefono" class="text-danger" />
                 </div>
+            </div>
 
-                <div class="col-md-6 mb-3">
+            <div class="row">
+                <div class="col-12 mb-3">
                     <label for="email" class="form-label required-field">Email</label>
                     <InputText @bind-Value="nuevoProveedor.Email" class="form-control" id="email" type="email" placeholder="contacto@proveedor.com" />
                     <ValidationMessage For="() => nuevoProveedor.Email" class="text-danger" />
@@ -160,13 +164,15 @@
             </div>
 
             <div class="row">
-                <div class="col-md-8 mb-3">
+                <div class="col-12 mb-3">
                     <label for="direccion" class="form-label required-field">Dirección</label>
                     <InputText @bind-Value="nuevoProveedor.Direccion" class="form-control" id="direccion" placeholder="Dirección completa del proveedor" />
                     <ValidationMessage For="() => nuevoProveedor.Direccion" class="text-danger" />
                 </div>
+            </div>
 
-                <div class="col-md-4 mb-3">
+            <div class="row">
+                <div class="col-12 mb-3">
                     <label for="estado" class="form-label required-field">Estado</label>
                     <InputSelect @bind-Value="nuevoProveedor.EstadoProveedorId" class="form-select" id="estado">
                         @foreach (var estado in estadosProveedor)
@@ -178,7 +184,7 @@
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label for="rnc" class="form-label">RNC/Cédula</label>
                     <InputText @bind-Value="nuevoProveedor.RNC" class="form-control" id="rnc" placeholder="Ej: 130-12345-6" />
                 </div>
