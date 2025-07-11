@@ -1,0 +1,236 @@
+﻿@page "/CuentasPorPagar/Create"
+@rendermode InteractiveServer
+@using StockManager.Models
+@using StockManager.Dal
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Contexto> DbFactory
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Crear Cuenta por Pagar</PageTitle>
+
+<style>
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .btn-crear {
+        background-color: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+
+        .btn-crear:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            color: white;
+        }
+
+    .btn-cancelar {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+
+        .btn-cancelar:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+            color: white;
+        }
+
+    .required {
+        color: #dc3545;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h3>Crear Nueva Cuenta por Pagar</h3>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(mensajeError))
+    {
+        <div class="alert alert-danger">@mensajeError</div>
+    }
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success">@mensajeExito</div>
+    }
+
+    @if (cargando)
+    {
+        <p>Cargando datos...</p>
+    }
+    else
+    {
+        <div class="form-container">
+            <EditForm Model="cuentaPorPagar" OnValidSubmit="CrearCuenta">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">Orden de Compra <span class="required">*</span></label>
+                    <select class="form-select" @bind="cuentaPorPagar.OrdenCompraId">
+                        <option value="0">Seleccione una orden de compra</option>
+                        @foreach (var orden in ordenesCompra)
+                        {
+                            <option value="@orden.OrdenCompraId">
+                                #@orden.OrdenCompraId - @orden.Proveedor.Nombre
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Monto Total <span class="required">*</span></label>
+                    <input type="number" class="form-control" @bind="cuentaPorPagar.MontoTotal" step="0.01" min="0" @oninput="OnMontoTotalChanged" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Saldo Pendiente <span class="required">*</span></label>
+                    <input type="number" class="form-control" @bind="cuentaPorPagar.SaldoPendiente" step="0.01" min="0" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Fecha de Emisión <span class="required">*</span></label>
+                    <input type="date" class="form-control" @bind="cuentaPorPagar.FechaEmision"
+                           max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Fecha Límite de Pago <span class="required">*</span></label>
+                    <input type="date" class="form-control" @bind="cuentaPorPagar.FechaLimitePago"
+                           min="@cuentaPorPagar.FechaEmision.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Estado de la Cuenta <span class="required">*</span></label>
+                    <select class="form-select" @bind="cuentaPorPagar.EstadoCuentaId">
+                        <option value="0">Seleccione un estado</option>
+                        @foreach (var estado in estadosCuentas)
+                        {
+                            <option value="@estado.EstadoCuentaId">@estado.Nombre</option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-crear" disabled="@guardando">
+                    @(guardando ? "Guardando..." : "Crear Cuenta")
+                </button>
+                <button type="button" class="btn btn-cancelar ms-2" @onclick="Cancelar">Cancelar</button>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    private CuentaPorPagar cuentaPorPagar = new();
+    private List<OrdenCompra> ordenesCompra = new();
+    private List<EstadoCuenta> estadosCuentas = new();
+    private bool cargando = true;
+    private bool guardando = false;
+    private string mensajeError = string.Empty;
+    private string mensajeExito = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosIniciales();
+        InicializarCuenta();
+    }
+
+    private async Task CargarDatosIniciales()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        ordenesCompra = await context.OrdenesCompras.Include(o => o.Proveedor).ToListAsync();
+        estadosCuentas = await context.EstadosCuentas.ToListAsync();
+
+        cargando = false;
+    }
+
+    private void InicializarCuenta()
+    {
+        cuentaPorPagar = new CuentaPorPagar
+            {
+                FechaEmision = DateTime.UtcNow.Date,
+                FechaLimitePago = DateTime.UtcNow.Date.AddDays(30),
+                EstadoCuentaId = estadosCuentas.FirstOrDefault()?.EstadoCuentaId ?? 0
+            };
+    }
+
+
+    private void OnMontoTotalChanged(ChangeEventArgs e)
+    {
+        if (cuentaPorPagar.SaldoPendiente > cuentaPorPagar.MontoTotal)
+        {
+            cuentaPorPagar.SaldoPendiente = cuentaPorPagar.MontoTotal;
+        }
+    }
+
+    private async Task CrearCuenta()
+    {
+        if (cuentaPorPagar.OrdenCompraId == 0 || cuentaPorPagar.EstadoCuentaId == 0)
+        {
+            mensajeError = "Debe completar todos los campos obligatorios.";
+            return;
+        }
+
+        if (cuentaPorPagar.SaldoPendiente > cuentaPorPagar.MontoTotal)
+        {
+            mensajeError = "El saldo pendiente no puede ser mayor que el monto total.";
+            return;
+        }
+
+        // 🔑 Asegurar que las fechas sean UTC
+        cuentaPorPagar.FechaEmision = DateTime.SpecifyKind(cuentaPorPagar.FechaEmision, DateTimeKind.Utc);
+        cuentaPorPagar.FechaLimitePago = DateTime.SpecifyKind(cuentaPorPagar.FechaLimitePago, DateTimeKind.Utc);
+
+        guardando = true;
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            var existe = await context.CuentasPorPagar
+                .AnyAsync(c => c.OrdenCompraId == cuentaPorPagar.OrdenCompraId);
+
+            if (existe)
+            {
+                mensajeError = "Ya existe una cuenta para esta orden de compra.";
+                guardando = false;
+                return;
+            }
+
+            context.CuentasPorPagar.Add(cuentaPorPagar);
+            await context.SaveChangesAsync();
+
+            mensajeExito = "Cuenta creada correctamente.";
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/CuentasPorPagar/Index");
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error al guardar: {ex.InnerException?.Message ?? ex.Message}";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+
+    private async Task Cancelar()
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Cancelar creación?");
+        if (confirmar)
+        {
+            Navigation.NavigateTo("/CuentasPorPagar/Index");
+        }
+    }
+}
