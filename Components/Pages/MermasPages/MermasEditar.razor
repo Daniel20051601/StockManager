@@ -1,0 +1,147 @@
+﻿@page "/Mermas/Editar/{MermaId:int}"
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Editar Merma</PageTitle>
+
+<div class="mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-semibold">Editar Merma</h3>
+        <a href="/Mermas/Index" class="btn btn-secondary">Volver a la lista</a>
+    </div>
+
+    @if (merma == null && !isLoading)
+    {
+        <div class="alert alert-warning">Merma no encontrada o no válida.</div>
+    }
+    else if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@merma" OnValidSubmit="GuardarCambios">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="card shadow-sm p-4">
+                <div class="mb-3">
+                    <label for="productoNombre" class="form-label">Producto:</label>
+                    <InputText id="productoNombre" @bind-Value="merma.Producto.Nombre" class="form-control" readonly />
+                    <small class="form-text text-muted">El producto de la merma no se puede cambiar directamente aquí.</small>
+                </div>
+                <div class="mb-3">
+                    <label for="cantidad" class="form-label">Cantidad:</label>
+                    <InputNumber id="cantidad" @bind-Value="merma.Cantidad" class="form-control" />
+                    <ValidationMessage For="@(() => merma.Cantidad)" />
+                </div>
+                <div class="mb-3">
+                    <label for="razon" class="form-label">Razón:</label>
+                    <InputTextArea id="razon" @bind-Value="merma.Razon" class="form-control" rows="3" />
+                    <ValidationMessage For="@(() => merma.Razon)" />
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int MermaId { get; set; }
+
+    private Mermas? merma;
+    private int cantidadOriginalMerma; // Para calcular el ajuste de stock
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarMerma();
+    }
+
+    private async Task CargarMerma()
+    {
+        isLoading = true;
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        // Incluye el producto para mostrar su nombre
+        merma = await contexto.merma
+                               .Include(m => m.Producto)
+                               .FirstOrDefaultAsync(m => m.MermaId == MermaId);
+
+        if (merma != null)
+        {
+            // Guardar la cantidad original para calcular el ajuste de stock al editar
+            cantidadOriginalMerma = merma.Cantidad;
+        }
+        isLoading = false;
+    }
+
+    private async Task GuardarCambios()
+    {
+        if (merma == null) return;
+
+        // Validaciones adicionales antes de guardar
+        if (merma.Cantidad <= 0)
+        {
+            // Mostrar un mensaje de error al usuario, por ejemplo.
+            Console.WriteLine("Error: La cantidad debe ser mayor a 0.");
+            return;
+        }
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
+        // 1. Cargar la merma y el producto original de la DB
+        var mermaEnDb = await contexto.merma.FindAsync(merma.MermaId);
+        var productoEnDb = await contexto.productos.FindAsync(merma.ProductoId);
+
+        if (mermaEnDb != null && productoEnDb != null)
+        {
+            int diferenciaCantidad = merma.Cantidad - cantidadOriginalMerma;
+
+            // Validar que la nueva cantidad no cause un stock negativo
+            // (Si la merma se reduce, el stock aumenta. Si la merma aumenta, el stock disminuye.)
+            if (productoEnDb.Stock - diferenciaCantidad < 0)
+            {
+                // Esto ocurriría si la merma original era pequeña y ahora la aumentamos mucho,
+                // excediendo el stock disponible después de la merma inicial.
+                Console.WriteLine($"Error: No hay suficiente stock para ajustar la merma. Stock actual de {productoEnDb.Nombre}: {productoEnDb.Stock}");
+                return;
+            }
+
+            // Aplicar los cambios a la merma existente
+            mermaEnDb.Cantidad = merma.Cantidad;
+            mermaEnDb.Razon = merma.Razon;
+            // FechaMerma no suele editarse, pero si lo fuera: mermaEnDb.FechaMerma = merma.FechaMerma;
+
+            // Ajustar el stock del producto
+            productoEnDb.Stock -= diferenciaCantidad; // Si diferencia es positiva (merma aumenta), stock disminuye.
+                                                      // Si diferencia es negativa (merma disminuye), stock aumenta.
+
+            try
+            {
+                await contexto.SaveChangesAsync();
+                NavigationManager.NavigateTo("/Mermas/Index"); // Redirigir a la lista
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar la merma o el stock: {ex.Message}");
+                // Aquí podrías mostrar un mensaje de error más amigable al usuario
+            }
+        }
+        else
+        {
+            Console.WriteLine("Error: Merma o Producto asociado no encontrado en la base de datos.");
+        }
+    }
+}

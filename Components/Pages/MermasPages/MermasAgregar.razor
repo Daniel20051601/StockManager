@@ -1,0 +1,137 @@
+﻿@page "/Mermas/Agregar/{ProductoId:int}"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+
+<PageTitle>Agregar Merma</PageTitle>
+
+<div class="mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="fw-semibold">Agregar Producto a Mermas</h3>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (producto == null)
+    {
+        <div class="alert alert-warning" role="alert">
+            Producto no encontrado.
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm p-4">
+            <EditForm Model="@merma" OnValidSubmit="GuardarMerma">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="productoNombre" class="form-label">Producto:</label>
+                    <InputText id="productoNombre" class="form-control" @bind-Value="producto.Nombre" disabled />
+                </div>
+
+                <div class="mb-3">
+                    <label for="cantidad" class="form-label">Cantidad a mermar:</label>
+                    <InputNumber id="cantidad" class="form-control" @bind-Value="merma.Cantidad" />
+                    <ValidationMessage For="@(() => merma.Cantidad)" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="razon" class="form-label">Razón de la merma:</label>
+                    <InputTextArea id="razon" class="form-control" @bind-Value="merma.Razon" rows="3" />
+                    <ValidationMessage For="@(() => merma.Razon)" />
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Merma</button>
+                </div>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int ProductoId { get; set; }
+
+    private Mermas merma = new();
+    private Producto? producto;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarProducto();
+    }
+
+    private async Task CargarProducto()
+    {
+        isLoading = true;
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        producto = await contexto.productos
+                                .Include(p => p.Categoria)
+                                .Include(p => p.Marca)
+                                .Include(p => p.Proveedor)
+                                .FirstOrDefaultAsync(p => p.ProductoId == ProductoId);
+
+        if (producto != null)
+        {
+            merma.ProductoId = ProductoId;
+            // Opcional: Establecer una cantidad por defecto si es necesario
+            merma.Cantidad = 1;
+        }
+        isLoading = false;
+    }
+
+    private async Task GuardarMerma()
+    {
+        if (producto == null) return;
+
+        // Validaciones adicionales antes de guardar
+        if (merma.Cantidad <= 0)
+        {
+            // Mostrar un mensaje de error al usuario
+            return;
+        }
+
+        if (merma.Cantidad > producto.Stock)
+        {
+            // Mostrar un mensaje de error: "La cantidad a mermar no puede ser mayor al stock actual."
+            return;
+        }
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        // Cargar el producto nuevamente para asegurar que el stock esté actualizado
+        var productoEnDb = await contexto.productos.FindAsync(merma.ProductoId);
+
+        if (productoEnDb != null)
+        {
+            // Registrar la merma
+            contexto.merma.Add(merma);
+
+            // Actualizar el stock del producto
+            productoEnDb.Stock -= merma.Cantidad;
+
+            await contexto.SaveChangesAsync();
+            NavigationManager.NavigateTo("/Mermas/Index"); // Redirigir a la lista de mermas
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavigationManager.NavigateTo("/Productos/Index");
+    }
+}
