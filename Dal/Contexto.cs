@@ -31,6 +31,7 @@ namespace StockManager.Dal
         public DbSet<Proveedor> Proveedores { get; set; } = null!;
         public DbSet<Notificacion> Notificaciones { get; set; } = null!;
         public DbSet<CuentaPorPagar> CuentasPorPagar { get; set; } = null!;
+        public DbSet<Mermas> merma { get; set; } = null!;
 
         public Contexto() { }
     }
