@@ -1,0 +1,103 @@
+﻿@page "/prueba-busqueda"
+@using StockManager.Models
+@inject ProductoService productoService
+
+<h4>Buscador de Productos</h4>
+
+<div class="input-group mb-2">
+    <input class="form-control"
+           placeholder="Buscar producto por nombre, código, marca o categoría"
+           @bind="busquedaProducto"
+           @oninput="@(async _ => await FiltrarProductos())"
+           @onkeydown="ManejarTecladoBusqueda" />
+
+    <button type="button" class="btn btn-outline-secondary" @onclick="FiltrarProductos">
+        <i class="bi bi-search"></i>
+    </button>
+</div>
+
+@if (mostrarSugerencias && productosFiltrados.Any())
+{
+    <ul class="list-group">
+        @for (int i = 0; i < productosFiltrados.Count; i++)
+        {
+            var producto = productosFiltrados[i];
+            bool seleccionado = i == indiceSeleccionado;
+            <li class="list-group-item list-group-item-action @(seleccionado ? "active" : "")"
+                @onclick="@(() => SeleccionarProducto(producto))">
+                <strong>@producto.Nombre</strong> - @producto.Codigo - @producto.PrecioVenta.ToString("C")
+            </li>
+        }
+    </ul>
+}
+else if (mostrarSugerencias && !productosFiltrados.Any())
+{
+    <div class="alert alert-warning p-2">No se encontraron productos.</div>
+}
+
+@if (productoSeleccionado != null)
+{
+    <div class="alert alert-info mt-3">
+        <strong>Producto seleccionado:</strong> @productoSeleccionado.Nombre - @productoSeleccionado.Codigo
+    </div>
+}
+
+@code {
+    private string busquedaProducto = string.Empty;
+    private List<Producto> productosFiltrados = new();
+    private Producto productoSeleccionado;
+    private bool mostrarSugerencias = false;
+    private int indiceSeleccionado = -1;
+
+    private async Task FiltrarProductos()
+    {
+        if (string.IsNullOrWhiteSpace(busquedaProducto))
+        {
+            productosFiltrados.Clear();
+            mostrarSugerencias = false;
+            return;
+        }
+
+        var disponibles = await productoService.ListarDisponiblesAsync();
+
+        productosFiltrados = disponibles
+            .Where(p =>
+                (!string.IsNullOrWhiteSpace(p.Nombre) && p.Nombre.Contains(busquedaProducto, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.Codigo) && p.Codigo.Contains(busquedaProducto, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.Marca?.Nombre) && p.Marca.Nombre.Contains(busquedaProducto, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.Categoria?.Nombre) && p.Categoria.Nombre.Contains(busquedaProducto, StringComparison.OrdinalIgnoreCase))
+            )
+            .ToList();
+
+        mostrarSugerencias = true;
+        indiceSeleccionado = -1;
+        StateHasChanged();
+    }
+
+    private void SeleccionarProducto(Producto producto)
+    {
+        productoSeleccionado = producto;
+        busquedaProducto = string.Empty;
+        productosFiltrados.Clear();
+        mostrarSugerencias = false;
+        indiceSeleccionado = -1;
+    }
+
+    private void ManejarTecladoBusqueda(KeyboardEventArgs e)
+    {
+        if (!mostrarSugerencias || !productosFiltrados.Any()) return;
+
+        if (e.Key == "ArrowDown")
+        {
+            indiceSeleccionado = (indiceSeleccionado + 1) % productosFiltrados.Count;
+        }
+        else if (e.Key == "ArrowUp")
+        {
+            indiceSeleccionado = (indiceSeleccionado - 1 + productosFiltrados.Count) % productosFiltrados.Count;
+        }
+        else if (e.Key == "Enter" && indiceSeleccionado >= 0 && indiceSeleccionado < productosFiltrados.Count)
+        {
+            SeleccionarProducto(productosFiltrados[indiceSeleccionado]);
+        }
+    }
+}

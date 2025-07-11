@@ -11,6 +11,6 @@ public class EstadoCuenta
     [Required, MaxLength(50)]
     public string Nombre { get; set; } = null!;
 
-    public ICollection<CuentaPorPagar> CuentasPorPagar { get; set; } = null!;
-    public ICollection<CuentaPorCobrar> CuentasPorCobrar { get; set; } = null!;
+    public ICollection<CuentaPorPagar> CuentaPorPagar { get; set; } = null!;
+    public ICollection<CuentaPorCobrar> CuentaPorCobrar { get; set; } = null!;
 }

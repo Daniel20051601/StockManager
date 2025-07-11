@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StockManager.Dal;
@@ -11,9 +12,11 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250711000149_AjusteNombreDetallesVenta")]
+    partial class AjusteNombreDetallesVenta
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,35 +24,6 @@ namespace StockManager.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("DetalleVenta", b =>
-                {
-                    b.Property<int>("DetalleVentaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetalleVentaId"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VentaId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("DetalleVentaId");
-
-                    b.HasIndex("ProductoId");
-
-                    b.HasIndex("VentaId");
-
-                    b.ToTable("DetallesVenta");
-                });
 
             modelBuilder.Entity("StockManager.Models.Categoria", b =>
                 {
@@ -191,6 +165,38 @@ namespace StockManager.Migrations
                     b.HasIndex("OrdenCompraId");
 
                     b.ToTable("CuentasPorPagar");
+                });
+
+            modelBuilder.Entity("StockManager.Models.DetalleVenta", b =>
+                {
+                    b.Property<int>("DetalleVentaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetalleVentaId"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DetalleVentaId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("DetallesVenta");
                 });
 
             modelBuilder.Entity("StockManager.Models.EstadoCliente", b =>
@@ -756,7 +762,64 @@ namespace StockManager.Migrations
                     b.ToTable("Ventas");
                 });
 
-            modelBuilder.Entity("DetalleVenta", b =>
+            modelBuilder.Entity("StockManager.Models.Clientes", b =>
+                {
+                    b.HasOne("StockManager.Models.EstadoCliente", "EstadoCliente")
+                        .WithMany("Clientes")
+                        .HasForeignKey("EstadoClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EstadoCliente");
+                });
+
+            modelBuilder.Entity("StockManager.Models.CuentaPorCobrar", b =>
+                {
+                    b.HasOne("StockManager.Models.Clientes", "Cliente")
+                        .WithMany("CuentasPorCobrar")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StockManager.Models.EstadoCuenta", "EstadoCuenta")
+                        .WithMany("CuentasPorCobrar")
+                        .HasForeignKey("EstadoCuentaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StockManager.Models.Factura", "Factura")
+                        .WithMany()
+                        .HasForeignKey("FacturaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("EstadoCuenta");
+
+                    b.Navigation("Factura");
+                });
+
+            modelBuilder.Entity("StockManager.Models.CuentaPorPagar", b =>
+                {
+                    b.HasOne("StockManager.Models.EstadoCuenta", "EstadoCuenta")
+                        .WithMany("CuentasPorPagar")
+                        .HasForeignKey("EstadoCuentaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StockManager.Models.OrdenCompra", "OrdenCompra")
+                        .WithMany()
+                        .HasForeignKey("OrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EstadoCuenta");
+
+                    b.Navigation("OrdenCompra");
+                });
+
+            modelBuilder.Entity("StockManager.Models.DetalleVenta", b =>
                 {
                     b.HasOne("StockManager.Models.Producto", "Producto")
                         .WithMany()
@@ -773,63 +836,6 @@ namespace StockManager.Migrations
                     b.Navigation("Producto");
 
                     b.Navigation("Venta");
-                });
-
-            modelBuilder.Entity("StockManager.Models.Clientes", b =>
-                {
-                    b.HasOne("StockManager.Models.EstadoCliente", "EstadoCliente")
-                        .WithMany("Clientes")
-                        .HasForeignKey("EstadoClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EstadoCliente");
-                });
-
-            modelBuilder.Entity("StockManager.Models.CuentaPorCobrar", b =>
-                {
-                    b.HasOne("StockManager.Models.Clientes", "Clientes")
-                        .WithMany("CuentaPorCobrar")
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StockManager.Models.EstadoCuenta", "EstadoCuenta")
-                        .WithMany("CuentaPorCobrar")
-                        .HasForeignKey("EstadoCuentaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StockManager.Models.Factura", "Factura")
-                        .WithMany()
-                        .HasForeignKey("FacturaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Clientes");
-
-                    b.Navigation("EstadoCuenta");
-
-                    b.Navigation("Factura");
-                });
-
-            modelBuilder.Entity("StockManager.Models.CuentaPorPagar", b =>
-                {
-                    b.HasOne("StockManager.Models.EstadoCuenta", "EstadoCuenta")
-                        .WithMany("CuentaPorPagar")
-                        .HasForeignKey("EstadoCuentaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StockManager.Models.OrdenCompra", "OrdenCompra")
-                        .WithMany()
-                        .HasForeignKey("OrdenCompraId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EstadoCuenta");
-
-                    b.Navigation("OrdenCompra");
                 });
 
             modelBuilder.Entity("StockManager.Models.Factura", b =>
@@ -1033,7 +1039,7 @@ namespace StockManager.Migrations
 
             modelBuilder.Entity("StockManager.Models.Clientes", b =>
                 {
-                    b.Navigation("CuentaPorCobrar");
+                    b.Navigation("CuentasPorCobrar");
 
                     b.Navigation("Facturas");
                 });
@@ -1055,9 +1061,9 @@ namespace StockManager.Migrations
 
             modelBuilder.Entity("StockManager.Models.EstadoCuenta", b =>
                 {
-                    b.Navigation("CuentaPorCobrar");
+                    b.Navigation("CuentasPorCobrar");
 
-                    b.Navigation("CuentaPorPagar");
+                    b.Navigation("CuentasPorPagar");
                 });
 
             modelBuilder.Entity("StockManager.Models.EstadoFactura", b =>

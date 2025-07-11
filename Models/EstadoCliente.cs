@@ -10,5 +10,5 @@ public class EstadoCliente
     [Required, MaxLength(50)]
     public string Nombre { get; set; } = null!;
 
-    public ICollection<Cliente> Clientes { get; set; } = null!;
+    public ICollection<Clientes> Clientes { get; set; } = null!;
 }

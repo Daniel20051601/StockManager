@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StockManager.Models;
 
-public class Cliente
+public class Clientes
 {
     [Key]
     public int ClienteId { get; set; }
@@ -22,5 +22,5 @@ public class Cliente
     public EstadoCliente EstadoCliente { get; set; } = null!;
 
     public ICollection<Factura> Facturas { get; set; } = null!;
-    public ICollection<CuentaPorCobrar> CuentasPorCobrar { get; set; } = null!;
+    public ICollection<CuentaPorCobrar> CuentaPorCobrar { get; set; } = null!;
 }

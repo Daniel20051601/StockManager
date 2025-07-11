@@ -11,9 +11,9 @@ public class Factura
     [Required, MaxLength(50)]
     public string NumeroFactura { get; set; } = null!;
 
-    [ForeignKey("Cliente")]
+    [ForeignKey("Clientes")]
     public int ClienteId { get; set; }
-    public Cliente Cliente { get; set; } = null!;
+    public Clientes Clientes { get; set; } = null!;
 
     [ForeignKey("Usuario")]
     public int UsuarioId { get; set; }

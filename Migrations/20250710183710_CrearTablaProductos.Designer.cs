@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StockManager.Dal;
@@ -11,9 +12,11 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250710183710_CrearTablaProductos")]
+    partial class CrearTablaProductos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,35 +24,6 @@ namespace StockManager.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("DetalleVenta", b =>
-                {
-                    b.Property<int>("DetalleVentaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetalleVentaId"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VentaId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("DetalleVentaId");
-
-                    b.HasIndex("ProductoId");
-
-                    b.HasIndex("VentaId");
-
-                    b.ToTable("DetallesVenta");
-                });
 
             modelBuilder.Entity("StockManager.Models.Categoria", b =>
                 {
@@ -191,6 +165,35 @@ namespace StockManager.Migrations
                     b.HasIndex("OrdenCompraId");
 
                     b.ToTable("CuentasPorPagar");
+                });
+
+            modelBuilder.Entity("StockManager.Models.DetalleVenta", b =>
+                {
+                    b.Property<int>("DetalleVentaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetalleVentaId"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DetalleVentaId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("DetallesVenta");
                 });
 
             modelBuilder.Entity("StockManager.Models.EstadoCliente", b =>
@@ -584,7 +587,7 @@ namespace StockManager.Migrations
 
                     b.HasIndex("ProveedorId");
 
-                    b.ToTable("productos");
+                    b.ToTable("Productos");
                 });
 
             modelBuilder.Entity("StockManager.Models.Proveedor", b =>
@@ -756,25 +759,6 @@ namespace StockManager.Migrations
                     b.ToTable("Ventas");
                 });
 
-            modelBuilder.Entity("DetalleVenta", b =>
-                {
-                    b.HasOne("StockManager.Models.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Venta", "Venta")
-                        .WithMany("Detalles")
-                        .HasForeignKey("VentaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-
-                    b.Navigation("Venta");
-                });
-
             modelBuilder.Entity("StockManager.Models.Clientes", b =>
                 {
                     b.HasOne("StockManager.Models.EstadoCliente", "EstadoCliente")
@@ -788,14 +772,14 @@ namespace StockManager.Migrations
 
             modelBuilder.Entity("StockManager.Models.CuentaPorCobrar", b =>
                 {
-                    b.HasOne("StockManager.Models.Clientes", "Clientes")
-                        .WithMany("CuentaPorCobrar")
+                    b.HasOne("StockManager.Models.Clientes", "Cliente")
+                        .WithMany("CuentasPorCobrar")
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("StockManager.Models.EstadoCuenta", "EstadoCuenta")
-                        .WithMany("CuentaPorCobrar")
+                        .WithMany("CuentasPorCobrar")
                         .HasForeignKey("EstadoCuentaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -806,7 +790,7 @@ namespace StockManager.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Clientes");
+                    b.Navigation("Cliente");
 
                     b.Navigation("EstadoCuenta");
 
@@ -816,7 +800,7 @@ namespace StockManager.Migrations
             modelBuilder.Entity("StockManager.Models.CuentaPorPagar", b =>
                 {
                     b.HasOne("StockManager.Models.EstadoCuenta", "EstadoCuenta")
-                        .WithMany("CuentaPorPagar")
+                        .WithMany("CuentasPorPagar")
                         .HasForeignKey("EstadoCuentaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -830,6 +814,25 @@ namespace StockManager.Migrations
                     b.Navigation("EstadoCuenta");
 
                     b.Navigation("OrdenCompra");
+                });
+
+            modelBuilder.Entity("StockManager.Models.DetalleVenta", b =>
+                {
+                    b.HasOne("StockManager.Models.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Venta", "Venta")
+                        .WithMany("DetalleVenta")
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Venta");
                 });
 
             modelBuilder.Entity("StockManager.Models.Factura", b =>
@@ -1033,7 +1036,7 @@ namespace StockManager.Migrations
 
             modelBuilder.Entity("StockManager.Models.Clientes", b =>
                 {
-                    b.Navigation("CuentaPorCobrar");
+                    b.Navigation("CuentasPorCobrar");
 
                     b.Navigation("Facturas");
                 });
@@ -1055,9 +1058,9 @@ namespace StockManager.Migrations
 
             modelBuilder.Entity("StockManager.Models.EstadoCuenta", b =>
                 {
-                    b.Navigation("CuentaPorCobrar");
+                    b.Navigation("CuentasPorCobrar");
 
-                    b.Navigation("CuentaPorPagar");
+                    b.Navigation("CuentasPorPagar");
                 });
 
             modelBuilder.Entity("StockManager.Models.EstadoFactura", b =>
@@ -1123,7 +1126,7 @@ namespace StockManager.Migrations
 
             modelBuilder.Entity("Venta", b =>
                 {
-                    b.Navigation("Detalles");
+                    b.Navigation("DetalleVenta");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,6 @@
 using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StockManager.Components;
 using StockManager.Dal;
@@ -24,6 +25,8 @@ builder.Services.AddAuthentication("Cookies")
         options.LogoutPath = "/logout";
     });
 
+
+
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
@@ -34,6 +37,10 @@ builder.Services.AddScoped<ProductoService>();
 builder.Services.AddScoped<ComprasService>();
 builder.Services.AddScoped<ProveedorService>();
 builder.Services.AddBlazoredToast();
+builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<ProductoService>();
+builder.Services.AddScoped<VentaService>();
+
 
 // 4. Componentes Blazor y configuración relacionada
 builder.Services.AddRazorComponents()

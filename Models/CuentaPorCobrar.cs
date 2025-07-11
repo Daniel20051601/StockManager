@@ -12,9 +12,9 @@ public class CuentaPorCobrar
     public int FacturaId { get; set; }
     public Factura Factura { get; set; } = null!;
 
-    [ForeignKey("Cliente")]
+    [ForeignKey("Clientes")]
     public int ClienteId { get; set; }
-    public Cliente Cliente { get; set; } = null!;
+    public Clientes Clientes { get; set; } = null!;
 
     public decimal MontoTotal { get; set; }
     public decimal SaldoPendiente { get; set; }
