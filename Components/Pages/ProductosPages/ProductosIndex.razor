@@ -130,7 +130,7 @@ else
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="/Productos/Editar/@producto.ProductoId">Editar</a></li>
                                         <li><button class="dropdown-item text-danger" @onclick="() => EliminarProducto(producto.ProductoId)">Eliminar</button></li>
-                                        <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
+                                        <li><button class="dropdown-item" @onclick="()=>AgregarAMerma(producto.ProductoId)">Agregar a mermas</button></li>
                                     </ul>
                                 </div>
                             </td>
@@ -277,5 +277,10 @@ else
             await contexto.SaveChangesAsync();
             await CargarProductos();
         }
+    }
+   
+    private async Task AgregarAMerma(int productoId)
+    {
+        NavigationManager.NavigateTo($"/Mermas/Agregar/{productoId}");
     }
 }
