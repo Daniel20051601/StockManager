@@ -18,15 +18,31 @@
     }
 
     .btn-crear {
-        background-color: #28a745;
-        border-color: #28a745;
+        background-color: #198754; /* mismo verde de Productos */
+        border-color: #198754;
         color: white;
+        display: flex;
+        align-items: center;
     }
 
         .btn-crear:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
+            background-color: #157347;
+            border-color: #146c43;
             color: white;
+        }
+
+    .action-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        color: #6c757d;
+    }
+
+        .action-btn:hover {
+            color: #000;
         }
 </style>
 
@@ -48,7 +64,6 @@
         <table class="table table-hover align-middle shadow-sm table-striped-custom">
             <thead class="table-light">
                 <tr>
-                    <th>Editar</th>
                     <th>Orden Compra</th>
                     <th>Proveedor</th>
                     <th>Monto Total</th>
@@ -56,17 +71,13 @@
                     <th>Fecha Emisión</th>
                     <th>Fecha Límite</th>
                     <th>Estado</th>
+                    <th>Editar</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var cuenta in cuentasPaginadas)
                 {
                     <tr>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">
-                                <i class="bi bi-pencil-fill"></i>
-                            </button>
-                        </td>
                         <td>#@cuenta.OrdenCompraId</td>
                         <td>@cuenta.OrdenCompra.Proveedor.Nombre</td>
                         <td>@cuenta.MontoTotal.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
@@ -74,6 +85,9 @@
                         <td>@cuenta.FechaEmision.ToString("dd/MM/yyyy")</td>
                         <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
                         <td>@cuenta.EstadoCuenta.Nombre</td>
+                        <td>
+                            <button class="action-btn" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">⋮</button>
+                        </td>
                     </tr>
                 }
             </tbody>

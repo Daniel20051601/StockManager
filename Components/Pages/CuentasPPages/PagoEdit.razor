@@ -80,6 +80,28 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Nueva sección: Porcentaje pagado -->
+                @if (cuentaPorPagar != null && cuentaPorPagar.MontoTotal > 0)
+                {
+                    <div class="mt-4">
+                        @{
+                            var porcentajePagado = cuentaPorPagar.SaldoPendiente == 0
+                            ? 100
+                            : Math.Round(((cuentaPorPagar.MontoTotal - cuentaPorPagar.SaldoPendiente) / cuentaPorPagar.MontoTotal) * 100, 2);
+                        }
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar @(porcentajePagado == 100 ? "bg-success" : "bg-info")"
+                                 role="progressbar"
+                                 style="width: @porcentajePagado%">
+                                @porcentajePagado%
+                            </div>
+                        </div>
+                        <p class="mt-2 text-muted">
+                            @(porcentajePagado == 100 ? "Cuenta pagada al 100%" : $"Pagado: {porcentajePagado}%")
+                        </p>
+                    </div>
+                }
             </EditForm>
         </div>
     }
@@ -108,7 +130,6 @@
 
         if (entidad != null)
         {
-            // Setea solo propiedades base
             entidad.OrdenCompraId = cuentaPorPagar.OrdenCompraId;
             entidad.MontoTotal = cuentaPorPagar.MontoTotal;
             entidad.SaldoPendiente = cuentaPorPagar.SaldoPendiente;
