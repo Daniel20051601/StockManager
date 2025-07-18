@@ -5,14 +5,11 @@
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Contexto> DbFactory
 @inject NavigationManager Navigation
-@inject IJSRuntime JSRuntime
+@inject Blazored.Toast.Services.IToastService toastService
 
 <PageTitle>Editar Cuenta por Pagar</PageTitle>
 
-<!-- (Mantén aquí tu estilo CSS igual, lo omito por espacio) -->
-
 <div class="container-fluid">
-    <!-- (Encabezado y alerts igual que antes) -->
     @if (cuentaPorPagar != null)
     {
         <div class="form-container">
@@ -69,19 +66,7 @@
                     </div>
                 </div>
 
-                <!-- Botones -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <hr />
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-danger" @onclick="EliminarCuenta">Eliminar</button>
-                            <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Nueva sección: Porcentaje pagado -->
+                <!-- Porcentaje pagado -->
                 @if (cuentaPorPagar != null && cuentaPorPagar.MontoTotal > 0)
                 {
                     <div class="mt-4">
@@ -102,10 +87,39 @@
                         </p>
                     </div>
                 }
+
+                <!-- Botones abajo -->
+                <div class="mt-4 d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-danger" @onclick="MostrarModalEliminar">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
             </EditForm>
         </div>
     }
 </div>
+
+<!-- Modal Confirmar eliminación -->
+@if (mostrarModalEliminar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="OcultarModalEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar esta cuenta por pagar?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="OcultarModalEliminar">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="EliminarCuenta">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -113,7 +127,7 @@
     private CuentaPorPagar cuentaPorPagar;
     private List<OrdenCompra> ordenesCompra = new();
     private List<EstadoCuenta> estadosCuentas = new();
-    private string mensajeError = string.Empty;
+    private bool mostrarModalEliminar = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,26 +139,34 @@
 
     private async Task GuardarCuenta()
     {
-        using var context = DbFactory.CreateDbContext();
-        var entidad = await context.CuentasPorPagar.FindAsync(Id);
-
-        if (entidad != null)
+        try
         {
-            entidad.OrdenCompraId = cuentaPorPagar.OrdenCompraId;
-            entidad.MontoTotal = cuentaPorPagar.MontoTotal;
-            entidad.SaldoPendiente = cuentaPorPagar.SaldoPendiente;
-            entidad.FechaEmision = cuentaPorPagar.FechaEmision;
-            entidad.FechaLimitePago = cuentaPorPagar.FechaLimitePago;
-            entidad.EstadoCuentaId = cuentaPorPagar.EstadoCuentaId;
+            using var context = DbFactory.CreateDbContext();
+            var entidad = await context.CuentasPorPagar.FindAsync(Id);
 
-            await context.SaveChangesAsync();
-            Navigation.NavigateTo("/CuentasPorPagar/Index");
+            if (entidad != null)
+            {
+                entidad.OrdenCompraId = cuentaPorPagar.OrdenCompraId;
+                entidad.MontoTotal = cuentaPorPagar.MontoTotal;
+                entidad.SaldoPendiente = cuentaPorPagar.SaldoPendiente;
+                entidad.FechaEmision = cuentaPorPagar.FechaEmision;
+                entidad.FechaLimitePago = cuentaPorPagar.FechaLimitePago;
+                entidad.EstadoCuentaId = cuentaPorPagar.EstadoCuentaId;
+
+                await context.SaveChangesAsync();
+                toastService.ShowSuccess("Cuenta actualizada exitosamente.");
+                Navigation.NavigateTo("/CuentasPorPagar/Index");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError("Error al guardar la cuenta: " + ex.Message);
         }
     }
 
     private async Task EliminarCuenta()
     {
-        if (await JSRuntime.InvokeAsync<bool>("confirm", "¿Seguro que quieres eliminar?"))
+        try
         {
             using var context = DbFactory.CreateDbContext();
             var entidad = await context.CuentasPorPagar.FindAsync(Id);
@@ -152,10 +174,18 @@
             {
                 context.CuentasPorPagar.Remove(entidad);
                 await context.SaveChangesAsync();
+                toastService.ShowSuccess("Cuenta eliminada exitosamente.");
                 Navigation.NavigateTo("/CuentasPorPagar/Index");
             }
         }
+        catch (Exception ex)
+        {
+            toastService.ShowError("Error al eliminar la cuenta: " + ex.Message);
+        }
     }
+
+    private void MostrarModalEliminar() => mostrarModalEliminar = true;
+    private void OcultarModalEliminar() => mostrarModalEliminar = false;
 
     private void Cancelar() => Navigation.NavigateTo("/CuentasPorPagar/Index");
 }

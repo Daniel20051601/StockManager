@@ -6,6 +6,7 @@
 @inject IDbContextFactory<Contexto> DbFactory
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject Blazored.Toast.Services.IToastService toastService
 
 <PageTitle>Crear Cuenta por Pagar</PageTitle>
 
@@ -53,16 +54,6 @@
             <h3>Crear Nueva Cuenta por Pagar</h3>
         </div>
     </div>
-
-    @if (!string.IsNullOrEmpty(mensajeError))
-    {
-        <div class="alert alert-danger">@mensajeError</div>
-    }
-
-    @if (!string.IsNullOrEmpty(mensajeExito))
-    {
-        <div class="alert alert-success">@mensajeExito</div>
-    }
 
     @if (cargando)
     {
@@ -135,8 +126,6 @@
     private List<EstadoCuenta> estadosCuentas = new();
     private bool cargando = true;
     private bool guardando = false;
-    private string mensajeError = string.Empty;
-    private string mensajeExito = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -164,7 +153,6 @@
             };
     }
 
-
     private void OnMontoTotalChanged(ChangeEventArgs e)
     {
         if (cuentaPorPagar.SaldoPendiente > cuentaPorPagar.MontoTotal)
@@ -177,17 +165,16 @@
     {
         if (cuentaPorPagar.OrdenCompraId == 0 || cuentaPorPagar.EstadoCuentaId == 0)
         {
-            mensajeError = "Debe completar todos los campos obligatorios.";
+            toastService.ShowError("Debe completar todos los campos obligatorios.");
             return;
         }
 
         if (cuentaPorPagar.SaldoPendiente > cuentaPorPagar.MontoTotal)
         {
-            mensajeError = "El saldo pendiente no puede ser mayor que el monto total.";
+            toastService.ShowError("El saldo pendiente no puede ser mayor que el monto total.");
             return;
         }
 
-        // 🔑 Asegurar que las fechas sean UTC
         cuentaPorPagar.FechaEmision = DateTime.SpecifyKind(cuentaPorPagar.FechaEmision, DateTimeKind.Utc);
         cuentaPorPagar.FechaLimitePago = DateTime.SpecifyKind(cuentaPorPagar.FechaLimitePago, DateTimeKind.Utc);
 
@@ -202,7 +189,7 @@
 
             if (existe)
             {
-                mensajeError = "Ya existe una cuenta para esta orden de compra.";
+                toastService.ShowWarning("Ya existe una cuenta para esta orden de compra.");
                 guardando = false;
                 return;
             }
@@ -210,20 +197,19 @@
             context.CuentasPorPagar.Add(cuentaPorPagar);
             await context.SaveChangesAsync();
 
-            mensajeExito = "Cuenta creada correctamente.";
+            toastService.ShowSuccess("Cuenta creada correctamente.");
             await Task.Delay(1500);
             Navigation.NavigateTo("/CuentasPorPagar/Index");
         }
         catch (Exception ex)
         {
-            mensajeError = $"Error al guardar: {ex.InnerException?.Message ?? ex.Message}";
+            toastService.ShowError($"Error al guardar: {ex.InnerException?.Message ?? ex.Message}");
         }
         finally
         {
             guardando = false;
         }
     }
-
 
     private async Task Cancelar()
     {

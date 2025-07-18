@@ -5,6 +5,8 @@
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<Contexto> DbFactory
 @inject NavigationManager Navigation
+@inject Blazored.Toast.Services.IToastService toastService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Cuentas</PageTitle>
 
@@ -18,7 +20,7 @@
     }
 
     .btn-crear {
-        background-color: #198754; /* mismo verde de Productos */
+        background-color: #198754;
         border-color: #198754;
         color: white;
         display: flex;
@@ -71,7 +73,7 @@
                     <th>Fecha Emisión</th>
                     <th>Fecha Límite</th>
                     <th>Estado</th>
-                    <th>Editar</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -86,7 +88,13 @@
                         <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
                         <td>@cuenta.EstadoCuenta.Nombre</td>
                         <td>
-                            <button class="action-btn" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">⋮</button>
+                            <div class="dropdown">
+                                <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">Editar</a></li>
+                                    <li><button class="dropdown-item text-danger" @onclick="() => EliminarCuenta(cuenta.CuentaPorPagarId)">Eliminar</button></li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -119,6 +127,7 @@
     protected override async Task OnInitializedAsync()
     {
         await CargarDatos();
+        toastService.ShowInfo("Datos de cuentas cargados correctamente.");
     }
 
     private async Task CargarDatos()
@@ -149,6 +158,11 @@
             ).ToList();
         }
 
+        if (!cuentasFiltradas.Any())
+        {
+            toastService.ShowInfo("No se encontraron resultados para la búsqueda.");
+        }
+
         paginaActual = 1;
         StateHasChanged();
     }
@@ -156,6 +170,28 @@
     private void EditarCuenta(int id)
     {
         Navigation.NavigateTo($"/CuentasPorPagar/Edit/{id}");
+    }
+
+    private async Task EliminarCuenta(int id)
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro de eliminar esta cuenta?");
+        if (confirmar)
+        {
+            using var context = DbFactory.CreateDbContext();
+            var cuenta = await context.CuentasPorPagar.FindAsync(id);
+            if (cuenta != null)
+            {
+                context.CuentasPorPagar.Remove(cuenta);
+                await context.SaveChangesAsync();
+                toastService.ShowSuccess("Cuenta eliminada correctamente.");
+                await CargarDatos();
+                StateHasChanged();
+            }
+            else
+            {
+                toastService.ShowError("No se pudo encontrar la cuenta.");
+            }
+        }
     }
 
     private void CrearNuevaCuenta()
