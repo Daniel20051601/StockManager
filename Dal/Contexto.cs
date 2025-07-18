@@ -31,6 +31,8 @@ namespace StockManager.Dal
         public DbSet<Proveedor> Proveedores { get; set; } = null!;
         public DbSet<Notificacion> Notificaciones { get; set; } = null!;
         public DbSet<CuentaPorPagar> CuentasPorPagar { get; set; } = null!;
+        public DbSet<Venta> Ventas { get; set; } = null!;
+        public DbSet<DetalleVenta> VentasDetalles { get; set; } = null!;
 
         public Contexto() { }
     }
