@@ -6,7 +6,6 @@
 @inject IDbContextFactory<Contexto> DbFactory
 @inject NavigationManager Navigation
 @inject Blazored.Toast.Services.IToastService toastService
-@inject IJSRuntime JSRuntime
 
 <PageTitle>Cuentas</PageTitle>
 
@@ -174,23 +173,19 @@
 
     private async Task EliminarCuenta(int id)
     {
-        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm", "¿Está seguro de eliminar esta cuenta?");
-        if (confirmar)
+        using var context = DbFactory.CreateDbContext();
+        var cuenta = await context.CuentasPorPagar.FindAsync(id);
+        if (cuenta != null)
         {
-            using var context = DbFactory.CreateDbContext();
-            var cuenta = await context.CuentasPorPagar.FindAsync(id);
-            if (cuenta != null)
-            {
-                context.CuentasPorPagar.Remove(cuenta);
-                await context.SaveChangesAsync();
-                toastService.ShowSuccess("Cuenta eliminada correctamente.");
-                await CargarDatos();
-                StateHasChanged();
-            }
-            else
-            {
-                toastService.ShowError("No se pudo encontrar la cuenta.");
-            }
+            context.CuentasPorPagar.Remove(cuenta);
+            await context.SaveChangesAsync();
+            toastService.ShowSuccess("Cuenta eliminada correctamente.");
+            await CargarDatos();
+            StateHasChanged();
+        }
+        else
+        {
+            toastService.ShowError("No se pudo encontrar la cuenta.");
         }
     }
 
