@@ -181,13 +181,61 @@ namespace StockManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    UsuarioId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SupabaseId = table.Column<string>(type: "text", nullable: false),
+                    Nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    NombreUsuario = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    TipoUsuarioId = table.Column<int>(type: "integer", nullable: false),
+                    FotoURL = table.Column<string>(type: "text", nullable: false),
+                    FechaRegistro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Estado = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.UsuarioId);
+                    table.ForeignKey(
+                        name: "FK_Usuarios_TiposUsuarios_TipoUsuarioId",
+                        column: x => x.TipoUsuarioId,
+                        principalTable: "TiposUsuarios",
+                        principalColumn: "TipoUsuarioId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Ventas",
+                columns: table => new
+                {
+                    VentaId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ClienteId = table.Column<int>(type: "integer", nullable: false),
+                    Total = table.Column<decimal>(type: "numeric", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Ventas", x => x.VentaId);
+                    table.ForeignKey(
+                        name: "FK_Ventas_Clientes_ClienteId",
+                        column: x => x.ClienteId,
+                        principalTable: "Clientes",
+                        principalColumn: "ClienteId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "productos",
                 columns: table => new
                 {
                     ProductoId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Codigo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Codigo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    ProveedorId = table.Column<int>(type: "integer", nullable: false),
                     Descripcion = table.Column<string>(type: "text", nullable: false),
                     CategoriaId = table.Column<int>(type: "integer", nullable: false),
                     MarcaId = table.Column<int>(type: "integer", nullable: false),
@@ -195,7 +243,7 @@ namespace StockManager.Migrations
                     StockMinimo = table.Column<int>(type: "integer", nullable: false),
                     PrecioCompra = table.Column<decimal>(type: "numeric", nullable: false),
                     PrecioVenta = table.Column<decimal>(type: "numeric", nullable: false),
-                    ImagenURL = table.Column<string>(type: "text", nullable: false),
+                    ImagenURL = table.Column<string>(type: "text", nullable: true),
                     EstadoProductoId = table.Column<int>(type: "integer", nullable: false),
                     FechaRegistro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -220,31 +268,11 @@ namespace StockManager.Migrations
                         principalTable: "Marcas",
                         principalColumn: "MarcaId",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Usuarios",
-                columns: table => new
-                {
-                    UsuarioId = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    NombreUsuario = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Contraseña = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    TipoUsuarioId = table.Column<int>(type: "integer", nullable: false),
-                    FotoURL = table.Column<string>(type: "text", nullable: false),
-                    FechaRegistro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Estado = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Usuarios", x => x.UsuarioId);
                     table.ForeignKey(
-                        name: "FK_Usuarios_TiposUsuarios_TipoUsuarioId",
-                        column: x => x.TipoUsuarioId,
-                        principalTable: "TiposUsuarios",
-                        principalColumn: "TipoUsuarioId",
+                        name: "FK_productos_Proveedores_ProveedorId",
+                        column: x => x.ProveedorId,
+                        principalTable: "Proveedores",
+                        principalColumn: "ProveedorId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -316,12 +344,13 @@ namespace StockManager.Migrations
                 {
                     OrdenCompraId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Titulo = table.Column<string>(type: "text", nullable: false),
                     NumeroOrden = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     ProveedorId = table.Column<int>(type: "integer", nullable: false),
                     UsuarioId = table.Column<int>(type: "integer", nullable: false),
                     EstadoOrdenCompraId = table.Column<int>(type: "integer", nullable: false),
                     FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FechaEntregaEstimada = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    FechaEntregaEstimada = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Subtotal = table.Column<decimal>(type: "numeric", nullable: false),
                     Impuestos = table.Column<decimal>(type: "numeric", nullable: false),
                     Total = table.Column<decimal>(type: "numeric", nullable: false),
@@ -351,6 +380,34 @@ namespace StockManager.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VentasDetalles",
+                columns: table => new
+                {
+                    DetalleVentaId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    VentaId = table.Column<int>(type: "integer", nullable: false),
+                    ProductoId = table.Column<int>(type: "integer", nullable: false),
+                    Cantidad = table.Column<int>(type: "integer", nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VentasDetalles", x => x.DetalleVentaId);
+                    table.ForeignKey(
+                        name: "FK_VentasDetalles_Ventas_VentaId",
+                        column: x => x.VentaId,
+                        principalTable: "Ventas",
+                        principalColumn: "VentaId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VentasDetalles_productos_ProductoId",
+                        column: x => x.ProductoId,
+                        principalTable: "productos",
+                        principalColumn: "ProductoId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CuentasPorCobrar",
                 columns: table => new
                 {
@@ -363,7 +420,8 @@ namespace StockManager.Migrations
                     FechaEmision = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     FechaLimitePago = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Mora = table.Column<decimal>(type: "numeric", nullable: false),
-                    EstadoCuentaId = table.Column<int>(type: "integer", nullable: false)
+                    EstadoCuentaId = table.Column<int>(type: "integer", nullable: false),
+                    prueba = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -612,6 +670,11 @@ namespace StockManager.Migrations
                 column: "MarcaId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_productos_ProveedorId",
+                table: "productos",
+                column: "ProveedorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Proveedores_EstadoProveedorId",
                 table: "Proveedores",
                 column: "EstadoProveedorId");
@@ -635,6 +698,21 @@ namespace StockManager.Migrations
                 name: "IX_Usuarios_TipoUsuarioId",
                 table: "Usuarios",
                 column: "TipoUsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ventas_ClienteId",
+                table: "Ventas",
+                column: "ClienteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VentasDetalles_ProductoId",
+                table: "VentasDetalles",
+                column: "ProductoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VentasDetalles_VentaId",
+                table: "VentasDetalles",
+                column: "VentaId");
         }
 
         /// <inheritdoc />
@@ -653,7 +731,7 @@ namespace StockManager.Migrations
                 name: "RegistrosPagos");
 
             migrationBuilder.DropTable(
-                name: "productos");
+                name: "VentasDetalles");
 
             migrationBuilder.DropTable(
                 name: "CuentasPorCobrar");
@@ -662,13 +740,10 @@ namespace StockManager.Migrations
                 name: "CuentasPorPagar");
 
             migrationBuilder.DropTable(
-                name: "Categorias");
+                name: "Ventas");
 
             migrationBuilder.DropTable(
-                name: "EstadosProductos");
-
-            migrationBuilder.DropTable(
-                name: "Marcas");
+                name: "productos");
 
             migrationBuilder.DropTable(
                 name: "Facturas");
@@ -678,6 +753,15 @@ namespace StockManager.Migrations
 
             migrationBuilder.DropTable(
                 name: "OrdenesCompras");
+
+            migrationBuilder.DropTable(
+                name: "Categorias");
+
+            migrationBuilder.DropTable(
+                name: "EstadosProductos");
+
+            migrationBuilder.DropTable(
+                name: "Marcas");
 
             migrationBuilder.DropTable(
                 name: "Clientes");

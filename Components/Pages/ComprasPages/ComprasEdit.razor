@@ -10,7 +10,7 @@
 <PageTitle>Editar Orden de Compra</PageTitle>
 <EditForm Model="ordenCompra" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
-    @if(isLoading)
+    @if (isLoading)
     {
         <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status">
@@ -103,22 +103,25 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var detalle in ordenCompra.Detalles)
+                            @if (ordenCompra?.Detalles != null)
                             {
-                                <tr>
-                                    <td>@detalle.Producto.ProductoId</td>
-                                    <td>@detalle.Producto.Nombre</td>
-                                    <td>@(detalle.Producto.Marca?.Nombre ?? "-")</td>
-                                    <td>@detalle.PrecioCompraUnitario</td>
-                                    <td>
-                                        <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger bi bi-trash shadow-sm"
-                                                @onclick="() => QuitarProducto(detalle)">
-                                        </button>
-                                    </td>
-                                </tr>
+                                @foreach (var detalle in ordenCompra.Detalles)
+                                {
+                                    <tr>
+                                        <td>@detalle.Producto?.ProductoId</td>
+                                        <td>@detalle.Producto?.Nombre</td>
+                                        <td>@(detalle.Producto?.Marca?.Nombre ?? "-")</td>
+                                        <td>@detalle.PrecioCompraUnitario</td>
+                                        <td>
+                                            <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger bi bi-trash shadow-sm"
+                                                    @onclick="() => QuitarProducto(detalle)">
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -265,7 +268,7 @@
                 </div>
                 <div class="modal-body">
                     <p>¿Está seguro que desea eliminar la orden de compra <strong>@ordenCompra?.NumeroOrden</strong>?</p>
-           
+
                 </div>
                 <div class="modal-footer d-flex justify-content-center">
                     <button type="button" class="btn btn-secondary" @onclick="CerrarModalEliminar">Cancelar</button>
@@ -301,17 +304,33 @@
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        ordenCompra = await comprasService.Buscar(OrdenCompraId);
-        productos = await productoService.Listar(p => true);
-        proveedores = await proveedorService.Listar(p => true);
-        isLoading = false;
+        try
+        {
+            ordenCompra = await comprasService.Buscar(OrdenCompraId);
 
+            // Ensure Detalles is never null
+            if (ordenCompra != null && ordenCompra.Detalles == null)
+            {
+                ordenCompra.Detalles = new List<OrdenCompraDetalle>();
+            }
+
+            productos = await productoService.Listar(p => true);
+            proveedores = await proveedorService.Listar(p => true);
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error al cargar los datos: {ex.Message}");
+            Console.WriteLine($"Error completo: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
 
     private async Task Guardar()
     {
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
@@ -331,7 +350,7 @@
             return;
         }
 
-        if (!ordenCompra.Detalles.Any())
+        if (ordenCompra.Detalles == null || !ordenCompra.Detalles.Any())
         {
             toastService.ShowError("Debe agregar al menos un producto");
             return;
@@ -364,6 +383,8 @@
 
     private void Calculos()
     {
+        if (ordenCompra?.Detalles == null) return;
+
         decimal subtotalGeneral = 0;
         foreach (var detalle in ordenCompra.Detalles)
         {
@@ -391,6 +412,11 @@
 
     private void AgregarProducto(Producto producto)
     {
+        if (ordenCompra?.Detalles == null)
+        {
+            ordenCompra.Detalles = new List<OrdenCompraDetalle>();
+        }
+
         if (ordenCompra.Detalles.Any(d => d.ProductoId == producto.ProductoId))
         {
             toastService.ShowWarning("Este producto ya está en la orden de compra");
@@ -413,12 +439,14 @@
 
     private void QuitarProducto(OrdenCompraDetalle detalle)
     {
+        if (ordenCompra?.Detalles == null) return;
+
         ordenCompra.Detalles.Remove(detalle);
         StateHasChanged();
         toastService.ShowSuccess("Producto Eliminado de la Orden");
         Calculos();
     }
-    
+
     private void CerrarModalEliminar()
     {
         MostrarModalEliminar = false;
@@ -474,4 +502,3 @@
         StateHasChanged();
     }
 }
-
