@@ -12,7 +12,7 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20250718184541_Inicial")]
+    [Migration("20250724205537_Inicial")]
     partial class Inicial
     {
         /// <inheritdoc />
