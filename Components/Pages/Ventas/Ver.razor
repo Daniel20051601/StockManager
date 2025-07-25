@@ -30,8 +30,8 @@ else
                 <tr>
                     <td>@detalle.Producto?.Nombre</td>
                     <td>@detalle.Cantidad</td>
-                    <td>@detalle.PrecioUnitario.ToString("N2")</td>
-                    <td>@(detalle.Cantidad * detalle.PrecioUnitario).ToString("N2")</td>
+                    <td>@detalle.PrecioUnitario</td>
+                    <td>@(detalle.Cantidad * detalle.PrecioUnitario)</td>
                 </tr>
             }
         </tbody>

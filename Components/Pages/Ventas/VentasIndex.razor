@@ -7,7 +7,7 @@
 @inject IDbContextFactory<Contexto> DbContextFactory
 @inject IJSRuntime JS
 @rendermode InteractiveServer
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
 <PageTitle>Facturar</PageTitle>
 
 @if (isLoading)
@@ -106,7 +106,7 @@ else
                                                        value="@item.Cantidad" @onchange="e => ActualizarCantidad(item, e)" min="1" />
                                             </td>
                                             <td>@item.Producto.PrecioVenta.ToString("N2")</td>
-                                            <td>@(item.Cantidad * item.Producto.PrecioVenta)</td>
+                                            <td>@(item.Cantidad* item.Producto.PrecioVenta)</td>
                                             <td><button class="btn btn-sm btn-danger" @onclick="() => QuitarDelCarrito(item)"><i class="bi bi-x-circle"></i></button></td>
                                         </tr>
                                     }
@@ -119,13 +119,25 @@ else
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">Resumen</h5>
-                                <p><strong>Usuario:</strong> Admin</p>
-                                <p><strong>Total:</strong> @totalVenta)</p>
-                                <button class="btn btn-primary w-100" @onclick="MostrarModalPago" disabled="@(!carrito.Any())">
+
+                                <div class="row px-4">
+                                    <div class="col-6"><strong>Usuario:</strong></div>
+                                    <div class="col-6 text-end text-secondary">@userName</div>
+                                </div>
+
+                                <div class="row px-4 mt-2">
+                                    <div class="col-6"><strong>Total:</strong></div>
+                                    <div class="col-6 text-end">@totalVenta</div>
+                                </div>
+
+                                <button class="btn btn-primary w-100 mt-4" @onclick="MostrarModalPago" disabled="@(!carrito.Any())">
                                     <i class="bi bi-cash-coin"></i> Finalizar Venta
                                 </button>
                             </div>
                         </div>
+                    
+
+                        
 
                         @if (!string.IsNullOrEmpty(mensajeError))
                         {
@@ -166,7 +178,7 @@ else
                                                     <td>@d.Producto?.Nombre</td>
                                                     <td>@d.Cantidad</td>
                                                     <td>@d.PrecioUnitario.ToString("N2")</td>
-                                                    <td>@(d.Cantidad * d.PrecioUnitario).ToString("N2")</td>
+                                                    <td>@(d.Cantidad* d.PrecioUnitario).ToString("N2")</td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -244,7 +256,16 @@ else
 
     private decimal totalVenta => carrito.Sum(i => i.Cantidad * i.Producto.PrecioVenta);
 
-    protected override async Task OnInitializedAsync() => isLoading = false;
+    private string userName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = false;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userName = user.Identity?.Name ?? "Usuario no identificado";
+    }
 
     private async Task Buscar() => await BuscarProductos();
 
@@ -376,27 +397,26 @@ else
         try
         {
             ventaActual = new Venta
+            {
+                Fecha = DateTime.UtcNow,
+                Total = totalVenta,
+                Cliente = new Cliente
                 {
-                    Fecha = DateTime.UtcNow,
-                    Total = totalVenta,
-                    Cliente = new Cliente
-                    {
-                        Nombre = "Al Contado",
-                        RNCCedula = "00000000000",
-                        Telefono = "0000000000",
-                        Email = "alcontado@cliente.com",
-						Direccion = "Sin dirección",
-                        LimiteCredito = 0,
-                        EstadoClienteId = 1
-                    },
-                    Detalles = carrito.Select(item => new DetalleVenta
-                    {
-                        ProductoId = item.Producto.ProductoId,
-                        Cantidad = item.Cantidad,
-                        PrecioUnitario = item.Producto.PrecioVenta
-                    }).ToList()
-                };
-
+                    Nombre = "Al Contado",
+                    RNCCedula = "00000000000",
+                    Telefono = "0000000000",
+                    Email = "alcontado@cliente.com",
+                    Direccion = "Sin dirección",
+                    LimiteCredito = 0,
+                    EstadoClienteId = 1
+                },
+                Detalles = carrito.Select(item => new DetalleVenta
+                {
+                    ProductoId = item.Producto.ProductoId,
+                    Cantidad = item.Cantidad,
+                    PrecioUnitario = item.Producto.PrecioVenta
+                }).ToList()
+            };
 
             foreach (var item in carrito)
             {
@@ -455,10 +475,10 @@ else
 
         html += $"</tbody><tfoot><tr><td colspan='3'><strong>Total</strong></td><td><strong>{ventaActual.Total.ToString("N2")}</strong></td></tr><tr><td colspan='3'><strong>Pagado</strong></td><td>{montoPagado.ToString("N2")}</td></tr><tr><td colspan='3'><strong>Devuelta</strong></td><td>{devuelta.ToString("N2")}</td></tr></tfoot></table></body></html>";
 
-        await JS.InvokeVoidAsync("imprimirHtml", html);
+        await JS.InvokeVoidAsync("blazorImprimir", html);
     }
 
-    private class ItemVenta
+    public class ItemVenta
     {
         public Producto Producto { get; set; } = default!;
         public int Cantidad { get; set; }
