@@ -1,0 +1,423 @@
+﻿@page "/Ventas/HistorialFacturas"
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+
+<PageTitle>Historial de Facturas</PageTitle>
+
+<h3>Historial de Facturas</h3>
+
+<div class="mb-3 row">
+    <label class="col-sm-2 col-form-label">Buscar por Fecha:</label>
+    <div class="col-sm-4">
+        <input type="date" class="form-control" @bind="filtroFecha" />
+    </div>
+</div>
+
+<button class="btn btn-primary mb-3" @onclick="BuscarFacturas">Buscar</button>
+<button class="btn btn-secondary mb-3 ms-2" @onclick="RestablecerFiltros">Restablecer</button>
+
+@if (isLoading)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+}
+else if (!facturas.Any())
+{
+    <p>No se encontraron facturas.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Factura ID</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Detalles</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var venta in facturas)
+            {
+                <tr>
+                    <td>@venta.VentaId</td>
+                    <td>@venta.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@venta.Total.ToString("N2")</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ToggleDetalles(venta.VentaId)">
+                            @(ventaExpandido == venta.VentaId ? "Ocultar" : "Ver")
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" @onclick="() => EditarFactura(venta)">Editar</button>
+                    </td>
+                </tr>
+                @if (ventaExpandido == venta.VentaId)
+                {
+                    <tr>
+                        <td colspan="5">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unitario</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detalle in venta.Detalles)
+                                    {
+                                        <tr>
+                                            <td>@detalle.Producto?.Nombre</td>
+                                            <td>@detalle.Cantidad</td>
+                                            <td>@detalle.PrecioUnitario.ToString("N2")</td>
+                                            <td>@(detalle.Cantidad * detalle.PrecioUnitario).ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@* Modal para editar factura sin cliente *@
+@if (facturaEditando != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Factura - ID @facturaEditando.VentaId</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarEdicion"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Fecha:</strong> @facturaEditando.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Total</th>
+                                <th>Quitar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in facturaEditando.Detalles.ToList())
+                            {
+                                <tr>
+                                    <td>@detalle.Producto?.Nombre</td>
+                                    <td>
+                                        <input type="number" min="1" class="form-control form-control-sm" value="@detalle.Cantidad"
+                                               @onchange="e => ActualizarCantidadDetalle(detalle, e)" />
+                                    </td>
+                                    <td>@detalle.PrecioUnitario.ToString("N2")</td>
+                                    <td>@(detalle.Cantidad * detalle.PrecioUnitario).ToString("N2")</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => QuitarDetalle(detalle)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                <td colspan="2">@CalcularTotal(facturaEditando).ToString("N2")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <hr />
+                    <h6>Agregar producto</h6>
+                    <div class="input-group mb-3">
+                        <select class="form-select" @bind="productoSeleccionadoId">
+                            <option value="0">-- Seleccione un producto --</option>
+                            @foreach (var prod in productosDisponibles)
+                            {
+                                <option value="@prod.ProductoId">@prod.Nombre (@prod.Stock disponible)</option>
+                            }
+                        </select>
+                        <button class="btn btn-outline-primary" @onclick="AgregarProductoNuevo" disabled="@(productoSeleccionadoId == 0)">
+                            Agregar
+                        </button>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(mensajeErrorEdicion))
+                    {
+                        <div class="alert alert-danger">@mensajeErrorEdicion</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CerrarEdicion">Cancelar</button>
+                    <button class="btn btn-primary" @onclick="GuardarCambiosFactura">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Venta> facturas = new();
+    private bool isLoading = false;
+
+    private DateTime? filtroFecha = null;
+
+    private int? ventaExpandido = null;
+
+    // Para edición
+    private Venta? facturaEditando = null;
+    private List<Producto> productosDisponibles = new();
+    private int productoSeleccionadoId = 0;
+    private string mensajeErrorEdicion = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarFacturas();
+    }
+
+    private async Task CargarFacturas()
+    {
+        isLoading = true;
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
+        facturas = await contexto.Ventas
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+            .OrderByDescending(v => v.Fecha)
+            .Take(50)
+            .ToListAsync();
+
+        isLoading = false;
+    }
+
+    private async Task BuscarFacturas()
+    {
+        isLoading = true;
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
+        var query = contexto.Ventas
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+            .AsQueryable();
+
+        if (filtroFecha.HasValue)
+        {
+            var inicio = filtroFecha.Value.Date;
+            var fin = inicio.AddDays(1);
+            query = query.Where(v => v.Fecha >= inicio && v.Fecha < fin);
+        }
+
+        facturas = await query.OrderByDescending(v => v.Fecha).ToListAsync();
+
+        isLoading = false;
+    }
+
+    private void RestablecerFiltros()
+    {
+        filtroFecha = null;
+        ventaExpandido = null;
+        facturaEditando = null;
+        _ = CargarFacturas();
+    }
+
+    private void ToggleDetalles(int ventaId)
+    {
+        if (ventaExpandido == ventaId)
+            ventaExpandido = null;
+        else
+            ventaExpandido = ventaId;
+    }
+
+    private async void EditarFactura(Venta venta)
+    {
+        mensajeErrorEdicion = "";
+        productoSeleccionadoId = 0;
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
+        facturaEditando = await contexto.Ventas
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+            .FirstOrDefaultAsync(v => v.VentaId == venta.VentaId);
+
+        if (facturaEditando == null)
+        {
+            mensajeErrorEdicion = "No se pudo cargar la factura para editar.";
+            return;
+        }
+
+        productosDisponibles = await contexto.productos
+            .Where(p => p.EstadoProductoId == 1 && p.Stock > 0)
+            .ToListAsync();
+
+        StateHasChanged();
+    }
+
+    private void CerrarEdicion()
+    {
+        facturaEditando = null;
+        mensajeErrorEdicion = "";
+        productoSeleccionadoId = 0;
+    }
+
+    private void ActualizarCantidadDetalle(DetalleVenta detalle, ChangeEventArgs e)
+    {
+        mensajeErrorEdicion = "";
+        if (int.TryParse(e.Value?.ToString(), out int cantidadNueva))
+        {
+            if (cantidadNueva < 1)
+            {
+                mensajeErrorEdicion = "La cantidad debe ser al menos 1.";
+                return;
+            }
+
+            int stockDisponible = detalle.Producto?.Stock ?? 0;
+            int cantidadOriginal = detalle.Cantidad;
+            int cantidadDisponibleAjustada = stockDisponible + cantidadOriginal;
+
+            if (cantidadNueva > cantidadDisponibleAjustada)
+            {
+                mensajeErrorEdicion = $"Stock insuficiente para {detalle.Producto?.Nombre}. Disponible: {cantidadDisponibleAjustada}.";
+                return;
+            }
+
+            detalle.Cantidad = cantidadNueva;
+        }
+        else
+        {
+            mensajeErrorEdicion = "Cantidad inválida.";
+        }
+    }
+
+    private void QuitarDetalle(DetalleVenta detalle)
+    {
+        facturaEditando!.Detalles.Remove(detalle);
+    }
+
+    private async Task AgregarProductoNuevo()
+    {
+        mensajeErrorEdicion = "";
+
+        if (productoSeleccionadoId == 0) return;
+
+        var producto = productosDisponibles.FirstOrDefault(p => p.ProductoId == productoSeleccionadoId);
+        if (producto == null)
+        {
+            mensajeErrorEdicion = "Producto no encontrado.";
+            return;
+        }
+
+        if (facturaEditando == null) return;
+
+        if (facturaEditando.Detalles.Any(d => d.ProductoId == producto.ProductoId))
+        {
+            mensajeErrorEdicion = "El producto ya está en la factura.";
+            return;
+        }
+
+        facturaEditando.Detalles.Add(new DetalleVenta
+            {
+                ProductoId = producto.ProductoId,
+                Producto = producto,
+                Cantidad = 1,
+                PrecioUnitario = producto.PrecioVenta
+            });
+
+        productoSeleccionadoId = 0;
+    }
+
+    private decimal CalcularTotal(Venta venta)
+    {
+        return venta.Detalles.Sum(d => d.Cantidad * d.PrecioUnitario);
+    }
+
+    private async Task GuardarCambiosFactura()
+    {
+        if (facturaEditando == null) return;
+
+        mensajeErrorEdicion = "";
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        using var transaccion = await contexto.Database.BeginTransactionAsync();
+
+        try
+        {
+            var ventaDb = await contexto.Ventas
+                .Include(v => v.Detalles)
+                .FirstOrDefaultAsync(v => v.VentaId == facturaEditando.VentaId);
+
+            if (ventaDb == null)
+            {
+                mensajeErrorEdicion = "La factura no existe en la base de datos.";
+                return;
+            }
+
+            // Devolver stock original
+            foreach (var detalleOriginal in ventaDb.Detalles)
+            {
+                var productoDb = await contexto.productos.FindAsync(detalleOriginal.ProductoId);
+                if (productoDb != null)
+                    productoDb.Stock += detalleOriginal.Cantidad;
+            }
+
+            contexto.RemoveRange(ventaDb.Detalles);
+
+            // Agregar nuevos detalles y actualizar stock
+            foreach (var detalleNuevo in facturaEditando.Detalles)
+            {
+                var productoDb = await contexto.productos.FindAsync(detalleNuevo.ProductoId);
+                if (productoDb == null)
+                {
+                    mensajeErrorEdicion = $"Producto no encontrado: {detalleNuevo.Producto?.Nombre}";
+                    await transaccion.RollbackAsync();
+                    return;
+                }
+
+                if (productoDb.Stock < detalleNuevo.Cantidad)
+                {
+                    mensajeErrorEdicion = $"Stock insuficiente para {productoDb.Nombre}. Disponible: {productoDb.Stock}";
+                    await transaccion.RollbackAsync();
+                    return;
+                }
+
+                productoDb.Stock -= detalleNuevo.Cantidad;
+
+                ventaDb.Detalles.Add(new DetalleVenta
+                    {
+                        ProductoId = detalleNuevo.ProductoId,
+                        Cantidad = detalleNuevo.Cantidad,
+                        PrecioUnitario = detalleNuevo.PrecioUnitario
+                    });
+            }
+
+            ventaDb.Total = CalcularTotal(facturaEditando);
+
+            await contexto.SaveChangesAsync();
+            await transaccion.CommitAsync();
+
+            facturaEditando = null;
+            mensajeErrorEdicion = "";
+
+            await CargarFacturas();
+        }
+        catch (Exception ex)
+        {
+            await transaccion.RollbackAsync();
+            mensajeErrorEdicion = "Error al guardar cambios: " + (ex.InnerException?.Message ?? ex.Message);
+        }
+    }
+}
