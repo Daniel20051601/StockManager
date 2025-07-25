@@ -7,7 +7,7 @@
 @inject IDbContextFactory<Contexto> DbContextFactory
 @inject IJSRuntime JS
 @rendermode InteractiveServer
-
+@inject AuthenticationStateProvider AuthenticationStateProvider
 <PageTitle>Facturar</PageTitle>
 
 @if (isLoading)
@@ -21,17 +21,12 @@
 else
 {
     <div class="container-fluid py-4">
-        @* Using container-fluid for full width, and py-4 for vertical padding *@
         <div class="card shadow-lg">
-            @* Removed p-4 here, will add padding within card-body *@
             <div class="card-body p-4">
-                @* Added p-4 to card-body for internal padding *@
                 <h3 class="fw-semibold mb-4">Facturación</h3>
 
                 <div class="row mb-3 align-items-center">
-                    @* Added align-items-center for vertical alignment *@
                     <div class="col-12 col-md-4 col-lg-3 mb-3 mb-md-0">
-                        @* Adjusted column sizes for responsiveness *@
                         <select class="form-select" @bind="filtro">
                             <option value="Nombre">Nombre</option>
                             <option value="Codigo">Código</option>
@@ -40,7 +35,6 @@ else
                         </select>
                     </div>
                     <div class="col-12 col-md-8 col-lg-6">
-                        @* Adjusted column sizes for responsiveness *@
                         <div class="input-group">
                             <input class="form-control" @bind="valorFiltro" placeholder="Buscar producto..." @onkeydown="@OnKeyDown" />
                             <button class="btn btn-outline-primary" @onclick="Buscar"><i class="bi bi-search"></i> Buscar</button>
@@ -89,10 +83,8 @@ else
 
                 <div class="row mt-4">
                     <div class="col-12 col-lg-8">
-                        @* Adjusted column sizes for responsiveness *@
                         <h5>Carrito</h5>
                         <div class="table-responsive">
-                            @* Added table-responsive for carrito table *@
                             <table class="table table-bordered">
                                 <thead class="table-secondary">
                                     <tr>
@@ -114,7 +106,7 @@ else
                                                        value="@item.Cantidad" @onchange="e => ActualizarCantidad(item, e)" min="1" />
                                             </td>
                                             <td>@item.Producto.PrecioVenta.ToString("N2")</td>
-                                            <td>@(item.Cantidad* item.Producto.PrecioVenta).ToString("N2")</td>
+                                            <td>@(item.Cantidad* item.Producto.PrecioVenta)</td>
                                             <td><button class="btn btn-sm btn-danger" @onclick="() => QuitarDelCarrito(item)"><i class="bi bi-x-circle"></i></button></td>
                                         </tr>
                                     }
@@ -124,17 +116,28 @@ else
                     </div>
 
                     <div class="col-12 col-lg-4 mt-4 mt-lg-0">
-                        @* Adjusted column sizes and added margin for responsiveness *@
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">Resumen</h5>
-                                <p><strong>Usuario:</strong> Admin</p>
-                                <p><strong>Total:</strong> @totalVenta.ToString("N2")</p>
-                                <button class="btn btn-primary w-100" @onclick="MostrarModalPago" disabled="@(!carrito.Any())">
+
+                                <div class="row px-4">
+                                    <div class="col-6"><strong>Usuario:</strong></div>
+                                    <div class="col-6 text-end text-secondary">@userName</div>
+                                </div>
+
+                                <div class="row px-4 mt-2">
+                                    <div class="col-6"><strong>Total:</strong></div>
+                                    <div class="col-6 text-end">@totalVenta</div>
+                                </div>
+
+                                <button class="btn btn-primary w-100 mt-4" @onclick="MostrarModalPago" disabled="@(!carrito.Any())">
                                     <i class="bi bi-cash-coin"></i> Finalizar Venta
                                 </button>
                             </div>
                         </div>
+                    
+
+                        
 
                         @if (!string.IsNullOrEmpty(mensajeError))
                         {
@@ -247,15 +250,22 @@ else
     private decimal montoPagado = 0;
     private decimal devuelta = 0;
 
-
     private bool mostrarModalPago = false;
     private decimal montoTemporalPago = 0;
     private string mensajeErrorPago = "";
 
-
     private decimal totalVenta => carrito.Sum(i => i.Cantidad * i.Producto.PrecioVenta);
 
-    protected override async Task OnInitializedAsync() => isLoading = false;
+    private string userName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = false;
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userName = user.Identity?.Name ?? "Usuario no identificado";
+    }
 
     private async Task Buscar() => await BuscarProductos();
 
@@ -313,9 +323,7 @@ else
         }
     }
 
-
     private void QuitarDelCarrito(ItemVenta item) => carrito.Remove(item);
-
 
     private void ActualizarCantidad(ItemVenta item, ChangeEventArgs e)
     {
@@ -345,8 +353,6 @@ else
 
         StateHasChanged();
     }
-
-
 
     private void MostrarModalPago()
     {
@@ -390,15 +396,22 @@ else
 
         try
         {
-
             ventaActual = new Venta
             {
                 Fecha = DateTime.UtcNow,
                 Total = totalVenta,
-                Cliente = new Cliente { Nombre = "Al Contado" },
+                Cliente = new Cliente
+                {
+                    Nombre = "Al Contado",
+                    RNCCedula = "00000000000",
+                    Telefono = "0000000000",
+                    Email = "alcontado@cliente.com",
+                    Direccion = "Sin dirección",
+                    LimiteCredito = 0,
+                    EstadoClienteId = 1
+                },
                 Detalles = carrito.Select(item => new DetalleVenta
                 {
-                    Producto = item.Producto,
                     ProductoId = item.Producto.ProductoId,
                     Cantidad = item.Cantidad,
                     PrecioUnitario = item.Producto.PrecioVenta
@@ -417,10 +430,17 @@ else
                 productoDb.Stock -= item.Cantidad;
             }
 
-
+            contexto.Ventas.Add(ventaActual);
 
             await contexto.SaveChangesAsync();
             await transaccion.CommitAsync();
+
+            ventaActual = await contexto.Ventas
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .Include(v => v.Cliente)
+                .OrderByDescending(v => v.VentaId)
+                .FirstOrDefaultAsync();
 
             mostrarFacturaModal = true;
             mensajeExito = "Venta procesada correctamente.";
@@ -455,10 +475,10 @@ else
 
         html += $"</tbody><tfoot><tr><td colspan='3'><strong>Total</strong></td><td><strong>{ventaActual.Total.ToString("N2")}</strong></td></tr><tr><td colspan='3'><strong>Pagado</strong></td><td>{montoPagado.ToString("N2")}</td></tr><tr><td colspan='3'><strong>Devuelta</strong></td><td>{devuelta.ToString("N2")}</td></tr></tfoot></table></body></html>";
 
-        await JS.InvokeVoidAsync("imprimirHtml", html);
+        await JS.InvokeVoidAsync("blazorImprimir", html);
     }
 
-    private class ItemVenta
+    public class ItemVenta
     {
         public Producto Producto { get; set; } = default!;
         public int Cantidad { get; set; }
