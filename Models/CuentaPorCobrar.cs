@@ -25,6 +25,6 @@ public class CuentaPorCobrar
     [ForeignKey("EstadoCuenta")]
     public int EstadoCuentaId { get; set; }
     public EstadoCuenta EstadoCuenta { get; set; } = null!;
-
+    public int prueba { get; set; } = 0;    
     public ICollection<RegistroPago> Pagos { get; set; } = null!;
 }

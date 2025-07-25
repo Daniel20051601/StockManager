@@ -1,0 +1,196 @@
+﻿@page "/CuentasPorPagar/Index"
+@rendermode InteractiveServer
+@using StockManager.Dal
+@using StockManager.Models
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Contexto> DbFactory
+@inject NavigationManager Navigation
+@inject Blazored.Toast.Services.IToastService toastService
+
+<PageTitle>Cuentas</PageTitle>
+
+<style>
+    .table-striped-custom tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    .table-striped-custom tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .btn-crear {
+        background-color: #198754;
+        border-color: #198754;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+        .btn-crear:hover {
+            background-color: #157347;
+            border-color: #146c43;
+            color: white;
+        }
+
+    .action-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        color: #6c757d;
+    }
+
+        .action-btn:hover {
+            color: #000;
+        }
+</style>
+
+<div class="mt-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="fw-semibold">Cuentas</h3>
+        </div>
+        <div class="col-auto d-flex align-items-center gap-3">
+            <input @bind="terminoBusqueda" @bind:event="oninput" @onkeyup="BuscarCuentas"
+                   class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
+            <button type="button" class="btn btn-crear shadow-sm" @onclick="CrearNuevaCuenta">
+                <i class="bi bi-plus-circle me-2"></i>Crear
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-hover align-middle shadow-sm table-striped-custom">
+            <thead class="table-light">
+                <tr>
+                    <th>Orden Compra</th>
+                    <th>Proveedor</th>
+                    <th>Monto Total</th>
+                    <th>Saldo Pendiente</th>
+                    <th>Fecha Emisión</th>
+                    <th>Fecha Límite</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cuenta in cuentasPaginadas)
+                {
+                    <tr>
+                        <td>#@cuenta.OrdenCompraId</td>
+                        <td>@cuenta.OrdenCompra.Proveedor.Nombre</td>
+                        <td>@cuenta.MontoTotal.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>@cuenta.SaldoPendiente.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>@cuenta.FechaEmision.ToString("dd/MM/yyyy")</td>
+                        <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
+                        <td>@cuenta.EstadoCuenta.Nombre</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">Editar</a></li>
+                                    <li><button class="dropdown-item text-danger" @onclick="() => EliminarCuenta(cuenta.CuentaPorPagarId)">Eliminar</button></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!cuentasFiltradas.Any())
+    {
+        <div class="text-center py-4">
+            <i class="bi bi-search display-1 text-muted"></i>
+            <p class="text-muted">No se encontraron cuentas.</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CuentaPorPagar> cuentas = new();
+    private List<CuentaPorPagar> cuentasFiltradas = new();
+    private string terminoBusqueda = string.Empty;
+
+    private int paginaActual = 1;
+    private int elementosPorPagina = 10;
+    private int totalPaginas => (int)Math.Ceiling((double)cuentasFiltradas.Count / elementosPorPagina);
+    private List<CuentaPorPagar> cuentasPaginadas => cuentasFiltradas
+        .Skip((paginaActual - 1) * elementosPorPagina)
+        .Take(elementosPorPagina)
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+        toastService.ShowInfo("Datos de cuentas cargados correctamente.");
+    }
+
+    private async Task CargarDatos()
+    {
+        using var context = DbFactory.CreateDbContext();
+        cuentas = await context.CuentasPorPagar
+            .Include(c => c.OrdenCompra)
+                .ThenInclude(o => o.Proveedor)
+            .Include(c => c.EstadoCuenta)
+            .ToListAsync();
+
+        cuentasFiltradas = cuentas;
+    }
+
+    private void BuscarCuentas()
+    {
+        if (string.IsNullOrWhiteSpace(terminoBusqueda))
+        {
+            cuentasFiltradas = cuentas;
+        }
+        else
+        {
+            var termino = terminoBusqueda.ToLower();
+            cuentasFiltradas = cuentas.Where(c =>
+                c.OrdenCompra.Proveedor.Nombre.ToLower().Contains(termino) ||
+                c.MontoTotal.ToString().Contains(termino) ||
+                c.SaldoPendiente.ToString().Contains(termino)
+            ).ToList();
+        }
+
+        if (!cuentasFiltradas.Any())
+        {
+            toastService.ShowInfo("No se encontraron resultados para la búsqueda.");
+        }
+
+        paginaActual = 1;
+        StateHasChanged();
+    }
+
+    private void EditarCuenta(int id)
+    {
+        Navigation.NavigateTo($"/CuentasPorPagar/Edit/{id}");
+    }
+
+    private async Task EliminarCuenta(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var cuenta = await context.CuentasPorPagar.FindAsync(id);
+        if (cuenta != null)
+        {
+            context.CuentasPorPagar.Remove(cuenta);
+            await context.SaveChangesAsync();
+            toastService.ShowSuccess("Cuenta eliminada correctamente.");
+            await CargarDatos();
+            StateHasChanged();
+        }
+        else
+        {
+            toastService.ShowError("No se pudo encontrar la cuenta.");
+        }
+    }
+
+    private void CrearNuevaCuenta()
+    {
+        Navigation.NavigateTo("/CuentasPorPagar/Create");
+    }
+}
