@@ -152,6 +152,7 @@
     private async Task CargarDatosIniciales()
     {
         using var context = DbFactory.CreateDbContext();
+        // Incluye el Cliente para poder mostrar su nombre en el dropdown de facturas
         facturas = await context.Facturas.Include(f => f.Cliente).ToListAsync();
         estadosCuentas = await context.EstadosCuentas.ToListAsync();
         cargando = false;
@@ -163,7 +164,8 @@
             {
                 Mora = 0,
                 FechaEmision = DateTime.UtcNow.Date,
-                FechaLimitePago = DateTime.UtcNow.Date.AddDays(30),
+                FechaLimitePago = DateTime.UtcNow.Date.AddDays(30), // Fecha límite por defecto
+            // Intenta encontrar el estado "Pendiente", si no existe, usa 0 (o tu ID de estado por defecto)
                 EstadoCuentaId = estadosCuentas.FirstOrDefault(e => e.Nombre.ToLower() == "pendiente")?.EstadoCuentaId ?? 0
             };
     }
@@ -177,13 +179,15 @@
 
             if (facturaSeleccionada != null)
             {
+                // Rellena los campos automáticamente desde la factura seleccionada
                 cuentaPorCobrar.MontoTotal = facturaSeleccionada.Total;
-                cuentaPorCobrar.SaldoPendiente = facturaSeleccionada.Total;
+                cuentaPorCobrar.SaldoPendiente = facturaSeleccionada.Total; // Al inicio, el saldo pendiente es el monto total
                 cuentaPorCobrar.FechaEmision = facturaSeleccionada.FechaEmision.Date;
-                cuentaPorCobrar.ClienteId = facturaSeleccionada.ClienteId;
+                cuentaPorCobrar.ClienteId = facturaSeleccionada.ClienteId; // Asigna el ClienteId desde la factura
             }
             else
             {
+                // Si se deselecciona o selecciona "Seleccione una factura", reinicia los campos
                 cuentaPorCobrar.MontoTotal = 0;
                 cuentaPorCobrar.SaldoPendiente = 0;
                 cuentaPorCobrar.Mora = 0;
@@ -192,21 +196,24 @@
         }
         else
         {
+            // Si el valor no es un número válido, reinicia FacturaId a 0 y limpia campos
             cuentaPorCobrar.FacturaId = 0;
             cuentaPorCobrar.MontoTotal = 0;
             cuentaPorCobrar.SaldoPendiente = 0;
             cuentaPorCobrar.Mora = 0;
             cuentaPorCobrar.ClienteId = 0;
         }
+        // Fuerza la actualización de la interfaz de usuario para que los campos readonly se muestren con los nuevos valores
         StateHasChanged();
     }
 
     private async Task CrearCuenta()
     {
-        guardando = true;
+        guardando = true; // Deshabilita el botón para evitar múltiples clics
 
         try
         {
+            // Validaciones adicionales antes de guardar
             if (cuentaPorCobrar.FacturaId == 0)
             {
                 toastService.ShowError("Debe seleccionar una factura.");
@@ -233,19 +240,23 @@
                 return;
             }
 
+            // Convertir fechas a UTC antes de guardar en la base de datos para consistencia
             cuentaPorCobrar.FechaEmision = DateTime.SpecifyKind(cuentaPorCobrar.FechaEmision, DateTimeKind.Utc);
             cuentaPorCobrar.FechaLimitePago = DateTime.SpecifyKind(cuentaPorCobrar.FechaLimitePago, DateTimeKind.Utc);
 
             using var context = DbFactory.CreateDbContext();
 
+            // Verificamos si ya existe una cuenta por cobrar para la factura seleccionada
             var existe = await context.CuentasPorCobrar.AnyAsync(c => c.FacturaId == cuentaPorCobrar.FacturaId);
 
             if (existe)
             {
                 toastService.ShowWarning("Ya existe una cuenta por cobrar para esta factura.");
-                return;
+                return; // No continuamos si ya existe
             }
 
+            // Asegurarse de que el ClienteId se asigne correctamente desde la factura ANTES de añadir al contexto.
+            // Esto es crucial para la relación de la base de datos.
             var factura = await context.Facturas.FindAsync(cuentaPorCobrar.FacturaId);
             if (factura != null)
             {
@@ -253,24 +264,26 @@
             }
             else
             {
-                toastService.ShowError("No se encontró la factura seleccionada.");
+                toastService.ShowError("No se encontró la factura seleccionada. Por favor, intente de nuevo.");
                 return;
             }
 
+            // Añadir la nueva cuenta por cobrar al contexto y guardar
             context.CuentasPorCobrar.Add(cuentaPorCobrar);
             await context.SaveChangesAsync();
 
             toastService.ShowSuccess("Cuenta por cobrar creada correctamente.");
-            await Task.Delay(1500);
-            Navigation.NavigateTo("/CuentasPorCobrar/Index");
+            await Task.Delay(1500); // Pequeña pausa para que el usuario vea el mensaje
+            Navigation.NavigateTo("/CuentasPorCobrar/Index"); // Redirige a la página de índice
         }
         catch (Exception ex)
         {
-            toastService.ShowError($"Error al guardar: {ex.InnerException?.Message ?? ex.Message}");
+            // Muestra un mensaje de error más útil
+            toastService.ShowError($"Error al guardar la cuenta por cobrar: {ex.InnerException?.Message ?? ex.Message}");
         }
         finally
         {
-            guardando = false;
+            guardando = false; // Habilita el botón de nuevo
         }
     }
 

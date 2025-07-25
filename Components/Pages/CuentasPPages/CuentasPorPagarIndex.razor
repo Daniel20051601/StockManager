@@ -7,7 +7,7 @@
 @inject NavigationManager Navigation
 @inject Blazored.Toast.Services.IToastService toastService
 
-<PageTitle>Cuentas</PageTitle>
+<PageTitle>Cuentas por Pagar</PageTitle>
 
 <style>
     .table-striped-custom tbody tr:nth-child(odd) {
@@ -47,73 +47,109 @@
         }
 </style>
 
-<div class="mt-5">
-    <div class="row mb-4">
-        <div class="col">
-            <h3 class="fw-semibold">Cuentas</h3>
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
         </div>
-        <div class="col-auto d-flex align-items-center gap-3">
-            <input @bind="terminoBusqueda" @bind:event="oninput" @onkeyup="BuscarCuentas"
-                   class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-            <button type="button" class="btn btn-crear shadow-sm" @onclick="CrearNuevaCuenta">
-                <i class="bi bi-plus-circle me-2"></i>Crear
-            </button>
-        </div>
+        <p>Cargando cuentas por pagar...</p>
     </div>
+}
+else
+{
+    <div class="mt-5">
+        <div class="row mb-4">
+            <div class="col">
+                <h3 class="fw-semibold">Cuentas por Pagar</h3>
+            </div>
+            <div class="col-auto d-flex align-items-center gap-3">
+                <input @bind="terminoBusqueda" @bind:event="oninput" @onkeyup="BuscarCuentas"
+                       class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar por proveedor, monto, o saldo..." />
+                <button type="button" class="btn btn-crear shadow-sm" @onclick="CrearNuevaCuenta">
+                    <i class="bi bi-plus-circle me-2"></i>Crear
+                </button>
+            </div>
+        </div>
 
-    <div class="table-responsive mt-4">
-        <table class="table table-hover align-middle shadow-sm table-striped-custom">
-            <thead class="table-light">
-                <tr>
-                    <th>Orden Compra</th>
-                    <th>Proveedor</th>
-                    <th>Monto Total</th>
-                    <th>Saldo Pendiente</th>
-                    <th>Fecha Emisión</th>
-                    <th>Fecha Límite</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var cuenta in cuentasPaginadas)
-                {
+        <div class="table-responsive mt-4">
+            <table class="table table-hover align-middle shadow-sm table-striped-custom">
+                <thead class="table-light">
                     <tr>
-                        <td>#@cuenta.OrdenCompraId</td>
-                        <td>@cuenta.OrdenCompra.Proveedor.Nombre</td>
-                        <td>@cuenta.MontoTotal.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
-                        <td>@cuenta.SaldoPendiente.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
-                        <td>@cuenta.FechaEmision.ToString("dd/MM/yyyy")</td>
-                        <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
-                        <td>@cuenta.EstadoCuenta.Nombre</td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">Editar</a></li>
-                                    <li><button class="dropdown-item text-danger" @onclick="() => EliminarCuenta(cuenta.CuentaPorPagarId)">Eliminar</button></li>
-                                </ul>
-                            </div>
-                        </td>
+                        <th>Orden Compra</th>
+                        <th>Proveedor</th>
+                        <th>Monto Total</th>
+                        <th>Saldo Pendiente</th>
+                        <th>Fecha Emisión</th>
+                        <th>Fecha Límite</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-
-    @if (!cuentasFiltradas.Any())
-    {
-        <div class="text-center py-4">
-            <i class="bi bi-search display-1 text-muted"></i>
-            <p class="text-muted">No se encontraron cuentas.</p>
+                </thead>
+                <tbody>
+                    @if (cuentasPaginadas.Any())
+                    {
+                        @foreach (var cuenta in cuentasPaginadas)
+                        {
+                            <tr>
+                                <td>#@cuenta.OrdenCompraId</td>
+                                <td>@cuenta.OrdenCompra?.Proveedor?.Nombre</td> @* Usar el operador ?. para seguridad *@
+                                <td>@cuenta.MontoTotal.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
+                                <td>@cuenta.SaldoPendiente.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
+                                <td>@cuenta.FechaEmision.ToString("dd/MM/yyyy")</td>
+                                <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
+                                <td>@cuenta.EstadoCuenta?.Nombre</td> @* Usar el operador ?. para seguridad *@
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#" @onclick="() => EditarCuenta(cuenta.CuentaPorPagarId)">Editar</a></li>
+                                            <li><button class="dropdown-item text-danger" @onclick="() => EliminarCuenta(cuenta.CuentaPorPagarId)">Eliminar</button></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4">No se encontraron cuentas por pagar.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-    }
-</div>
+
+        @if (cuentasFiltradas.Any())
+        {
+            <div class="d-flex justify-content-end mt-3">
+                <nav>
+                    <ul class="pagination">
+                        <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+                        </li>
+                        @for (int i = 1; i <= totalPaginas; i++)
+                        {
+                            <li class="page-item @(paginaActual == i ? "active" : "")">
+                                <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                            </li>
+                        }
+                        <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                            <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+}
 
 @code {
     private List<CuentaPorPagar> cuentas = new();
     private List<CuentaPorPagar> cuentasFiltradas = new();
     private string terminoBusqueda = string.Empty;
+    private bool isLoading = true; // Variable para controlar el estado de carga
 
     private int paginaActual = 1;
     private int elementosPorPagina = 10;
@@ -125,8 +161,33 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Suscribirse al evento LocationChanged
+        Navigation.LocationChanged += HandleLocationChanged;
+        isLoading = true; // Mostrar spinner al iniciar
         await CargarDatos();
-        toastService.ShowInfo("Datos de cuentas cargados correctamente.");
+        isLoading = false; // Ocultar spinner después de cargar
+    }
+
+    // Método para manejar los cambios de URL
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Solo recargar si la URL actual es la de esta página
+        if (e.Location.EndsWith("/CuentasPorPagar/Index", StringComparison.OrdinalIgnoreCase))
+        {
+            InvokeAsync(async () =>
+            {
+                isLoading = true;
+                await CargarDatos();
+                isLoading = false;
+                StateHasChanged();
+            });
+        }
+    }
+
+    // Implementar IDisposable para desuscribirse del evento y evitar fugas de memoria
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
     }
 
     private async Task CargarDatos()
@@ -138,7 +199,8 @@
             .Include(c => c.EstadoCuenta)
             .ToListAsync();
 
-        cuentasFiltradas = cuentas;
+        cuentasFiltradas = cuentas; // Inicialmente, las filtradas son todas
+        BuscarCuentas(); // Aplicar el filtro inicial (si hay término de búsqueda) y paginación
     }
 
     private void BuscarCuentas()
@@ -151,18 +213,19 @@
         {
             var termino = terminoBusqueda.ToLower();
             cuentasFiltradas = cuentas.Where(c =>
-                c.OrdenCompra.Proveedor.Nombre.ToLower().Contains(termino) ||
+                c.OrdenCompra != null && c.OrdenCompra.Proveedor != null && c.OrdenCompra.Proveedor.Nombre.ToLower().Contains(termino) ||
                 c.MontoTotal.ToString().Contains(termino) ||
-                c.SaldoPendiente.ToString().Contains(termino)
+                c.SaldoPendiente.ToString().Contains(termino) ||
+                c.OrdenCompraId.ToString().Contains(termino) // Permite buscar por ID de Orden de Compra
             ).ToList();
         }
 
-        if (!cuentasFiltradas.Any())
+        if (!cuentasFiltradas.Any() && !string.IsNullOrWhiteSpace(terminoBusqueda))
         {
             toastService.ShowInfo("No se encontraron resultados para la búsqueda.");
         }
 
-        paginaActual = 1;
+        paginaActual = 1; // Reiniciar a la primera página con cada búsqueda
         StateHasChanged();
     }
 
@@ -180,7 +243,7 @@
             context.CuentasPorPagar.Remove(cuenta);
             await context.SaveChangesAsync();
             toastService.ShowSuccess("Cuenta eliminada correctamente.");
-            await CargarDatos();
+            await CargarDatos(); // Recargar datos después de eliminar
             StateHasChanged();
         }
         else
@@ -192,5 +255,29 @@
     private void CrearNuevaCuenta()
     {
         Navigation.NavigateTo("/CuentasPorPagar/Create");
+    }
+
+    private async Task PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            await Task.CompletedTask; // No se necesita recargar de la BD, solo se cambia la vista de la lista filtrada
+        }
+    }
+
+    private async Task PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            await Task.CompletedTask; // No se necesita recargar de la BD, solo se cambia la vista de la lista filtrada
+        }
+    }
+
+    private async Task CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+        await Task.CompletedTask; // No se necesita recargar de la BD, solo se cambia la vista de la lista filtrada
     }
 }
