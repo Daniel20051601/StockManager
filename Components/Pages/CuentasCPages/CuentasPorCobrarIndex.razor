@@ -1,5 +1,12 @@
 ﻿@page "/CuentasPorCobrar/Index"
 @rendermode InteractiveServer
+@using StockManager.Dal
+@using StockManager.Models
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Contexto> DbFactory
+@inject NavigationManager Navigation
+@inject Blazored.Toast.Services.IToastService toastService
+
 <PageTitle>Cuentas por Cobrar</PageTitle>
 
 <style>
@@ -10,170 +17,235 @@
     .table-striped-custom tbody tr:nth-child(even) {
         background-color: #f2f2f2;
     }
+
+    .btn-crear {
+        background-color: #198754;
+        border-color: #198754;
+        color: white;
+        display: flex;
+        align-items: center;
+    }
+
+        .btn-crear:hover {
+            background-color: #157347;
+            border-color: #146c43;
+            color: white;
+        }
+
+    .action-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        color: #6c757d;
+    }
+
+        .action-btn:hover {
+            color: #000;
+        }
 </style>
 
 <div class="mt-5">
-    
     <div class="row mb-4">
         <div class="col">
             <h3 class="fw-semibold">Cuentas por Cobrar</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-            <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm"></a>
-            <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
+            <input @bind="terminoBusqueda" @bind:event="oninput" @onkeyup="BuscarCuentas"
+                   class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
+            <button type="button" class="btn btn-crear shadow-sm" @onclick="CrearNuevaCuenta">
+                <i class="bi bi-plus-circle me-2"></i>Crear
+            </button>
         </div>
     </div>
 
-    
     <div class="row d-flex justify-content-between mb-4">
         <div class="col-auto">
             <button type="button" class="btn btn-outline">Resumen</button>
-           
         </div>
     </div>
 
-    
     <div class="table-responsive mt-4">
         <table class="table table-hover align-middle shadow-sm table-striped-custom">
             <thead class="table-light">
                 <tr>
                     <th>Editar</th>
-                    <th>Límite de Crédito</th>
-                    <th>Pago</th>
-                    <th>Factura</th>
-                    <th>Nombre Proveedor</th>
-                    <th>Fecha límite de pago</th>
-                    <th>Monto de Producto</th>
-                    <th>Estatus</th>
-                    <th>Orden</th>
-                    <th>RNC</th>
-                    <th>Mora Pago</th>
+                    <th>Factura #</th>
+                    <th>Cliente</th>
+                    <th>Monto Total</th>
+                    <th>Saldo Pendiente</th>
+                    <th>Fecha de Emisión</th>
+                    <th>Fecha Límite de Pago</th>
+                    <th>Mora</th>
+                    <th>Estado</th>
+                    <th>RNC del Cliente</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
-                <tr>
-                    <td>250,000.00</td>
-                    <td><i class="bi bi-pencil-fill"></i></td>
-                    <td>18,450.00</td>
-                    <td>47</td>
-                    <td>StockManager</td>
-                    <td>30/07/2025</td>
-                    <td>80</td>
-                    <td>no</td>
-                    <td>#126</td>
-                    <td>133-55789</td>
-                    <td>7%</td>
-                </tr>
+                @foreach (var cuenta in cuentasPaginadas)
+                {
+                    <tr>
+                        <td>
+                            <button class="action-btn" @onclick="() => EditarCuenta(cuenta.CuentaPorCobrarId)">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                        </td>
+                        <td>#@cuenta.FacturaId</td> @* Changed to FacturaId as 'Factura' is a navigation property *@
+                        <td>@cuenta.Cliente.Nombre</td> @* Accessing client name via navigation property *@
+                        <td>@cuenta.MontoTotal.ToString("C")</td>
+                        <td>@cuenta.SaldoPendiente.ToString("C")</td>
+                        <td>@cuenta.FechaEmision.ToString("dd/MM/yyyy")</td>
+                        <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
+                        <td>@cuenta.Mora.ToString("C")</td>
+                        <td>@cuenta.EstadoCuenta.Nombre</td> @* Accessing status name via navigation property *@
+                        <td>
+                            <div class="dropdown">
+                                <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" @onclick="() => EditarCuenta(cuenta.CuentaPorCobrarId)">Editar</a></li>
+                                    <li><button class="dropdown-item text-danger" @onclick="() => EliminarCuenta(cuenta.CuentaPorCobrarId)">Eliminar</button></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
 
-    <!-- Paginación -->
+    @if (!cuentasFiltradas.Any())
+    {
+        <div class="text-center py-4">
+            <i class="bi bi-search display-1 text-muted"></i>
+            <p class="text-muted">No se encontraron cuentas por cobrar.</p>
+        </div>
+    }
+
     <div class="d-flex justify-content-end mt-3">
         <nav>
             <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
+                <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                    <a class="page-link" href="#" @onclick="PaginaAnterior">Anterior</a>
+                </li>
+                @for (int i = 1; i <= totalPaginas; i++)
+                {
+                    <li class="page-item @(i == paginaActual ? "active" : "")">
+                        <a class="page-link" href="#" @onclick="() => CambiarPagina(i)">@i</a>
+                    </li>
+                }
+                <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                    <a class="page-link" href="#" @onclick="PaginaSiguiente">Siguiente</a>
+                </li>
             </ul>
         </nav>
     </div>
 </div>
 
-
 @code {
+    private List<CuentaPorCobrar> cuentas = new();
+    private List<CuentaPorCobrar> cuentasFiltradas = new();
+    private string terminoBusqueda = string.Empty;
 
+    private int paginaActual = 1;
+    private int elementosPorPagina = 10;
+    private int totalPaginas => (int)Math.Ceiling((double)cuentasFiltradas.Count / elementosPorPagina);
+    private List<CuentaPorCobrar> cuentasPaginadas => cuentasFiltradas
+        .Skip((paginaActual - 1) * elementosPorPagina)
+        .Take(elementosPorPagina)
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+        toastService.ShowInfo("Datos de cuentas por cobrar cargados correctamente.");
+    }
+
+    private async Task CargarDatos()
+    {
+        using var context = DbFactory.CreateDbContext();
+        // Include related entities to access their properties (Cliente, EstadoCuenta, Factura)
+        cuentas = await context.CuentasPorCobrar
+            .Include(c => c.Cliente)
+            .Include(c => c.EstadoCuenta)
+            .Include(c => c.Factura) // Include Factura if you need details from it later
+            .ToListAsync();
+        cuentasFiltradas = cuentas;
+    }
+
+    private void BuscarCuentas()
+    {
+        if (string.IsNullOrWhiteSpace(terminoBusqueda))
+        {
+            cuentasFiltradas = cuentas;
+        }
+        else
+        {
+            var termino = terminoBusqueda.ToLower();
+            cuentasFiltradas = cuentas.Where(c =>
+                c.Cliente.Nombre.ToLower().Contains(termino) || // Search by Client Name
+                c.FacturaId.ToString().Contains(termino) || // Search by Factura ID
+                c.EstadoCuenta.Nombre.ToLower().Contains(termino) // Search by EstadoCuenta Name
+            ).ToList();
+        }
+
+        if (!cuentasFiltradas.Any())
+        {
+            toastService.ShowInfo("No se encontraron resultados para la búsqueda.");
+        }
+
+        paginaActual = 1;
+        StateHasChanged();
+    }
+
+    private void CrearNuevaCuenta()
+    {
+        Navigation.NavigateTo("/CuentasPorCobrar/Create");
+    }
+
+    private void EditarCuenta(int id)
+    {
+        Navigation.NavigateTo($"/CuentasPorCobrar/Edit/{id}");
+    }
+
+    private async Task EliminarCuenta(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var cuenta = await context.CuentasPorCobrar.FindAsync(id);
+        if (cuenta != null)
+        {
+            context.CuentasPorCobrar.Remove(cuenta);
+            await context.SaveChangesAsync();
+            toastService.ShowSuccess("Cuenta eliminada correctamente.");
+            await CargarDatos();
+            StateHasChanged();
+        }
+        else
+        {
+            toastService.ShowError("No se pudo encontrar la cuenta.");
+        }
+    }
+
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+        }
+    }
+
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+        }
+    }
+
+    private void CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+    }
 }
