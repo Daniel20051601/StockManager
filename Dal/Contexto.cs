@@ -33,6 +33,7 @@ namespace StockManager.Dal
         public DbSet<CuentaPorPagar> CuentasPorPagar { get; set; } = null!;
         public DbSet<Venta> Ventas { get; set; } = null!;
         public DbSet<DetalleVenta> VentasDetalles { get; set; } = null!;
+      
 
         public Contexto() { }
     }
