@@ -21,13 +21,10 @@ else
     <div class="mt-5">
         <div class="row mb-4 align-items-center">
             <div class="col-md-3">
-                @* Columna para el título, ajustada para dejar más espacio a la derecha *@
                 <h3 class="fw-semibold">Productos</h3>
             </div>
             <div class="col-md-9 d-flex justify-content-end align-items-center gap-3">
-                @* Columna para el filtro, búsqueda y notificaciones *@
                 <div class="input-group" style="max-width: 180px;">
-                    @* Ancho fijo y controlado para el filtro *@
                     <select class="form-select" @bind="filtro">
                         <option value="Nombre">Nombre</option>
                         <option value="Codigo">Código</option>
@@ -36,39 +33,32 @@ else
                     </select>
                 </div>
                 <div class="input-group flex-grow-1" style="max-width: 400px;">
-                    @* Limita el ancho máximo de la barra de búsqueda *@
                     <input class="form-control shadow-sm text-secondary" @bind="valorFiltro" placeholder="Buscar..." />
                     <button class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
                     <button class="btn btn-outline-secondary ms-1 bi bi-arrow-repeat" @onclick="Restablecer"></button>
                 </div>
 
-                @* Botón de Notificaciones (copiado de Compras/Index) *@
                 <div class="dropdown">
                     <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
                     </button>
                     <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
                         <div class="mb-3">
-
                             <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
                                 <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
                                 <p class="fw-light">Algunos productos están apunto de vencer</p>
                             </div>
-
                             <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
                                 <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras políticas</strong></label>
                                 <p class="fw-light">Mira cuales son las novedades</p>
                             </div>
-
                             <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
                                 <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
                                 <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
                             </div>
-
                             <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
                                 <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
                                 <p class="fw-light">Algunos productos están apunto de vencer</p>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -78,7 +68,9 @@ else
         <div class="row d-flex justify-content-between mb-3">
             <div class="col-auto">
                 <button class="btn btn-outline">Resumen</button>
-               
+
+                <button class="btn btn-outline text-secondary ms-2">Solicitudes</button>
+                <button class="btn btn-outline text-secondary ms-2">Notificaciones</button>
             </div>
             <div class="col-auto">
                 <a href="/Productos/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
