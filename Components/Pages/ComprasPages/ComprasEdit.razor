@@ -73,7 +73,16 @@
                     <InputText class="form-control" placeholder="Ingrese el número de la orden de compra" required @bind-Value="ordenCompra.NumeroOrden" />
                 </div>
 
-
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Estado de la Orden de Compra</label>
+                    <InputSelect class="form-select" @bind-Value="ordenCompra.EstadoOrdenCompraId">
+                        <option value="">Seleccione un estado</option>
+                        @foreach (var estado in estadosOrdenes)
+                        {
+                            <option value="@estado.EstadoOrdenCompraId">@estado.Nombre.ToUpper()</option>
+                        }
+                    </InputSelect>
+                </div>
 
                 <div class="mb-3 mx-5">
                     <label class="form-label fs-4">Proveedor</label>
@@ -292,6 +301,8 @@
     List<Proveedor> proveedores { get; set; } = new List<Proveedor>();
     List<Producto> productos { get; set; } = new List<Producto>();
 
+    List<EstadoOrdenCompra> estadosOrdenes { get; set; } = new List<EstadoOrdenCompra>();
+
     private bool isLoading = true;
 
 
@@ -316,6 +327,7 @@
 
             productos = await productoService.Listar(p => true);
             proveedores = await proveedorService.Listar(p => true);
+            estadosOrdenes = await comprasService.EstadoOrdenCompras();
         }
         catch (Exception ex)
         {
@@ -360,7 +372,6 @@
         {
             ordenCompra.FechaCreacion = DateTime.UtcNow;
             ordenCompra.FechaEntregaEstimada = ordenCompra.FechaEntregaEstimada.ToUniversalTime();
-            ordenCompra.EstadoOrdenCompraId = 1;
 
             Calculos();
             var guardado = await comprasService.Guardar(ordenCompra);

@@ -159,4 +159,10 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
             .ToListAsync();
     }
 
+    public async Task<List<EstadoOrdenCompra>> EstadoOrdenCompras()
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        return await contexto.EstadosOrdenCompra.AsNoTracking().ToListAsync();
+    }
+
 }
