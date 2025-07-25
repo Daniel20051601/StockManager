@@ -81,6 +81,18 @@ else
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label">Estado del producto</label>
+                                <InputSelect class="form-select" @bind-Value="producto.EstadoProductoId">
+                                    <option value="">-- Selecciona un estado --</option>
+                                    @foreach (var estado in estados)
+                                    {
+                                        <option value="@estado.EstadoProductoId">@estado.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.EstadoProductoId)" />
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label">Stock</label>
                                 <InputNumber class="form-control" @bind-Value="producto.Stock" />
                             </div>
@@ -130,6 +142,7 @@ else
     private List<Categoria> categorias = new();
     private List<Marca> marcas = new();
     private List<Proveedor> proveedores = new();
+    private List<EstadoProducto> estados = new();
     private string imagenNombre = string.Empty;
     private bool isLoading = true;
 
@@ -140,6 +153,7 @@ else
         await using var contexto = await DbContextFactory.CreateDbContextAsync();
         categorias = await contexto.Categorias.ToListAsync();
         marcas = await contexto.Marcas.ToListAsync();
+        estados = await contexto.EstadosProductos.ToListAsync();
         proveedores = await proveedorService.Listar(p => true);
 
         isLoading = false;

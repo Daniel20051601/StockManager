@@ -112,6 +112,14 @@ else
                                 </div>
                             </div>
 
+                            <div class="mb-3 mt-3">
+                                <label class="form-label">Estado</label>
+                                <InputSelect class="form-select" @bind-Value="producto.EstadoProductoId">
+                                    <option value="1">Activo</option>
+                                    <option value="2">Inactivo</option>
+                                </InputSelect>
+                            </div>
+
                             <div class="mt-4 d-flex justify-content-center">
                                 <a href="/Productos/Index" class="btn btn-outline-danger me-2">
                                     <span class="bi bi-x-circle"></span> Cancelar
@@ -162,10 +170,7 @@ else
 
         if (ProductoId > 0)
         {
-            // Carga el producto sin incluir las propiedades de navegación si solo se van a actualizar los IDs
-            // Si ProductoService.Guardar() maneja el Update con los IDs, esto es suficiente.
             producto = await contexto.productos.AsNoTracking().FirstOrDefaultAsync(p => p.ProductoId == ProductoId);
-
             if (producto == null)
             {
                 toastService.ShowError("Producto no encontrado.");
