@@ -21,17 +21,12 @@
 else
 {
     <div class="container-fluid py-4">
-        @* Using container-fluid for full width, and py-4 for vertical padding *@
         <div class="card shadow-lg">
-            @* Removed p-4 here, will add padding within card-body *@
             <div class="card-body p-4">
-                @* Added p-4 to card-body for internal padding *@
                 <h3 class="fw-semibold mb-4">Facturación</h3>
 
                 <div class="row mb-3 align-items-center">
-                    @* Added align-items-center for vertical alignment *@
                     <div class="col-12 col-md-4 col-lg-3 mb-3 mb-md-0">
-                        @* Adjusted column sizes for responsiveness *@
                         <select class="form-select" @bind="filtro">
                             <option value="Nombre">Nombre</option>
                             <option value="Codigo">Código</option>
@@ -40,7 +35,6 @@ else
                         </select>
                     </div>
                     <div class="col-12 col-md-8 col-lg-6">
-                        @* Adjusted column sizes for responsiveness *@
                         <div class="input-group">
                             <input class="form-control" @bind="valorFiltro" placeholder="Buscar producto..." @onkeydown="@OnKeyDown" />
                             <button class="btn btn-outline-primary" @onclick="Buscar"><i class="bi bi-search"></i> Buscar</button>
@@ -89,10 +83,8 @@ else
 
                 <div class="row mt-4">
                     <div class="col-12 col-lg-8">
-                        @* Adjusted column sizes for responsiveness *@
                         <h5>Carrito</h5>
                         <div class="table-responsive">
-                            @* Added table-responsive for carrito table *@
                             <table class="table table-bordered">
                                 <thead class="table-secondary">
                                     <tr>
@@ -114,7 +106,7 @@ else
                                                        value="@item.Cantidad" @onchange="e => ActualizarCantidad(item, e)" min="1" />
                                             </td>
                                             <td>@item.Producto.PrecioVenta.ToString("N2")</td>
-                                            <td>@(item.Cantidad* item.Producto.PrecioVenta).ToString("N2")</td>
+                                            <td>@(item.Cantidad * item.Producto.PrecioVenta)</td>
                                             <td><button class="btn btn-sm btn-danger" @onclick="() => QuitarDelCarrito(item)"><i class="bi bi-x-circle"></i></button></td>
                                         </tr>
                                     }
@@ -124,12 +116,11 @@ else
                     </div>
 
                     <div class="col-12 col-lg-4 mt-4 mt-lg-0">
-                        @* Adjusted column sizes and added margin for responsiveness *@
                         <div class="card shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">Resumen</h5>
                                 <p><strong>Usuario:</strong> Admin</p>
-                                <p><strong>Total:</strong> @totalVenta.ToString("N2")</p>
+                                <p><strong>Total:</strong> @totalVenta)</p>
                                 <button class="btn btn-primary w-100" @onclick="MostrarModalPago" disabled="@(!carrito.Any())">
                                     <i class="bi bi-cash-coin"></i> Finalizar Venta
                                 </button>
@@ -175,7 +166,7 @@ else
                                                     <td>@d.Producto?.Nombre</td>
                                                     <td>@d.Cantidad</td>
                                                     <td>@d.PrecioUnitario.ToString("N2")</td>
-                                                    <td>@(d.Cantidad* d.PrecioUnitario).ToString("N2")</td>
+                                                    <td>@(d.Cantidad * d.PrecioUnitario).ToString("N2")</td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -247,11 +238,9 @@ else
     private decimal montoPagado = 0;
     private decimal devuelta = 0;
 
-
     private bool mostrarModalPago = false;
     private decimal montoTemporalPago = 0;
     private string mensajeErrorPago = "";
-
 
     private decimal totalVenta => carrito.Sum(i => i.Cantidad * i.Producto.PrecioVenta);
 
@@ -313,9 +302,7 @@ else
         }
     }
 
-
     private void QuitarDelCarrito(ItemVenta item) => carrito.Remove(item);
-
 
     private void ActualizarCantidad(ItemVenta item, ChangeEventArgs e)
     {
@@ -345,8 +332,6 @@ else
 
         StateHasChanged();
     }
-
-
 
     private void MostrarModalPago()
     {
@@ -390,20 +375,28 @@ else
 
         try
         {
-
             ventaActual = new Venta
-            {
-                Fecha = DateTime.UtcNow,
-                Total = totalVenta,
-                Cliente = new Cliente { Nombre = "Al Contado" },
-                Detalles = carrito.Select(item => new DetalleVenta
                 {
-                    Producto = item.Producto,
-                    ProductoId = item.Producto.ProductoId,
-                    Cantidad = item.Cantidad,
-                    PrecioUnitario = item.Producto.PrecioVenta
-                }).ToList()
-            };
+                    Fecha = DateTime.UtcNow,
+                    Total = totalVenta,
+                    Cliente = new Cliente
+                    {
+                        Nombre = "Al Contado",
+                        RNCCedula = "00000000000",
+                        Telefono = "0000000000",
+                        Email = "alcontado@cliente.com",
+						Direccion = "Sin dirección",
+                        LimiteCredito = 0,
+                        EstadoClienteId = 1
+                    },
+                    Detalles = carrito.Select(item => new DetalleVenta
+                    {
+                        ProductoId = item.Producto.ProductoId,
+                        Cantidad = item.Cantidad,
+                        PrecioUnitario = item.Producto.PrecioVenta
+                    }).ToList()
+                };
+
 
             foreach (var item in carrito)
             {
@@ -417,10 +410,17 @@ else
                 productoDb.Stock -= item.Cantidad;
             }
 
-
+            contexto.Ventas.Add(ventaActual);
 
             await contexto.SaveChangesAsync();
             await transaccion.CommitAsync();
+
+            ventaActual = await contexto.Ventas
+                .Include(v => v.Detalles)
+                    .ThenInclude(d => d.Producto)
+                .Include(v => v.Cliente)
+                .OrderByDescending(v => v.VentaId)
+                .FirstOrDefaultAsync();
 
             mostrarFacturaModal = true;
             mensajeExito = "Venta procesada correctamente.";
