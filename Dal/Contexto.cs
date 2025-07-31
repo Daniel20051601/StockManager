@@ -34,7 +34,7 @@ namespace StockManager.Dal
         public DbSet<Venta> Ventas { get; set; } = null!;
         public DbSet<DetalleVenta> VentasDetalles { get; set; } = null!;
         public DbSet<Mermitas> Mermas { get; set; } = null!;
-
+        public DbSet<Reporte> Reportes { get; set; } = null!;
         public Contexto() { }
     }
 }

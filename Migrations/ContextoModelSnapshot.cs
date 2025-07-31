@@ -684,6 +684,37 @@ namespace StockManager.Migrations
                     b.ToTable("RegistrosPagos");
                 });
 
+            modelBuilder.Entity("StockManager.Models.Reporte", b =>
+                {
+                    b.Property<int>("ReporteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReporteId"));
+
+                    b.Property<string>("Asunto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ReporteId");
+
+                    b.HasIndex("ProveedorId");
+
+                    b.ToTable("Reportes");
+                });
+
             modelBuilder.Entity("StockManager.Models.TipoUsuario", b =>
                 {
                     b.Property<int>("TipoUsuarioId")
@@ -765,14 +796,9 @@ namespace StockManager.Migrations
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("integer");
-
                     b.HasKey("VentaId");
 
                     b.HasIndex("ClienteId");
-
-                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Ventas");
                 });
@@ -1025,6 +1051,17 @@ namespace StockManager.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("StockManager.Models.Reporte", b =>
+                {
+                    b.HasOne("StockManager.Models.Proveedor", "Proveedor")
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Proveedor");
+                });
+
             modelBuilder.Entity("StockManager.Models.Usuario", b =>
                 {
                     b.HasOne("StockManager.Models.TipoUsuario", "TipoUsuario")
@@ -1044,15 +1081,7 @@ namespace StockManager.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StockManager.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Cliente");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("StockManager.Models.Categoria", b =>
