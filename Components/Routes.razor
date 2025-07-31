@@ -1,6 +1,41 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Routing
+@using StockManager.Components.Layout
+
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <NotAuthorized>
+                @if (context?.User?.Identity?.IsAuthenticated != true)
+                {
+                    <RedirectToLogin />
+                }
+                else
+                {
+                    <div class="alert alert-danger" role="alert">
+                        Lo sentimos, no tienes autorización para acceder a esta página.
+                    </div>
+                }
+            </NotAuthorized>
+            <Authorizing>
+                <div class="alert alert-info" role="alert">
+                    Autorizando...
+                </div>
+            </Authorizing>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
+    <NotFound>
+        <PageTitle>No encontrado</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div class="alert alert-warning" role="alert">
+                Lo sentimos, no hay nada en esta dirección.
+            </div>
+        </LayoutView>
+    </NotFound>
 </Router>
+
+@code {
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+}

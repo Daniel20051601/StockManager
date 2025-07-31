@@ -2,6 +2,151 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="header-section mt-5">
+    <div class="row d-flex justify-content-between align-items-center">
+        <div class="col-auto">
+            <h3 class="fw-semibold">Home</h3>
+        </div>
+        <div class="col mb-3">
+            <div class="d-flex justify-content-end align-items-center">
+                <input class="form-control shadow-sm text-secondary w-25" placeholder="Buscar..." />
+                <div class="ms-4">
+                    <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm bg-white position-relative" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            99+ <span class="visually-hidden">unread messages</span>
+                        </span>
+                    </button>
+                    <div class="shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
+                        <h6 class="dropdown-header">Notificaciones</h6>
+                        <div class="dropdown-item">
+                            <p class="mb-1">Notificación 1</p>
+                            <small class="text-muted">Hace X tiempo</small>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-center text-primary" href="#">Ver todas</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-Welcome to your new app.
+<div class="container-fluid mt-4">
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Resumen</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-secondary" href="#">Solicitudes</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-secondary" href="#">Notificaciones</a>
+        </li>
+    </ul>
+
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6 col-sm-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Productos en Inventario</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title fw-bold">305</h4>
+                        <i class="bi bi-box fs-3 text-secondary"></i>
+                    </div>
+                    <p class="card-text text-muted small">2 en revisión, 1 pendiente de pago</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Ventas diarias</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title fw-bold">8</h4>
+                        <i class="bi bi-envelope fs-3 text-secondary"></i>
+                    </div>
+                    <p class="card-text text-muted small">En las últimas 6 horas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Compras del día</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title fw-bold">18</h4>
+                        <i class="bi bi-envelope fs-3 text-secondary"></i>
+                    </div>
+                    <p class="card-text text-muted small">En las últimas 6 horas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Nivel de Stock</h6>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="card-title fw-bold">Medio</h4>
+                        <i class="bi bi-exclamation-triangle fs-3 text-secondary"></i>
+                    </div>
+                    <p class="card-text text-muted small">Promedio en general</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6 col-md-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold mb-2">Notificaciones Recientes</h5>
+                    <p class="card-subtitle text-muted mb-4">Últimas actualizaciones y mensajes del sistema</p>
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1 fw-bold">Solicitud de compra de 200 cajas de pasta dental colgate</p>
+                                <small class="text-muted">Hace 2 horas</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                            <div>
+                                <p class="mb-1 fw-bold">Pago pendiente #2023-142</p>
+                                <small class="text-muted">Hace 1 día</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1 fw-bold">El sistema estará en mantenimiento el 20 de diciembre</p>
+                                <small class="text-muted">Hace 3 días</small>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1 fw-bold">Pago pendiente #2025-146</p>
+                                <small class="text-muted">Hace 2 horas</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="#" class="btn btn-link text-primary">Ver todas las notificaciones <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold mb-2">Últimas Ventas Realizadas</h5>
+                    <p class="card-subtitle text-muted mb-4">Ventas realizadas en las últimas semanas</p>
+                    <div class="chart-placeholder bg-light p-4 rounded d-flex justify-content-center align-items-center" style="height: 250px;">
+                        <p class="text-muted">Gráfico de líneas (requiere JS para renderizar)</p>
+                    </div>
+                    <div class="d-flex justify-content-around mt-3">
+                        <span class="text-primary"><span class="badge bg-primary me-1"></span>Gastos Netos</span>
+                        <span class="text-warning"><span class="badge bg-warning me-1"></span>Ventas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,9 @@
 ﻿@page "/Proveedores/Nuevo"
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
 @inject NavigationManager Navigation
 @using System.ComponentModel.DataAnnotations
 
@@ -96,7 +100,6 @@
 </style>
 
 <div class="mt-5">
-
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/Proveedores/Index">Proveedores</a></li>
@@ -129,51 +132,59 @@
             <ValidationSummary class="text-danger" />
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label for="nombreProveedor" class="form-label required-field">Nombre del Proveedor</label>
                     <InputText @bind-Value="nuevoProveedor.Nombre" class="form-control" id="nombreProveedor" placeholder="Ingrese el nombre del proveedor" />
-                    <ValidationMessage For="@(() => nuevoProveedor.Nombre)" class="text-danger" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label for="contacto" class="form-label required-field">Persona de Contacto</label>
-                    <InputText @bind-Value="nuevoProveedor.Contacto" class="form-control" id="contacto" placeholder="Nombre del contacto principal" />
-                    <ValidationMessage For="@(() => nuevoProveedor.Contacto)" class="text-danger" />
+                    <ValidationMessage For="() => nuevoProveedor.Nombre" class="text-danger" />
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
+                    <label for="contacto" class="form-label required-field">Persona de Contacto</label>
+                    <InputText @bind-Value="nuevoProveedor.NombreContacto" class="form-control" id="contacto" placeholder="Nombre del contacto principal" />
+                    <ValidationMessage For="() => nuevoProveedor.NombreContacto" class="text-danger" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 mb-3">
                     <label for="telefono" class="form-label required-field">Teléfono</label>
                     <InputText @bind-Value="nuevoProveedor.Telefono" class="form-control" id="telefono" placeholder="(809) 555-0000" />
-                    <ValidationMessage For="@(() => nuevoProveedor.Telefono)" class="text-danger" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label for="email" class="form-label required-field">Email</label>
-                    <InputText @bind-Value="nuevoProveedor.Email" class="form-control" id="email" type="email" placeholder="contacto@proveedor.com" />
-                    <ValidationMessage For="@(() => nuevoProveedor.Email)" class="text-danger" />
+                    <ValidationMessage For="() => nuevoProveedor.Telefono" class="text-danger" />
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-md-8 mb-3">
+                <div class="col-12 mb-3">
+                    <label for="email" class="form-label required-field">Email</label>
+                    <InputText @bind-Value="nuevoProveedor.Email" class="form-control" id="email" type="email" placeholder="contacto@proveedor.com" />
+                    <ValidationMessage For="() => nuevoProveedor.Email" class="text-danger" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 mb-3">
                     <label for="direccion" class="form-label required-field">Dirección</label>
                     <InputText @bind-Value="nuevoProveedor.Direccion" class="form-control" id="direccion" placeholder="Dirección completa del proveedor" />
-                    <ValidationMessage For="@(() => nuevoProveedor.Direccion)" class="text-danger" />
+                    <ValidationMessage For="() => nuevoProveedor.Direccion" class="text-danger" />
                 </div>
+            </div>
 
-                <div class="col-md-4 mb-3">
+            <div class="row">
+                <div class="col-12 mb-3">
                     <label for="estado" class="form-label required-field">Estado</label>
-                    <InputSelect @bind-Value="nuevoProveedor.Estado" class="form-select" id="estado">
-                        <option value="true">Activo</option>
-                        <option value="false">Inactivo</option>
+                    <InputSelect @bind-Value="nuevoProveedor.EstadoProveedorId" class="form-select" id="estado">
+                        @foreach (var estado in estadosProveedor)
+                        {
+                            <option value="@estado.EstadoProveedorId">@estado.Nombre</option>
+                        }
                     </InputSelect>
                 </div>
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
+                <div class="col-12 mb-3">
                     <label for="rnc" class="form-label">RNC/Cédula</label>
                     <InputText @bind-Value="nuevoProveedor.RNC" class="form-control" id="rnc" placeholder="Ej: 130-12345-6" />
                 </div>
@@ -201,7 +212,7 @@
 </div>
 
 @code {
-    public class NuevoProveedor
+    public class NuevoProveedorDto
     {
         [Required(ErrorMessage = "El nombre del proveedor es requerido")]
         [StringLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres")]
@@ -209,7 +220,7 @@
 
         [Required(ErrorMessage = "La persona de contacto es requerida")]
         [StringLength(100, ErrorMessage = "El nombre del contacto no puede exceder 100 caracteres")]
-        public string Contacto { get; set; } = string.Empty;
+        public string NombreContacto { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El teléfono es requerido")]
         public string Telefono { get; set; } = string.Empty;
@@ -222,27 +233,28 @@
         [StringLength(200, ErrorMessage = "La dirección no puede exceder 200 caracteres")]
         public string Direccion { get; set; } = string.Empty;
 
-        public bool Estado { get; set; } = true;
+        public int EstadoProveedorId { get; set; } = 1;
 
         [StringLength(15, ErrorMessage = "El RNC no puede exceder 15 caracteres")]
         public string RNC { get; set; } = string.Empty;
-
-        public int CantidadProductos { get; set; } = 0;
     }
 
-    private NuevoProveedor nuevoProveedor = new();
+    private NuevoProveedorDto nuevoProveedor = new();
+    private List<EstadoProveedor> estadosProveedor = new();
     private bool guardando = false;
     private string mensaje = string.Empty;
     private bool esError = false;
 
-    
-    private static List<NuevoProveedor> proveedoresGuardados = new();
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-       
-        nuevoProveedor.Estado = true;
-        nuevoProveedor.CantidadProductos = 0;
+        await CargarEstadosProveedor();
+        nuevoProveedor.EstadoProveedorId = 1;
+    }
+
+    private async Task CargarEstadosProveedor()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        estadosProveedor = await contexto.EstadosProveedores.ToListAsync();
     }
 
     private async Task GuardarProveedor()
@@ -253,36 +265,34 @@
 
         try
         {
-            
             if (await ValidarProveedorExistente())
             {
                 mensaje = "Ya existe un proveedor con ese nombre o email.";
                 esError = true;
+                StateHasChanged();
                 return;
             }
 
-            await Task.Delay(1500);
+            await using var contexto = await DbContextFactory.CreateDbContextAsync();
 
-
-            var proveedorParaGuardar = new NuevoProveedor
+            var proveedor = new Proveedor
                 {
                     Nombre = nuevoProveedor.Nombre,
-                    Contacto = nuevoProveedor.Contacto,
+                    NombreContacto = nuevoProveedor.NombreContacto,
                     Telefono = nuevoProveedor.Telefono,
                     Email = nuevoProveedor.Email,
                     Direccion = nuevoProveedor.Direccion,
-                    Estado = nuevoProveedor.Estado,
-                    RNC = nuevoProveedor.RNC,
-                    CantidadProductos = 0
+                    EstadoProveedorId = nuevoProveedor.EstadoProveedorId,
+                    RNC = nuevoProveedor.RNC
                 };
 
-            proveedoresGuardados.Add(proveedorParaGuardar);
+            contexto.Proveedores.Add(proveedor);
+            await contexto.SaveChangesAsync();
 
             mensaje = "El proveedor se ha creado correctamente.";
             esError = false;
 
             StateHasChanged();
-
             await Task.Delay(2000);
             Navigation.NavigateTo("/Proveedores/Index");
         }
@@ -300,11 +310,10 @@
 
     private async Task<bool> ValidarProveedorExistente()
     {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
 
-        await Task.Delay(200);
-
-        return proveedoresGuardados.Any(p =>
-            p.Nombre.Equals(nuevoProveedor.Nombre, StringComparison.OrdinalIgnoreCase) ||
-            p.Email.Equals(nuevoProveedor.Email, StringComparison.OrdinalIgnoreCase));
+        return await contexto.Proveedores.AnyAsync(p =>
+            p.Nombre.ToLower() == nuevoProveedor.Nombre.ToLower() ||
+            p.Email.ToLower() == nuevoProveedor.Email.ToLower());
     }
 }

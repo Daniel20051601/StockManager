@@ -1,5 +1,10 @@
 ﻿@page "/Proveedores/Index"
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
 @using System.ComponentModel.DataAnnotations
 
 <PageTitle>Proveedores</PageTitle>
@@ -21,32 +26,33 @@
             <h3 class="fw-semibold">Proveedores</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." @bind="searchTerm" @oninput="OnSearchChanged" />
+            <div class="input-group" style="width: 300px;">
+                <input class="form-control shadow-sm text-secondary" placeholder="Buscar..." @bind="searchTerm" @onkeypress="OnKeyPress" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="OnSearchClick">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
         </div>
     </div>
 
     <div class="row d-flex justify-content-between mb-5">
         <div class="col-auto">
-            <button type="button" class="btn btn-outline">Resumen</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Solicitudes</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Notificaciones</button>
         </div>
         <div class="col-auto">
             <div class="d-flex align-items-center">
                 <a href="/Proveedores/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
-                    <i class="bi bi-plus-circle me-2"></i> Agregar
+                    <i class="bi bi-plus-circle me-2"></i> Nuevo
                 </a>
                 <div class="dropdown ms-3">
                     <button class="btn btn-outline dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                        Estado
+                        Estado (@GetStatusDisplayText())
                     </button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("activo")'>Activos</a></li>
-                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("inactivo")'>Inactivos</a></li>
-                        <li><a class="dropdown-item" href="#" @onclick='() => FilterByStatus("todos")'>Todos</a></li>
+                        <li><button class="dropdown-item @(statusFilter == "activo" ? "active" : "")" @onclick='() => FilterByStatus("activo")'>Activos</button></li>
+                        <li><button class="dropdown-item @(statusFilter == "inactivo" ? "active" : "")" @onclick='() => FilterByStatus("inactivo")'>Inactivos</button></li>
+                        <li><button class="dropdown-item @(statusFilter == "todos" ? "active" : "")" @onclick='() => FilterByStatus("todos")'>Todos</button></li>
                     </ul>
-
                 </div>
             </div>
         </div>
@@ -55,6 +61,7 @@
     <div class="row mb-3">
         <div class="col">
             <h5 class="fw-semibold text-dark">Lista de proveedores</h5>
+            <small class="text-muted">Mostrando @filteredProveedores.Count de @totalRegistros proveedores</small>
         </div>
     </div>
 
@@ -73,23 +80,39 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var proveedor in filteredProveedores)
+                @if (filteredProveedores.Any())
+                {
+                    @foreach (var proveedor in filteredProveedores)
+                    {
+                        <tr>
+                            <td>@proveedor.Nombre</td>
+                            <td>@proveedor.NombreContacto</td>
+                            <td>@proveedor.Telefono</td>
+                            <td>@proveedor.Email</td>
+                            <td>@proveedor.Direccion</td>
+                            <td>
+                                <span class="badge @(IsProveedorActivo(proveedor) ? "bg-success" : "bg-secondary")">
+                                    @(IsProveedorActivo(proveedor) ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td><span class="badge bg-light text-dark">@GetCantidadProductos(proveedor.ProveedorId)</span></td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/Proveedores/Editar/@proveedor.ProveedorId">Editar</a></li>
+                                        <li><button class="dropdown-item text-danger" @onclick="() => EliminarProveedor(proveedor.ProveedorId)">Eliminar</button></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@proveedor.Nombre</td>
-                        <td>@proveedor.Contacto</td>
-                        <td>@proveedor.Telefono</td>
-                        <td>@proveedor.Email</td>
-                        <td>@proveedor.Direccion</td>
-                        <td>
-                            <span class="badge @(proveedor.Estado ? "bg-success" : "bg-secondary")">
-                                @(proveedor.Estado ? "Activo" : "Inactivo")
-                            </span>
-                        </td>
-                        <td><span class="badge bg-light text-dark">@proveedor.CantidadProductos</span></td>
-                        <td>
-                            <a href="/Proveedores/Editar/@proveedor.Id" class="btn btn-success btn-sm me-1">Editar</a>
-                            <button class="btn btn-danger btn-sm" @onclick="() => EliminarProveedor(proveedor.Id)">Eliminar</button>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            No se encontraron proveedores que coincidan con los filtros aplicados.
                         </td>
                     </tr>
                 }
@@ -97,96 +120,206 @@
         </table>
     </div>
 
-    <div class="d-flex justify-content-end mt-3">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-            </ul>
-        </nav>
-    </div>
+    @if (totalPaginas > 1)
+    {
+        <div class="d-flex justify-content-end mt-3">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+                    </li>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(paginaActual == i ? "active" : "")">
+                            <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 
 </div>
 
 @code {
-    public class Proveedor
-    {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Contacto { get; set; } = string.Empty;
-        public string Telefono { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Direccion { get; set; } = string.Empty;
-        public bool Estado { get; set; }
-        public int CantidadProductos { get; set; }
-    }
-
     private List<Proveedor> proveedores = new();
     private List<Proveedor> filteredProveedores = new();
+    private List<EstadoProveedor> estadosProveedor = new();
     private string searchTerm = string.Empty;
     private string statusFilter = "todos";
+    private int paginaActual = 1;
+    private int totalPaginas;
+    private int cantidadPorPagina = 10;
+    private int totalRegistros;
+    private int estadoActivoId = 1; 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-
-        proveedores = new List<Proveedor>
-        {
-            new Proveedor { Id = 1, Nombre = "Agua Randy", Contacto = "Luis Fernández", Telefono = "(809) 555-0104", Email = "distribucion@aguarandy.do", Direccion = "Calle Principal, Los Alcarrizos", Estado = true, CantidadProductos = 12 },
-            new Proveedor { Id = 2, Nombre = "Sosua Import", Contacto = "Ana García", Telefono = "(809) 555-0105", Email = "info@sosuaimport.com", Direccion = "Puerto Plata, Sosúa", Estado = true, CantidadProductos = 15 },
-            new Proveedor { Id = 3, Nombre = "Ley's Dominican Republic", Contacto = "Pedro Martínez", Telefono = "(809) 555-0103", Email = "pedidos@leysdr.com", Direccion = "Km 22 Autopista Duarte", Estado = false, CantidadProductos = 0 },
-            new Proveedor { Id = 4, Nombre = "Pescadería Mar y Sol", Contacto = "José Morales", Telefono = "(809) 555-0107", Email = "pedidos@marysol.do", Direccion = "Malecón de Puerto Plata", Estado = true, CantidadProductos = 6 },
-            new Proveedor { Id = 5, Nombre = "Lacteo Caribe", Contacto = "Roberto Jiménez", Telefono = "(809) 555-0106", Email = "ventas@lacteocaribe.do", Direccion = "Av. 27 de Febrero, Santiago", Estado = false, CantidadProductos = 0 }
-        };
-
-        ApplyFilters();
+        NavigationManager.LocationChanged += HandleLocationChanged;
+        await CargarEstadosProveedor();
+        await CargarProveedores();
     }
 
-    private void OnSearchChanged(ChangeEventArgs e)
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (e.Location.EndsWith("/Proveedores/Index", StringComparison.OrdinalIgnoreCase))
+        {
+            InvokeAsync(async () =>
+            {
+                await CargarProveedores();
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+
+    private async Task CargarEstadosProveedor()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        estadosProveedor = await contexto.EstadosProveedores.ToListAsync();
+
+        var estadoActivo = estadosProveedor.FirstOrDefault(e =>
+            e.Nombre.Equals("Activo", StringComparison.OrdinalIgnoreCase));
+
+        if (estadoActivo != null)
+        {
+            estadoActivoId = estadoActivo.EstadoProveedorId;
+        }
+    }
+
+    private async Task CargarProveedores()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
+        var query = contexto.Proveedores.AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(p =>
+                p.Nombre.Contains(searchTerm) ||
+                p.NombreContacto.Contains(searchTerm) ||
+                p.Email.Contains(searchTerm));
+        }
+
+        if (statusFilter == "activo")
+        {
+            query = query.Where(p => p.EstadoProveedorId == estadoActivoId);
+        }
+        else if (statusFilter == "inactivo")
+        {
+            query = query.Where(p => p.EstadoProveedorId != estadoActivoId);
+        }
+
+
+        totalRegistros = await query.CountAsync();
+        totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
+
+        if (paginaActual > totalPaginas && totalPaginas > 0)
+        {
+            paginaActual = totalPaginas;
+        }
+
+        proveedores = await query
+            .Include(p => p.EstadoProveedor)
+            .OrderBy(p => p.ProveedorId)
+            .Skip((paginaActual - 1) * cantidadPorPagina)
+            .Take(cantidadPorPagina)
+            .ToListAsync();
+
+        filteredProveedores = proveedores;
+    }
+
+    private async Task OnSearchChanged(ChangeEventArgs e)
     {
         searchTerm = e.Value?.ToString() ?? string.Empty;
-        ApplyFilters();
+        paginaActual = 1;
+        await CargarProveedores();
     }
 
-    private void FilterByStatus(string status)
+    private async Task OnSearchClick()
+    {
+        paginaActual = 1;
+        await CargarProveedores();
+        StateHasChanged();
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await OnSearchClick();
+        }
+    }
+
+    private async Task FilterByStatus(string status)
     {
         statusFilter = status;
-        ApplyFilters();
+        paginaActual = 1;
+        await CargarProveedores();
+        StateHasChanged();
     }
 
-    private void ApplyFilters()
+    private async Task PaginaAnterior()
     {
-        filteredProveedores = proveedores.Where(p =>
-            (string.IsNullOrEmpty(searchTerm) ||
-             p.Nombre.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-             p.Contacto.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-             p.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
-            (statusFilter == "todos" ||
-             (statusFilter == "activo" && p.Estado) ||
-             (statusFilter == "inactivo" && !p.Estado))
-        ).ToList();
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            await CargarProveedores();
+        }
     }
 
-    private void EliminarProveedor(int id)
+    private async Task PaginaSiguiente()
     {
-        var proveedor = proveedores.FirstOrDefault(p => p.Id == id);
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            await CargarProveedores();
+        }
+    }
+
+    private async Task CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+        await CargarProveedores();
+    }
+
+    private async Task EliminarProveedor(int id)
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        var proveedor = await contexto.Proveedores.FindAsync(id);
         if (proveedor != null)
         {
-            proveedores.Remove(proveedor);
-            ApplyFilters();
+            contexto.Proveedores.Remove(proveedor);
+            await contexto.SaveChangesAsync();
+            await CargarProveedores();
         }
     }
 
-
-    public void ActualizarProveedor(Proveedor proveedorActualizado)
+    private int GetCantidadProductos(int proveedorId)
     {
-        var index = proveedores.FindIndex(p => p.Id == proveedorActualizado.Id);
-        if (index != -1)
+        using var contexto = DbContextFactory.CreateDbContext();
+        return contexto.OrdenesCompras.Count(o => o.ProveedorId == proveedorId);
+    }
+
+    private bool IsProveedorActivo(Proveedor proveedor)
+    {
+        return proveedor.EstadoProveedorId == estadoActivoId;
+    }
+
+    private string GetStatusDisplayText()
+    {
+        return statusFilter switch
         {
-            proveedores[index] = proveedorActualizado;
-            ApplyFilters();
-            StateHasChanged();
-        }
+            "activo" => "Activos",
+            "inactivo" => "Inactivos",
+            _ => "Todos"
+        };
     }
 }

@@ -1,5 +1,10 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: rgba(243, 244, 246, 1);
 }
 
 a, .btn-link {
@@ -13,11 +18,14 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
-    padding-top: 1.1rem;
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto; /* Permite scroll solo en el contenido */
+    height: calc(100vh - 60px); /* Ajusta según la altura de tu encabezado */
 }
 
 h1:focus {
@@ -69,7 +77,7 @@ h1:focus {
     margin-bottom: 1px;
     margin-top: 1px;
     margin-left: 1px;
-    display: flex; 
+    display: flex;
     flex-direction: column;
 }
 
@@ -82,16 +90,16 @@ body {
     background-color: rgba(243, 244, 246, 1) !important;
 }
 
-.sidebar{
+.sidebar {
     background-image: none !important;
 }
 
 .nav-scrollable {
-    height: 100vh; 
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center; 
-    align-items: center; 
+    justify-content: center;
+    align-items: center;
 }
 
 @media (min-width: 1200px) {
@@ -101,10 +109,300 @@ body {
 }
 
 .profile-picture-container img {
-    width: 40px; 
-    height: 40px; 
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    margin-left: 2px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-left: 1px;
 }
 
+.profile-perfil-container.large img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.access-control-wrapper {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.access-control-container {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 15px;
+}
+
+.auth-page {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.imgLogin {
+    object-fit: contain;
+}
+
+.login-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex; /* Mantén flexbox para centrar contenido */
+    flex-direction: column; /* ¡CAMBIO CLAVE: Apila los elementos verticalmente! */
+    align-items: center; /* Centra horizontalmente los elementos hijos */
+    justify-content: center; /* Centra verticalmente los elementos hijos */
+    background: linear-gradient(135deg, rgba(4, 35, 53, 0.95) 0%, rgba(27, 110, 194, 0.85) 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+    /* Agrega un estilo para el contenedor de la imagen para centrarla y darle un margen */
+    .login-container .img-fluid {
+        margin-bottom: 20px; /* Espacio entre la imagen y la caja de login */
+        text-align: center; /* Asegura que la imagen dentro de img-fluid esté centrada si su contenedor es más ancho */
+    }
+
+        /* Puedes añadir esto si la imagen necesita centrarse dentro de su propio div */
+        .login-container .img-fluid img {
+            display: block; /* Asegura que la imagen sea un bloque para que text-align funcione en el padre */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+    .login-box .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .login-box .card-header {
+        background: rgba(4, 35, 53, 1);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1.5rem;
+    }
+
+    .login-box .card-body {
+        padding: 2rem;
+    }
+
+    .login-box .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+        .login-box .form-control:focus {
+            border-color: rgba(4, 35, 53, 0.5);
+            box-shadow: 0 0 0 0.2rem rgba(4, 35, 53, 0.25);
+        }
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.top-row.navbar {
+    background-color: rgba(4, 35, 53, 1) !important;
+    color: white !important;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+/* Componentes UI */
+
+.validation-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Utilidades */
+.auth-page {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+@media (max-width: 640px) {
+    .login-box {
+        padding: 10px;
+    }
+
+        .login-box .card-body {
+            padding: 1.5rem;
+        }
+}
+
+.bgApp {
+    background-color: rgba(4, 35, 53, 1);
+}
+
+.btnApp {
+    border-color: rgba(4, 35, 53, 1) !important;
+    color: rgba(4, 35, 53, 1) !important;
+}
+
+.indicadorOrdenes {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.table-striped-custom tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.table-striped-custom tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.action-btn {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #6c757d;
+}
+
+.dropdown-menu {
+    font-size: 0.9rem;
+}
+/* Clases de estado para órdenes de compra */
+.estado-orden {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Versión con mayor especificidad para evitar conflictos */
+.card .card-body .estado-orden.estado-creada {
+    background-color: var(--bs-primary) !important;
+}
+
+.card .card-body .estado-orden.estado-revisada {
+    background-color: var(--bs-warning) !important;
+}
+
+.card .card-body .estado-orden.estado-aprovada {
+    background-color: var(--bs-success) !important;
+}
+
+.card .card-body .estado-orden.estado-procesada {
+    background-color: var(--bs-info) !important;
+}
+
+.card .card-body .estado-orden.estado-liquidada {
+    background-color: var(--bs-success) !important;
+}
+
+.card .card-body .estado-orden.estado-cancelada {
+    background-color: var(--bs-danger) !important;
+}
+
+.card .card-body .estado-orden.estado-default {
+    background-color: var(--bs-secondary) !important;
+}
+.btn-custom-primary {
+    display: inline-block;
+    font-weight: 400;
+    color: #fff; /* Color del texto blanco */
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+    background-color: rgba(4, 35, 53, 1); /* Tu color base */
+    border: 1px solid rgba(4, 35, 53, 1); /* Borde con tu color base */
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+    .btn-custom-primary:hover {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 0.9); /* Un poco más oscuro al pasar el ratón */
+        border-color: rgba(4, 35, 53, 0.9);
+    }
+
+    .btn-custom-primary:focus {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 0.9);
+        border-color: rgba(4, 35, 53, 0.9);
+        box-shadow: 0 0 0 0.25rem rgba(4, 35, 53, 0.5); /* Sombra para el enfoque */
+        outline: 0; /* Elimina el outline por defecto del navegador */
+    }
+
+    .btn-custom-primary:active {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 1);
+        border-color: rgba(4, 35, 53, 1);
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); /* Sombra interior para el estado activo */
+    }
+
+    .btn-custom-primary:disabled {
+        color: #fff;
+        background-color: rgba(4, 35, 53, 0.6); /* Más claro para el estado deshabilitado */
+        border-color: rgba(4, 35, 53, 0.6);
+        opacity: 0.65; /* Opacidad para indicar que está deshabilitado */
+        pointer-events: none; /* Evita que el ratón interactúe */
+    }

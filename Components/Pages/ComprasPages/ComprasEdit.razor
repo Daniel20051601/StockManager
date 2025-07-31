@@ -1,0 +1,515 @@
+﻿@page "/Compras/Edit/{OrdenCompraId:int}"
+@inject IToastService toastService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+@inject ProductoService productoService
+@inject ProveedorService proveedorService
+@inject ComprasService comprasService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Editar Orden de Compra</PageTitle>
+<EditForm Model="ordenCompra" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div>
+            <div class="header-section mt-5">
+                <div class="row d-flex justify-content-between">
+                    <div class="col-auto">
+                        <h3 class="fw-semibold">Compras</h3>
+                    </div>
+                    <div class="col-auto mb-3">
+                        <div class="d-flex justify-content-around">
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
+                                </button>
+                                <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
+                                    <div class="mb-3">
+
+                                        <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                            <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                                        </div>
+
+                                        <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras pol&iacute;ticas</strong></label>
+                                            <p class="fw-light">Mira cuales son las novedades</p>
+                                        </div>
+
+                                        <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
+                                            <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
+                                        </div>
+
+                                        <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                            <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <h3 class=" text-center mb-5">Editar Orden de Compra</h3>
+            </div>
+            <div class="container">
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">T&iacute;tulo</label>
+                    <InputText type="text" class="form-control" placeholder="Ingrese el t&iacute;tulo de la orden de compra" required @bind-Value="ordenCompra.Titulo" />
+                </div>
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Numero de Orden de Compra</label>
+                    <InputText class="form-control" placeholder="Ingrese el número de la orden de compra" required @bind-Value="ordenCompra.NumeroOrden" />
+                </div>
+
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Estado de la Orden de Compra</label>
+                    <InputSelect class="form-select" @bind-Value="ordenCompra.EstadoOrdenCompraId">
+                        <option value="">Seleccione un estado</option>
+                        @foreach (var estado in estadosOrdenes)
+                        {
+                            <option value="@estado.EstadoOrdenCompraId">@estado.Nombre.ToUpper()</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Proveedor</label>
+                    <InputSelect class="form-select" @bind-Value="ordenCompra.ProveedorId">
+                        <option value="">Seleccione un proveedor</option>
+                        @foreach (var proveedor in proveedores)
+                        {
+                            <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Fecha de entrega estimada</label>
+                    <InputDate class="form-control mb-2" @bind-Value="ordenCompra.FechaEntregaEstimada" />
+                </div>
+                <div class=" mx-5">
+                    <label class="form-label fs-4">Agregar productos</label>
+                    <table class="table table-hover">
+                        <thead class="table table-striped text-black">
+                            <tr>
+                                <th>Producto Id</th>
+                                <th>Nombre</th>
+                                <th>Marca</th>
+                                <th>Precio de Compra</th>
+                                <th>Cantidad</th>
+                                <th>Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (ordenCompra?.Detalles != null)
+                            {
+                                @foreach (var detalle in ordenCompra.Detalles)
+                                {
+                                    <tr>
+                                        <td>@detalle.Producto?.ProductoId</td>
+                                        <td>@detalle.Producto?.Nombre</td>
+                                        <td>@(detalle.Producto?.Marca?.Nombre ?? "-")</td>
+                                        <td>@detalle.PrecioCompraUnitario</td>
+                                        <td>
+                                            <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger bi bi-trash shadow-sm"
+                                                    @onclick="() => QuitarProducto(detalle)">
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+
+
+
+                </div>
+
+                <div class="d-flex justify-content-end mb-3  mx-5">
+                    <button type="button" class="btn btn-primary bi bi-plus-circle shadow-sm" @onclick="() => MostrarModal = true">
+                        Agregar
+                    </button>
+                </div>
+
+                <div class="mb-5 mx-5">
+                    <label class="form-label fs-4 ">Notas Adicionales</label>
+                    <InputTextArea type="text" class="form-control" placeholder="" @bind-Value="@ordenCompra.Notas" />
+                </div>
+
+                <div class="d-flex justify-content-between mx-5 mt-3 mb-5">
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">Subtotal General</label>
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Subtotal.ToString("N2")</span>
+                        </label>
+                    </div>
+
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">ITBIS</label><br />
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Impuestos.ToString("N2")</span>
+                        </label>
+                    </div>
+
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">Total de la Orden</label>
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Total.ToString("N2")</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="container mb-5 d-flex justify-content-center">
+                <a href="/Compras/Index" class="btn btn-secondary bi bi-arrow-left shadow-sm ">  Volver</a>
+                <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2">  Guardar</button>
+                <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir">  Imprimir</button>
+                <button type="button" class="btn btn-danger bi bi-trash shadow-sm ms-2" @onclick="() => MostrarModalEliminar = true"> Eliminar</button>
+            </div>
+        </div>
+    }
+
+</EditForm>
+
+
+@if (MostrarModal)
+{
+    <div class="modal fade show d-block bg-opacity-50 modal-lg" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bgApp text-white">
+                    <h3 class="modal-title text-center ">Agregar productos</h3>
+                    <button type="button" class="btn-close" @onclick="() => MostrarModal = false" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body mb-3" style="height: 400px; overflow-y: auto;">
+                    <div class="row">
+                        <div class="col-3">
+                            <InputSelect class="form-select col-3" @bind-Value="valorSelect">
+                                <option value="ProductoId">Producto Id</option>
+                                <option value="Nombre">Nombre</option>
+                            </InputSelect>
+                        </div>
+                        <div class="col-4">
+                            <div class="input-group">
+                                <input class="form-control" @bind="valorBuscado" />
+                                <button type="button" class="btn btn-success" @onclick="BuscarProductos">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="height: 300px; overflow-y: auto; margin-top: 15px;">
+                        <table class="table table-hover">
+                            <thead class="table table-striped text-black" style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <th>Producto Id</th>
+                                    <th>Nombre</th>
+                                    <th>Categoria</th>
+                                    <th>Marca</th>
+                                    <th>Precio de Compra</th>
+                                    <th>Agregar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var producto in productos)
+                                {
+                                    <tr>
+                                        <td>@producto.ProductoId</td>
+                                        <td>@producto.Nombre</td>
+                                        <td>@(producto.Categoria?.Nombre ?? "-")</td>
+                                        <td>@(producto.Marca?.Nombre ?? "-")</td>
+                                        <td>@producto.PrecioCompra</td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-primary bi bi-plus shadow-sm"
+                                                    @onclick="() => AgregarProducto(producto)"></button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-center">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" @onclick="CerrarModal">
+                            <span class="bi bi-box-arrow-left"></span> Volver
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+}
+
+
+@if (MostrarModalEliminar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalEliminar" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar la orden de compra <strong>@ordenCompra?.NumeroOrden</strong>?</p>
+
+                </div>
+                <div class="modal-footer d-flex justify-content-center">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarConfirmado">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public int OrdenCompraId { get; set; }
+    private OrdenCompra? ordenCompra = new()
+    {
+        Detalles = new List<OrdenCompraDetalle>()
+    };
+    List<Proveedor> proveedores { get; set; } = new List<Proveedor>();
+    List<Producto> productos { get; set; } = new List<Producto>();
+
+    List<EstadoOrdenCompra> estadosOrdenes { get; set; } = new List<EstadoOrdenCompra>();
+
+    private bool isLoading = true;
+
+
+    private Boolean MostrarModal = false;
+    private bool MostrarModalEliminar = false;
+
+    string valorBuscado { get; set; } = string.Empty;
+    string valorSelect { get; set; } = "ProductoId";
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        try
+        {
+            ordenCompra = await comprasService.Buscar(OrdenCompraId);
+
+            // Ensure Detalles is never null
+            if (ordenCompra != null && ordenCompra.Detalles == null)
+            {
+                ordenCompra.Detalles = new List<OrdenCompraDetalle>();
+            }
+
+            productos = await productoService.Listar(p => true);
+            proveedores = await proveedorService.Listar(p => true);
+            estadosOrdenes = await comprasService.EstadoOrdenCompras();
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error al cargar los datos: {ex.Message}");
+            Console.WriteLine($"Error completo: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+
+    private async Task Guardar()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            ordenCompra.UsuarioId = int.Parse(user.FindFirst("UsuarioId")?.Value ?? "0");
+        }
+        if (ordenCompra.UsuarioId == 0)
+        {
+            toastService.ShowError("Usuario no válido");
+            return;
+        }
+
+        if (ordenCompra.ProveedorId == 0)
+        {
+            toastService.ShowError("Debe seleccionar un proveedor");
+            return;
+        }
+
+        if (ordenCompra.Detalles == null || !ordenCompra.Detalles.Any())
+        {
+            toastService.ShowError("Debe agregar al menos un producto");
+            return;
+        }
+
+        try
+        {
+            ordenCompra.FechaCreacion = DateTime.UtcNow;
+            ordenCompra.FechaEntregaEstimada = ordenCompra.FechaEntregaEstimada.ToUniversalTime();
+
+            Calculos();
+            var guardado = await comprasService.Guardar(ordenCompra);
+            if (guardado)
+            {
+                toastService.ShowSuccess("Orden de compra actualizada exitosamente");
+                navigationManager.NavigateTo("/Compras/Index");
+            }
+            else
+            {
+                toastService.ShowError("Error al actualizar la Orden de compra");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error: {ex.Message}");
+            Console.WriteLine($"Error completo: {ex}");
+        }
+    }
+
+    private void Calculos()
+    {
+        if (ordenCompra?.Detalles == null) return;
+
+        decimal subtotalGeneral = 0;
+        foreach (var detalle in ordenCompra.Detalles)
+        {
+            detalle.Subtotal = detalle.Cantidad * detalle.PrecioCompraUnitario;
+            subtotalGeneral += detalle.Subtotal;
+        }
+
+        decimal impuestos = subtotalGeneral * 0.18m;
+
+        ordenCompra.Subtotal = subtotalGeneral;
+        ordenCompra.Impuestos = impuestos;
+        ordenCompra.Total = subtotalGeneral + impuestos;
+        StateHasChanged();
+    }
+
+    private void Imprimir()
+    {
+        toastService.ShowInfo("Impresión en curso...");
+    }
+
+    private void CerrarModal()
+    {
+        MostrarModal = false;
+    }
+
+    private void AgregarProducto(Producto producto)
+    {
+        if (ordenCompra?.Detalles == null)
+        {
+            ordenCompra.Detalles = new List<OrdenCompraDetalle>();
+        }
+
+        if (ordenCompra.Detalles.Any(d => d.ProductoId == producto.ProductoId))
+        {
+            toastService.ShowWarning("Este producto ya está en la orden de compra");
+            return;
+        }
+
+        var detalle = new OrdenCompraDetalle
+        {
+            ProductoId = producto.ProductoId,
+            Producto = producto,
+            PrecioCompraUnitario = producto.PrecioCompra,
+            Cantidad = 1
+        };
+
+        ordenCompra.Detalles.Add(detalle);
+        StateHasChanged();
+        toastService.ShowSuccess("Producto Agregado");
+        Calculos();
+    }
+
+    private void QuitarProducto(OrdenCompraDetalle detalle)
+    {
+        if (ordenCompra?.Detalles == null) return;
+
+        ordenCompra.Detalles.Remove(detalle);
+        StateHasChanged();
+        toastService.ShowSuccess("Producto Eliminado de la Orden");
+        Calculos();
+    }
+
+    private void CerrarModalEliminar()
+    {
+        MostrarModalEliminar = false;
+    }
+
+    private void Eliminar()
+    {
+        MostrarModalEliminar = true;
+    }
+
+
+    private async Task EliminarConfirmado()
+    {
+        try
+        {
+            var resultado = await comprasService.Eliminar(OrdenCompraId);
+            if (resultado)
+            {
+                toastService.ShowSuccess("Orden de compra eliminada exitosamente");
+                navigationManager.NavigateTo("/Compras/Index");
+            }
+            else
+            {
+                toastService.ShowError("No se pudo eliminar la orden de compra");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error al eliminar: {ex.Message}");
+            Console.WriteLine($"Error completo: {ex}");
+        }
+        finally
+        {
+            MostrarModalEliminar = false;
+        }
+    }
+
+    private async Task BuscarProductos()
+    {
+        if (string.IsNullOrWhiteSpace(valorBuscado))
+        {
+            productos = await productoService.Listar(p => true);
+            return;
+        }
+
+        productos = valorSelect switch
+        {
+            "ProductoId" => await productoService.Listar(p => p.ProductoId.ToString().Contains(valorBuscado)),
+            "Nombre" => await productoService.Listar(p => p.Nombre.Contains(valorBuscado)),
+            _ => await productoService.Listar(p => p.Nombre.Contains(valorBuscado))
+        };
+
+        StateHasChanged();
+    }
+}

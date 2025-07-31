@@ -12,8 +12,8 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20250612182942_AgregarCampoProveedorAProducto")]
-    partial class AgregarCampoProveedorAProducto
+    [Migration("20250725183056_Nuevo2")]
+    partial class Nuevo2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,35 @@ namespace StockManager.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("DetalleVenta", b =>
+                {
+                    b.Property<int>("DetalleVentaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DetalleVentaId"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DetalleVentaId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("VentasDetalles");
+                });
 
             modelBuilder.Entity("StockManager.Models.Categoria", b =>
                 {
@@ -120,6 +149,9 @@ namespace StockManager.Migrations
 
                     b.Property<decimal>("SaldoPendiente")
                         .HasColumnType("numeric");
+
+                    b.Property<int>("prueba")
+                        .HasColumnType("integer");
 
                     b.HasKey("CuentaPorCobrarId");
 
@@ -381,6 +413,19 @@ namespace StockManager.Migrations
                     b.ToTable("Marcas");
                 });
 
+            modelBuilder.Entity("StockManager.Models.Mermitas", b =>
+                {
+                    b.Property<int>("MermaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MermaId"));
+
+                    b.HasKey("MermaId");
+
+                    b.ToTable("Mermas");
+                });
+
             modelBuilder.Entity("StockManager.Models.Notificacion", b =>
                 {
                     b.Property<int>("NotificacionId")
@@ -423,7 +468,7 @@ namespace StockManager.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("FechaEntregaEstimada")
+                    b.Property<DateTime>("FechaEntregaEstimada")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("Impuestos")
@@ -443,6 +488,10 @@ namespace StockManager.Migrations
 
                     b.Property<decimal>("Subtotal")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal>("Total")
                         .HasColumnType("numeric");
@@ -482,7 +531,6 @@ namespace StockManager.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("Subtotal")
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("numeric");
 
                     b.HasKey("OrdenCompraDetalleId");
@@ -502,11 +550,10 @@ namespace StockManager.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ProductoId"));
 
-                    b.Property<int?>("CategoriaId")
+                    b.Property<int>("CategoriaId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Codigo")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -521,10 +568,9 @@ namespace StockManager.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ImagenURL")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("MarcaId")
+                    b.Property<int>("MarcaId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
@@ -538,9 +584,8 @@ namespace StockManager.Migrations
                     b.Property<decimal>("PrecioVenta")
                         .HasColumnType("numeric");
 
-                    b.Property<string>("Proveedor")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Stock")
                         .HasColumnType("integer");
@@ -555,6 +600,8 @@ namespace StockManager.Migrations
                     b.HasIndex("EstadoProductoId");
 
                     b.HasIndex("MarcaId");
+
+                    b.HasIndex("ProveedorId");
 
                     b.ToTable("productos");
                 });
@@ -666,10 +713,6 @@ namespace StockManager.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UsuarioId"));
 
-                    b.Property<string>("Contraseña")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
@@ -694,6 +737,10 @@ namespace StockManager.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("SupabaseId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int>("TipoUsuarioId")
                         .HasColumnType("integer");
 
@@ -702,6 +749,49 @@ namespace StockManager.Migrations
                     b.HasIndex("TipoUsuarioId");
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("Venta", b =>
+                {
+                    b.Property<int>("VentaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("VentaId"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("VentaId");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("Ventas");
+                });
+
+            modelBuilder.Entity("DetalleVenta", b =>
+                {
+                    b.HasOne("StockManager.Models.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Venta", "Venta")
+                        .WithMany("Detalles")
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Venta");
                 });
 
             modelBuilder.Entity("StockManager.Models.Cliente", b =>
@@ -868,7 +958,9 @@ namespace StockManager.Migrations
                 {
                     b.HasOne("StockManager.Models.Categoria", "Categoria")
                         .WithMany("Productos")
-                        .HasForeignKey("CategoriaId");
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("StockManager.Models.EstadoProducto", "EstadoProducto")
                         .WithMany("Productos")
@@ -878,13 +970,23 @@ namespace StockManager.Migrations
 
                     b.HasOne("StockManager.Models.Marca", "Marca")
                         .WithMany("Productos")
-                        .HasForeignKey("MarcaId");
+                        .HasForeignKey("MarcaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StockManager.Models.Proveedor", "Proveedor")
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Categoria");
 
                     b.Navigation("EstadoProducto");
 
                     b.Navigation("Marca");
+
+                    b.Navigation("Proveedor");
                 });
 
             modelBuilder.Entity("StockManager.Models.Proveedor", b =>
@@ -930,6 +1032,17 @@ namespace StockManager.Migrations
                         .IsRequired();
 
                     b.Navigation("TipoUsuario");
+                });
+
+            modelBuilder.Entity("Venta", b =>
+                {
+                    b.HasOne("StockManager.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("StockManager.Models.Categoria", b =>
@@ -1025,6 +1138,11 @@ namespace StockManager.Migrations
                     b.Navigation("OrdenesCompra");
 
                     b.Navigation("PagosRegistrados");
+                });
+
+            modelBuilder.Entity("Venta", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 #pragma warning restore 612, 618
         }

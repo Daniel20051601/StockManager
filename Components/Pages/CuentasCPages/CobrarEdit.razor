@@ -1,0 +1,183 @@
+﻿@page "/CuentasPorCobrar/Edit/{Id:int}"
+@rendermode InteractiveServer
+@using StockManager.Models
+@using StockManager.Dal
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Contexto> DbFactory
+@inject NavigationManager Navigation
+@inject Blazored.Toast.Services.IToastService toastService
+
+<PageTitle>Editar Cuenta por Cobrar</PageTitle>
+
+<style>
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-top: 2rem;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+</style>
+
+<div class="container-fluid">
+    @if (cuentaPorCobrar == null)
+    {
+        <p>Cargando cuenta por cobrar...</p>
+    }
+    else
+    {
+        <h3>Editar Cuenta por Cobrar #@cuentaPorCobrar.CuentaPorCobrarId</h3>
+        <div class="form-container">
+            <EditForm Model="cuentaPorCobrar" OnValidSubmit="GuardarCuenta">
+                <DataAnnotationsValidator />
+
+                <div class="row g-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Factura #</label>
+                        <input type="text" class="form-control" value="@cuentaPorCobrar.Factura?.NumeroFactura" readonly />
+                        <div class="form-text">Factura asociada a esta cuenta. Para cambiar, debe crear una nueva cuenta.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Cliente</label>
+                        <input type="text" class="form-control" value="@cuentaPorCobrar.Cliente?.Nombre" readonly />
+                    </div>
+
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Monto Total</label>
+                        <input type="number" step="0.01" class="form-control" @bind="cuentaPorCobrar.MontoTotal" readonly />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Saldo Pendiente</label>
+                        <InputNumber @bind-Value="cuentaPorCobrar.SaldoPendiente" class="form-control" />
+                        <ValidationMessage For="() => cuentaPorCobrar.SaldoPendiente" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha de Emisión</label>
+                        <input type="date" class="form-control" @bind="cuentaPorCobrar.FechaEmision" readonly />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fecha Límite de Pago</label>
+                        <InputDate @bind-Value="cuentaPorCobrar.FechaLimitePago" class="form-control" />
+                        <ValidationMessage For="() => cuentaPorCobrar.FechaLimitePago" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mora</label>
+                        <InputNumber @bind-Value="cuentaPorCobrar.Mora" class="form-control" />
+                        <ValidationMessage For="() => cuentaPorCobrar.Mora" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Estado de la Cuenta</label>
+                        <InputSelect @bind-Value="cuentaPorCobrar.EstadoCuentaId" class="form-select">
+                            <option value="0">Seleccione un estado</option>
+                            @foreach (var estado in estadosCuentas)
+                            {
+                                <option value="@estado.EstadoCuentaId">@estado.Nombre</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => cuentaPorCobrar.EstadoCuentaId" />
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private CuentaPorCobrar? cuentaPorCobrar;
+    private List<EstadoCuenta> estadosCuentas = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        // Load the CuentaPorCobrar and its related entities
+        cuentaPorCobrar = await context.CuentasPorCobrar
+            .Include(c => c.Cliente)
+            .Include(c => c.Factura)
+            .Include(c => c.EstadoCuenta) // Ensure EstadoCuenta is loaded for initial display
+            .FirstOrDefaultAsync(c => c.CuentaPorCobrarId == Id);
+
+        // Load all possible EstadoCuenta options for the dropdown
+        estadosCuentas = await context.EstadosCuentas.ToListAsync();
+
+        if (cuentaPorCobrar == null)
+        {
+            toastService.ShowError("No se encontró la cuenta por cobrar.");
+            Navigation.NavigateTo("/CuentasPorCobrar/Index");
+        }
+    }
+
+    private async Task GuardarCuenta()
+    {
+        if (cuentaPorCobrar == null)
+        {
+            toastService.ShowError("Error: La cuenta por cobrar no está cargada.");
+            return;
+        }
+
+        // Basic validation for required fields if not already handled by DataAnnotations
+        if (cuentaPorCobrar.EstadoCuentaId == 0)
+        {
+            toastService.ShowError("Debe seleccionar un Estado de cuenta.");
+            return;
+        }
+
+        // Ensure DateTimeKind is Utc if your database expects it
+        cuentaPorCobrar.FechaEmision = DateTime.SpecifyKind(cuentaPorCobrar.FechaEmision, DateTimeKind.Utc);
+        cuentaPorCobrar.FechaLimitePago = DateTime.SpecifyKind(cuentaPorCobrar.FechaLimitePago, DateTimeKind.Utc);
+
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            // Attach the existing entity to the context and mark it as modified
+            context.CuentasPorCobrar.Update(cuentaPorCobrar);
+            await context.SaveChangesAsync();
+
+            toastService.ShowSuccess("Cuenta por cobrar actualizada exitosamente.");
+            Navigation.NavigateTo("/CuentasPorCobrar/Index");
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Error al guardar la cuenta: {ex.InnerException?.Message ?? ex.Message}");
+        }
+    }
+
+    private void Cancelar() => Navigation.NavigateTo("/CuentasPorCobrar/Index");
+}

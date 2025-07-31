@@ -1,134 +1,163 @@
 ﻿@page "/Productos/Nuevo"
 @using Microsoft.EntityFrameworkCore
 @using StockManager.Dal
-@inject Contexto _contexto
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
 @inject NavigationManager NavigationManager
+@inject ProductoService productoService
+@inject ProveedorService proveedorService
+@inject IToastService toastService
+@rendermode InteractiveServer
 
 <PageTitle>Registrar Producto</PageTitle>
 
-<div class="container mt-4">
-    <h3 class="fw-semibold">Producto</h3>
-
-    <div class="row mt-4">
-
-        <div class="col-md-7">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <strong>Registrar Producto</strong>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Código</label>
-                        <input class="form-control" @bind="producto.Codigo" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Categoría</label>
-                        <select class="form-select" @bind="producto.CategoriaId">
-                            <option value="">-- Selecciona una categoría --</option>
-                            @foreach (var cat in categorias)
-                            {
-                                <option value="@cat.CategoriaId">@cat.Nombre</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Producto</label>
-                        <input class="form-control" @bind="producto.Nombre" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Proveedor</label>
-                        <input class="form-control" @bind="producto.Proveedor" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Marca</label>
-                        <select class="form-select" @bind="producto.MarcaId">
-                            <option value="">-- Selecciona una marca --</option>
-                            @foreach (var mar in marcas)
-                            {
-                                <option value="@mar.MarcaId">@mar.Nombre</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Stock</label>
-                        <input type="number" class="form-control" @bind="producto.Stock" />
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <label class="form-label">Precio de compra</label>
-                            <input type="number" class="form-control" step="0.01" @bind="producto.PrecioCompra" />
-                        </div>
-                        <div class="col">
-                            <label class="form-label">Precio de venta</label>
-                            <input type="number" class="form-control" step="0.01" @bind="producto.PrecioVenta" />
-                        </div>
-                    </div>
-                    <div class="mt-4 d-flex justify-content-center">
-                        <a href="/Productos/Index" class="btn btn-danger me-2">Cancelar</a>
-                        <button type="button" class="btn btn-success" @onclick="GuardarProducto">Guardar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
-            <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
-                <i class="bi bi-image fs-1 text-muted"></i>
-                <p class="text-muted">Subir Imagen</p>
-                <InputFile OnChange="SubirImagen" />
-            </div>
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
         </div>
     </div>
-</div>
+}
+else
+{
+    <EditForm Model="producto" OnValidSubmit="GuardarProducto">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
+        <div class="container mt-4">
+            <h3 class="fw-semibold">Producto</h3>
+
+            <div class="row mt-4">
+                <div class="col-md-7">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <strong>Registrar Producto</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>ProductoId</strong></label>
+                                <InputNumber class="form-control" @bind-Value="producto.ProductoId" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Categoría</label>
+                                <select class="form-select" @bind="producto.CategoriaId">
+                                    <option value="">-- Selecciona una categoría --</option>
+                                    @foreach (var cat in categorias)
+                                    {
+                                        <option value="@cat.CategoriaId">@cat.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Producto</label>
+                                <InputText class="form-control" @bind-Value="producto.Nombre" />
+                                <ValidationMessage For="@(() => producto.Nombre)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Proveedor</label>
+                                <InputSelect class="form-select" @bind-Value="producto.ProveedorId">
+                                    <option value="">-- Selecciona un proveedor --</option>
+                                    @foreach (var proveedor in proveedores)
+                                    {
+                                        <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.ProveedorId)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Marca</label>
+                                <select class="form-select" @bind="producto.MarcaId">
+                                    <option value="">-- Selecciona una marca --</option>
+                                    @foreach (var mar in marcas)
+                                    {
+                                        <option value="@mar.MarcaId">@mar.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Estado del producto</label>
+                                <InputSelect class="form-select" @bind-Value="producto.EstadoProductoId">
+                                    <option value="">-- Selecciona un estado --</option>
+                                    @foreach (var estado in estados)
+                                    {
+                                        <option value="@estado.EstadoProductoId">@estado.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.EstadoProductoId)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Stock</label>
+                                <InputNumber class="form-control" @bind-Value="producto.Stock" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <InputTextArea class="form-control" @bind-Value="producto.Descripcion" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <label class="form-label">Precio de compra</label>
+                                    <InputNumber class="form-control" step="0.01" @bind-Value="producto.PrecioCompra" />
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Precio de venta</label>
+                                    <InputNumber class="form-control" step="0.01" @bind-Value="producto.PrecioVenta" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-center">
+                                <a href="/Productos/Index" class="btn btn-outline-danger">
+                                    <span class="bi bi-arrow-left"></span> Volver
+                                </a>
+                                <button type="submit" class="btn btn-outline-success bi bi-floppy ms-2"> Guardar</button>
+                                <button type="button" class="btn btn-outline-primary bi bi-plus ms-2" @onclick="Nuevo"> Limpiar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
+                    <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
+                        <i class="bi bi-image fs-1 text-muted"></i>
+                        <p class="text-muted">Subir Imagen</p>
+                        <InputFile OnChange="SubirImagen" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
 
 @code {
-    private ProductoModel producto = new();
+    public Producto producto { get; set; } = new Producto();
+
     private List<Categoria> categorias = new();
     private List<Marca> marcas = new();
+    private List<Proveedor> proveedores = new();
+    private List<EstadoProducto> estados = new();
+    private string imagenNombre = string.Empty;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        categorias = await _contexto.Categorias.ToListAsync();
-        marcas = await _contexto.Marcas.ToListAsync();
-        Console.WriteLine($"Se cargaron {categorias.Count} categorías");
-        Console.WriteLine($"Se cargaron {marcas.Count} marcas");
+        isLoading = true;
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        categorias = await contexto.Categorias.ToListAsync();
+        marcas = await contexto.Marcas.ToListAsync();
+        estados = await contexto.EstadosProductos.ToListAsync();
+        proveedores = await proveedorService.Listar(p => true);
+
+        isLoading = false;
     }
-
-
-    private async Task GuardarProducto()
-    {
-        Console.WriteLine($"Guardando: {producto.Nombre} - {producto.Codigo}");
-
-        var nuevoProducto = new Producto
-        {
-            Codigo = producto.Codigo,
-            Nombre = producto.Nombre,
-            Proveedor = producto.Proveedor,
-            CategoriaId = producto.CategoriaId,
-            MarcaId = producto.MarcaId,
-            Stock = producto.Stock,
-            PrecioCompra = producto.PrecioCompra,
-            PrecioVenta = producto.PrecioVenta,
-            ImagenURL = imagenNombre ?? "sin_imagen.png",
-            EstadoProductoId = 1,
-            FechaRegistro = DateTime.Now,
-            StockMinimo = 0,
-            Descripcion = "",
-        };
-
-        _contexto.productos.Add(nuevoProducto);
-        await _contexto.SaveChangesAsync();
-
-        Console.WriteLine("Producto guardado correctamente");
-
-        NavigationManager.NavigateTo("/Productos/Index", forceLoad: true);
-    }
-
-
-
-
-    private string imagenNombre = string.Empty;
 
     private async Task SubirImagen(InputFileChangeEventArgs e)
     {
@@ -138,9 +167,8 @@
         {
             var nombreUnico = $"{Guid.NewGuid()}_{archivo.Name}";
             var ruta = Path.Combine("wwwroot", "imagenes", "productos", nombreUnico);
-
-
             var pathAbsoluto = Path.Combine(Directory.GetCurrentDirectory(), ruta);
+
             Directory.CreateDirectory(Path.GetDirectoryName(pathAbsoluto)!);
 
             using (var stream = File.Create(pathAbsoluto))
@@ -149,24 +177,42 @@
             }
 
             imagenNombre = nombreUnico;
+            producto.ImagenURL = nombreUnico;
         }
     }
 
-
-    public class ProductoModel
+    public async Task GuardarProducto()
     {
-        public string Codigo { get; set; } = string.Empty;
-        public string Nombre { get; set; } = string.Empty;
-        public string Proveedor { get; set; } = string.Empty;
-        public int CategoriaId { get; set; }
-        public int MarcaId { get; set; }
-        public int Stock { get; set; }
-        public decimal PrecioCompra { get; set; }
-        public decimal PrecioVenta { get; set; }
+        producto.FechaRegistro = producto.FechaRegistro.ToUniversalTime();
+
+        bool guardadoExitoso = await productoService.Guardar(producto);
+
+        if (guardadoExitoso)
+        {
+            if (string.IsNullOrEmpty(producto.Codigo))
+            {
+                producto.Codigo = producto.ProductoId.ToString();
+
+                if (!await productoService.Guardar(producto))
+                {
+                    toastService.ShowError("Error al actualizar el código del producto en la base de datos.");
+                    return;
+                }
+            }
+
+            toastService.ShowSuccess("Producto creado exitosamente.");
+            Nuevo();
+        }
+        else
+        {
+            toastService.ShowError("No se pudo guardar correctamente el producto. Por favor, verifica los datos.");
+        }
+    }
+
+    private void Nuevo()
+    {
+        producto = new Producto();
+        imagenNombre = string.Empty;
+        StateHasChanged();
     }
 }
-
-
-
-
-

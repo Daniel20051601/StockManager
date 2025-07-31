@@ -1,161 +1,235 @@
-﻿@page "/Compras/Create"
+@page "/Compras/Create"
 @inject IToastService toastService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
+@inject ProductoService productoService
+@inject ProveedorService proveedorService
+@inject ComprasService comprasService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Crear Orden de Compra</PageTitle>
-<div class="header-section mt-5">
-    <div class="row d-flex justify-content-between">
-        <div class="col-auto">
-            <h3 class="fw-semibold">Compras</h3>
+
+<EditForm Model="ordenCompra" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
         </div>
-        <div class="col-auto mb-3">
-            <div class="d-flex justify-content-around">
-                <div class="dropdown">
-                    <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
-                    </button>
-                    <a class="profile-picture-container" href="#" >
-                        <img src="img/Logo/bohemio-hombre-cruzar-brazos.jpg" alt="Foto de perfil" />
-                    </a>
-                    <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
-                        <div class="mb-3">
+    }
+    else
+    {
+        <div>
+            <div class="header-section mt-5">
+                <div class="row d-flex justify-content-between">
+                    <div class="col-auto">
+                        <h3 class="fw-semibold">Compras</h3>
+                    </div>
+                    <div class="col-auto mb-3">
+                        <div class="d-flex justify-content-around">
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
+                                </button>
+                                <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
+                                    <div class="mb-3">
 
-                            <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
-                                <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
-                                <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
-                            </div>
+                                        <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                            <p class="fw-light">Algunos productos están apunto de vencer</p>
+                                        </div>
 
-                            <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
-                                <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras pol&iacute;ticas</strong></label>
-                                <p class="fw-light">Mira cuales son las novedades</p>
-                            </div>
+                                        <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras políticas</strong></label>
+                                            <p class="fw-light">Mira cuales son las novedades</p>
+                                        </div>
 
-                            <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
-                                <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
-                                <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
-                            </div>
+                                        <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
+                                            <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
+                                        </div>
 
-                            <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
-                                <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
-                                <p class="fw-light">Algunos productos est&aacute;n apunto de vencer</p>
+                                        <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                            <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                            <p class="fw-light">Algunos productos están apunto de vencer</p>
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
                     </div>
                 </div>
+                <h3 class=" text-center mb-5">Crear Orden de Compra</h3>
+            </div>
+            <div class="container">
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Título</label>
+                    <InputText type="text" class="form-control" placeholder="Ingrese el título de la orden de compra" required @bind-Value="ordenCompra.Titulo" />
+                </div>
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Numero de Orden de Compra</label>
+                    <InputText class="form-control" placeholder="Ingrese el número de la orden de compra" required @bind-Value="ordenCompra.NumeroOrden" />
+                </div>
 
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Proveedor</label>
+                    <InputSelect class="form-select" @bind-Value="ordenCompra.ProveedorId">
+                        <option value="">Seleccione un proveedor</option>
+                        @foreach (var proveedor in proveedores)
+                        {
+                            <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="mb-3 mx-5">
+                    <label class="form-label fs-4">Fecha de entrega estimada</label>
+                    <InputDate class="form-control mb-2" @bind-Value="ordenCompra.FechaEntregaEstimada" />
+                </div>
+                <div class=" mx-5">
+                    <label class="form-label fs-4">Agregar productos</label>
+                    <table class="table table-hover">
+                        <thead class="table table-striped text-black">
+                            <tr>
+                                <th>Producto Id</th>
+                                <th>Nombre</th>
+                                <th>Marca</th>
+                                <th>Precio de Compra</th>
+                                <th>Cantidad</th>
+                                <th>Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in ordenCompra.Detalles)
+                            {
+                                <tr>
+                                    <td>@detalle.Producto?.ProductoId</td> @* Added null-conditional operator *@
+                                    <td>@detalle.Producto?.Nombre</td> @* Added null-conditional operator *@
+                                    <td>@(detalle.Producto?.Marca?.Nombre ?? "-")</td> @* Defensive check for Producto and Marca *@
+                                    <td>@detalle.PrecioCompraUnitario</td>
+                                    <td>
+                                        <InputNumber class="form-control w-50" @bind-Value="@detalle.Cantidad" @bind-Value:after="Calculos" />
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger bi bi-trash shadow-sm"
+                                                @onclick="() => QuitarProducto(detalle)">
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-end mb-3  mx-5">
+                    <button type="button" class="btn btn-primary bi bi-plus-circle shadow-sm" @onclick="() => MostrarModal = true">
+                        Agregar
+                    </button>
+                </div>
+
+                <div class="mb-5 mx-5">
+                    <label class="form-label fs-4 ">Notas Adicionales</label>
+                    <InputTextArea type="text" class="form-control" placeholder="" @bind-Value="@ordenCompra.Notas" />
+                </div>
+
+                <div class="d-flex justify-content-between mx-5 mt-3 mb-5">
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">Subtotal General</label>
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Subtotal.ToString("N2")</span>
+                        </label>
+                    </div>
+
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">ITBIS</label><br />
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Impuestos.ToString("N2")</span>
+                        </label>
+                    </div>
+
+                    <div class="col-3 mx-5 text-center">
+                        <label class="form-label fs-4">Total de la Orden</label>
+                        <label class="form-label">
+                            <strong>RD$</strong>
+                            <span class="text-success">@ordenCompra.Total.ToString("N2")</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container mb-5 d-flex justify-content-center">
+
+                <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm "> Cancelar</a>
+                <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2"> Guardar</button>
+                <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir"> Imprimir</button>
             </div>
         </div>
-    </div>
-    <h3 class=" text-center mb-5">Crear Orden de Compra</h3>
-</div>
-<div class="container">
-    <div class="mb-3 mx-5">
-        <label class="form-label fs-4">T&iacute;tulo</label>
-        <input type="text" class="form-control" placeholder="Ingrese el t&iacute;tulo de la orden de compra" />
-    </div>
-    <div class="mb-3 mx-5">
-        <label class="form-label fs-4">Proveedor</label>
-        <InputSelect class="form-select" @bind-Value="proveedor">
-            <option value="">Seleccione un proveedor</option>
-            <option value="Proveedor1">ISM</option>
-            <option value="Proveedor2">CocaCola</option>
-            <option value="Proveedor3">Pepsi</option>
-            <option value="Proveedor4">Nestlé</option>
-            <option value="Proveedor5">Unilever</option>
-        </InputSelect>
-    </div>
-    <div class="mb-3 mx-5">
-        <label class="form-label fs-4">Fecha de entrega estimada</label>
-        <input type="date" class="form-control mb-2" />
-    </div>
-    <div class=" mx-5">
-        <label class="form-label fs-4">Agregar productos</label>
-        <table class="table table-hover">
-            <thead class="table table-striped text-black">
-                <tr>
-                    <th>SKU</th>
-                    <th>Categoria</th>
-                    <th>Nombre</th>
-                    <th>Marca</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Eliminar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>12345</td>
-                    <td>Bebidas</td>
-                    <td>Coca Cola</td>
-                    <td>Coca Cola</td>
-                    <td>45</td>
-                    <td>$1.00</td>
-                    <td><button class="btn btn-danger bi bi-trash shadow-sm"></button></td>
-                </tr>
-                <tr>
-                    <td>67890</td>
-                    <td>Snacks</td>
-                    <td>Chips</td>
-                    <td>Lays</td>
-                    <td>30</td>
-                    <td>$0.50</td>
-                    <td><button class="btn btn-danger bi bi-trash shadow-sm"></button></td>
-                </tr>
-                <tr>
-                    <td>11223</td>
-                    <td>Gaseosas</td>
-                    <td>Pepsi</td>
-                    <td>PepsiCo</td>
-                    <td>20</td>
-                    <td>$0.80</td>
-                    <td><button class="btn btn-danger bi bi-trash shadow-sm"></button></td>
-                </tr>
-            </tbody>
-        </table>
-
-    </div>
-    <div class="d-flex justify-content-end mb-5 mx-5 ">
-        <button type="button" class="btn btn-primary bi bi-plus-circle shadow-sm" @onclick="() => MostrarModal = true">
-            Agregar
-        </button>
-    </div>
-
-    <div class="d-flex justify-content-between mx-5 mt-3 mb-5">
-        <div class="col-3 mx-5 text-center">
-            <label class="form-label fs-4">Subtotal General</label>
-            <label class="form-label"><strong>RD$</strong><span class="text-success">13,000</span></label>
-        </div>
-        <div class="col-3 mx-5 text-center">
-            <label class="form-label fs-4">Total de la Orden</label>
-            <label class="form-label "><strong>RD$</strong><span class="text-success">16,000</span></label>
-        </div>
-    </div>
-
-</div>
-
-
-
-<div class="container mb-5 d-flex justify-content-center">
-
-    <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm ">  Cancelar</a>
-    <button class="btn btn-success bi bi-check2-circle shadow-sm ms-2" @onclick="Guardar">  Guardar</button>
-    <button class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir">  Imprimir</button>
-</div>
-
+    }
+</EditForm>
 
 @if (MostrarModal)
 {
-    <div class="modal fade show d-block bg-opacity-50" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
+    <div class="modal fade show d-block bg-opacity-50 modal-lg" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content shadow">
-                <div class="modal-header">
-                    <h3 class="modal-title text-center">Agregar productos</h3>
-
+                <div class="modal-header bgApp text-white">
+                    <h3 class="modal-title text-center ">Agregar productos</h3>
+                    <button type="button" class="btn-close" @onclick="() => MostrarModal = false" aria-label="Cerrar"></button>
                 </div>
 
-                <div class="modal-body text-center mb-3">
-                    <p>Agregar nuevos productos</p>
+                <div class="modal-body mb-3" style="height: 400px; overflow-y: auto;">
+                    <div class="row">
+                        <div class="col-3">
+                            <InputSelect class="form-select col-3" @bind-Value="valorSelect">
+                                <option value="ProductoId">Producto Id</option>
+                                <option value="Nombre">Nombre</option>
+                            </InputSelect>
+                        </div>
+                        <div class="col-4">
+                            <div class="input-group">
+                                <input class="form-control" @bind="valorBuscado" />
+                                <button type="button" class="btn btn-success" @onclick="BuscarProductos">
+                                    Buscar
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div style="height: 300px; overflow-y: auto; margin-top: 15px;">
+                        <table class="table table-hover">
+                            <thead class="table table-striped text-black" style="position: sticky; top: 0; z-index: 1;">
+                                <tr>
+                                    <th>Producto Id</th>
+                                    <th>Nombre</th>
+                                    <th>Categoria</th>
+                                    <th>Marca</th>
+                                    <th>Precio de Compra</th>
+                                    <th>Agregar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var producto in productos)
+                                {
+                                    <tr>
+                                        <td>@producto.ProductoId</td>
+                                        <td>@producto.Nombre</td>
+                                        <td>@producto.Categoria?.Nombre</td>
+                                        <td>@producto.Marca?.Nombre</td>
+                                        <td>@producto.PrecioCompra</td>
+                                        <td>
+                                            <button type="button" class="btn btn-outline-primary bi bi-plus shadow-sm"
+                                                    @onclick="() => AgregarProducto(producto)"></button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
 
                 <div class="modal-footer d-flex justify-content-center">
@@ -163,9 +237,6 @@
                         <button type="button" class="btn btn-outline-secondary" @onclick="CerrarModal">
                             <span class="bi bi-box-arrow-left"></span> Volver
                         </button>
-                        <button type="button" class="btn btn-outline-primary">
-                            <span class="bi bi-plus"> Agregar</span>
-                        </button>
                     </div>
 
                 </div>
@@ -173,18 +244,104 @@
 
         </div>
     </div>
-
 }
 
 @code {
-    private string proveedor { get; set; } = string.Empty;
+    string proveedor { get; set; } = string.Empty;
+    private OrdenCompra ordenCompra = new()
+    {
+        Detalles = new List<OrdenCompraDetalle>(),
+        FechaCreacion = DateTime.Now
+    };
+    List<Proveedor> proveedores { get; set; } = new List<Proveedor>();
+    List<Producto> productos { get; set; } = new List<Producto>();
 
     private Boolean MostrarModal = false;
+    private Boolean isLoading = true;
 
-    private void Guardar()
+    string valorBuscado { get; set; } = string.Empty;
+    string valorSelect { get; set; } = "ProductoId";
+
+
+    protected override async Task OnInitializedAsync()
     {
-        toastService.ShowSuccess("Orden de compra guardada exitosamente");
-        navigationManager.NavigateTo("/Compras/Index");
+        isLoading = true;
+        productos = await productoService.Listar(p => true);
+        proveedores = await proveedorService.Listar(p => true);
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            ordenCompra.UsuarioId = int.Parse(user.FindFirst("UsuarioId")?.Value ?? "0");
+        }
+        isLoading = false;
+    }
+
+
+    private async Task Guardar()
+    {
+        if (ordenCompra.UsuarioId == 0)
+        {
+            toastService.ShowError("Usuario no válido. Asegúrate de que el usuario haya iniciado sesión correctamente.");
+            return;
+        }
+
+        if (ordenCompra.ProveedorId == 0)
+        {
+            toastService.ShowError("Debe seleccionar un proveedor para la orden de compra.");
+            return;
+        }
+
+        if (!ordenCompra.Detalles.Any())
+        {
+            toastService.ShowError("Debe agregar al menos un producto a la orden de compra.");
+            return;
+        }
+
+        try
+        {
+            ordenCompra.FechaCreacion = DateTime.UtcNow;
+            ordenCompra.FechaEntregaEstimada = ordenCompra.FechaEntregaEstimada.ToUniversalTime();
+            ordenCompra.EstadoOrdenCompraId = 1;
+
+            Calculos();
+
+            var guardado = await comprasService.Guardar(ordenCompra);
+            if (guardado)
+            {
+                toastService.ShowSuccess("Orden Creada");
+                navigationManager.NavigateTo("/Compras/Index");
+
+            }
+            else
+            {
+                toastService.ShowError("No se pudo guardar la orden de compra. Inténtalo de nuevo.");
+            }
+        }
+        catch (Exception ex)
+        {
+            toastService.ShowError($"Ocurrió un error inesperado: {ex.Message}");
+            Console.WriteLine($"Error completo al guardar la orden de compra: {ex}");
+        }
+    }
+
+    private void Calculos()
+    {
+        decimal subtotalGeneral = 0;
+        foreach (var detalle in ordenCompra.Detalles)
+        {
+            detalle.Subtotal = detalle.Cantidad * detalle.PrecioCompraUnitario;
+            subtotalGeneral += detalle.Subtotal;
+        }
+
+        decimal impuestos = subtotalGeneral * 0.18m;
+
+        ordenCompra.Subtotal = subtotalGeneral;
+        ordenCompra.Impuestos = impuestos;
+        ordenCompra.Total = subtotalGeneral + impuestos;
+        StateHasChanged();
     }
 
     private void Imprimir()
@@ -192,9 +349,56 @@
         toastService.ShowInfo("Impresión en curso...");
     }
 
+    private async Task BuscarProductos()
+    {
+        if (string.IsNullOrWhiteSpace(valorBuscado))
+        {
+            productos = await productoService.Listar(p => true);
+            return;
+        }
+
+        productos = valorSelect switch
+        {
+            "ProductoId" => await productoService.Listar(p => p.ProductoId.ToString().Contains(valorBuscado)),
+            "Nombre" => await productoService.Listar(p => p.Nombre.Contains(valorBuscado)),
+            _ => await productoService.Listar(p => p.Nombre.Contains(valorBuscado))
+        };
+
+        StateHasChanged();
+    }
+
     private void CerrarModal()
     {
         MostrarModal = false;
     }
 
+    private void AgregarProducto(Producto producto)
+    {
+        if (ordenCompra.Detalles.Any(d => d.ProductoId == producto.ProductoId))
+        {
+            toastService.ShowWarning("Este producto ya está en la orden de compra");
+            return;
+        }
+
+        var detalle = new OrdenCompraDetalle
+        {
+            ProductoId = producto.ProductoId,
+            Producto = producto, // The 'producto' object must contain its Marca and Categoria for rendering
+            PrecioCompraUnitario = producto.PrecioCompra,
+            Cantidad = 1
+        };
+
+        ordenCompra.Detalles.Add(detalle);
+        StateHasChanged();
+        toastService.ShowSuccess("Producto Agregado");
+        Calculos();
+    }
+
+    private void QuitarProducto(OrdenCompraDetalle detalle)
+    {
+        ordenCompra.Detalles.Remove(detalle);
+        StateHasChanged();
+        toastService.ShowSuccess("Producto Eliminado de la Orden");
+        Calculos();
+    }
 }

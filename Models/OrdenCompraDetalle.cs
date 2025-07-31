@@ -16,9 +16,11 @@ public class OrdenCompraDetalle
     public int ProductoId { get; set; }
     public Producto Producto { get; set; } = null!;
 
+    [Range(1, 1000, ErrorMessage = "La cantidad debe ser mayor que 1 y menor que 1000")]
     public int Cantidad { get; set; }
+
+   
     public decimal PrecioCompraUnitario { get; set; }
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    public decimal Subtotal { get; private set; }
+    public decimal Subtotal { get; set; }
 }

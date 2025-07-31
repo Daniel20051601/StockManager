@@ -9,14 +9,12 @@
 
     <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-    
-
-    <div class="nav-scrollable d-flex justify-content-center align-items-center" onclick="document.querySelector('.navbar-toggler').click()">
+    <div class="nav-scrollable d-flex justify-content-start align-items-start mt-2" onclick="document.querySelector('.navbar-toggler').click()">
         <nav class="nav flex-column text-secondary">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                     <div class="text-center">
-                        <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                        <span class="bi bi-house-door-fill fs-5" aria-hidden="true"></span> Home
                     </div>
                 </NavLink>
             </div>
@@ -24,7 +22,7 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/Productos/Index">
                     <div class="text-center">
-                        <span class="bi bi-archive" aria-hidden="true"></span> Productos
+                        <span class="bi bi-archive-fill fs-5" aria-hidden="true"></span> Productos
                     </div>
                 </NavLink>
             </div>
@@ -32,23 +30,32 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/Compras/Index">
                     <div class="text-center">
-                        <span class="bi bi-cart-plus" aria-hidden="true"></span> Compras
+                        <span class="bi bi-cart-plus-fill fs-5" aria-hidden="true"></span> Compras
                     </div>
                 </NavLink>
             </div>
 
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="/Ventas/Index">
+                <NavLink class="nav-link" href="/Ventas/Facturar">
                     <div class="text-center">
-                        <span class="bi bi-cart-plus" aria-hidden="true"></span> Ventas
+                        <span class="bi bi-piggy-bank-fill fs-5" aria-hidden="true"></span> Ventas
                     </div>
                 </NavLink>
             </div>
 
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="/Ventas/HistorialFacturas">
+                    <div class="text-center">
+                        <span class="bi bi-file-earmark-text" aria-hidden="true"></span> Historial de Factura
+                    </div>
+                </NavLink>
+            </div>
+          
+            
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/Proveedores/Index">
                     <div class="text-center">
-                        <span class="bi bi-cart-plus" aria-hidden="true"></span> Proveedores
+                        <span class="bi bi-truck-front-fill fs-5" aria-hidden="true"></span> Proveedores
                     </div>
                 </NavLink>
             </div>
@@ -56,7 +63,7 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/CuentasPorPagar/Index">
                     <div class="text-center">
-                        <span class="bi bi-cash-coin" aria-hidden="true"></span> Cuentas Por Pagar
+                        <span class="bi bi-wallet2 sidebar-icon-fill fs-5" aria-hidden="true"></span> Cuentas Por Pagar
                     </div>
                 </NavLink>
             </div>
@@ -64,7 +71,7 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/CuentasPorCobrar/Index">
                     <div class="text-center">
-                        <span class="bi bi-cash-coin" aria-hidden="true"></span> Cuentas Por Cobrar
+                        <span class="bi bi-wallet-fill fs-5" aria-hidden="true"></span> Cuentas Por Cobrar
                     </div>
                 </NavLink>
             </div>
@@ -72,7 +79,7 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/Mermas/Index">
                     <div class="text-center">
-                        <span class="bi bi-cart-plus" aria-hidden="true"></span> Mermas
+                        <span class="bi bi-trash-fill fs-5" aria-hidden="true"></span> Mermas
                     </div>
                 </NavLink>
             </div>
@@ -80,7 +87,7 @@
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="/Reportes/Index">
                     <div class="text-center">
-                        <span class="bi bi-cart-plus" aria-hidden="true"></span>Reportes
+                        <span class="bi bi-file-earmark-text-fill fs-5" aria-hidden="true"></span>Reportes
                     </div>
                 </NavLink>
             </div>

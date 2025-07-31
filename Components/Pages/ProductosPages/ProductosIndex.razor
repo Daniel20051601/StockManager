@@ -1,146 +1,273 @@
 ﻿@page "/Productos/Index"
 @using Microsoft.EntityFrameworkCore
 @using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
-
-@inject Contexto _contexto
 
 <PageTitle>Productos</PageTitle>
 
-<style>
-    .table-striped-custom tbody tr:nth-child(odd) {
-        background-color: #ffffff;
-    }
-
-    .table-striped-custom tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    .dropdown-toggle::after {
-        display: none;
-    }
-
-    .action-btn {
-        border: none;
-        background: transparent;
-        font-size: 1.5rem;
-        line-height: 1;
-        color: #6c757d;
-    }
-
-    .dropdown-menu {
-        font-size: 0.9rem;
-    }
-</style>
-
-<div class="mt-5">
-    <div class="row mb-5">
-        <div class="col">
-            <h3 class="fw-semibold">Productos</h3>
-        </div>
-        <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-            <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm"></a>
-            <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
         </div>
     </div>
+}
+else
+{
+    <div class="mt-5">
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-3">
+                <h3 class="fw-semibold">Productos</h3>
+            </div>
+            <div class="col-md-9 d-flex justify-content-end align-items-center gap-3">
+                <div class="input-group" style="max-width: 180px;">
+                    <select class="form-select" @bind="filtro">
+                        <option value="Nombre">Nombre</option>
+                        <option value="Codigo">Código</option>
+                        <option value="Proveedor">Proveedor</option>
+                        <option value="Marca">Marca</option>
+                    </select>
+                </div>
+                <div class="input-group flex-grow-1" style="max-width: 400px;">
+                    <input class="form-control shadow-sm text-secondary" @bind="valorFiltro" placeholder="Buscar..." />
+                    <button class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+                    <button class="btn btn-outline-secondary ms-1 bi bi-arrow-repeat" @onclick="Restablecer"></button>
+                </div>
 
-    <div class="row d-flex justify-content-between mb-5">
-        <div class="col-auto">
-            <button type="button" class="btn btn-outline">Resumen</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Solicitudes</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Notificaciones</button>
-        </div>
-        <div class="col-auto">
-            <div class="d-flex align-items-center">
-                <a href="/Productos/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
-                    <i class="bi bi-plus-circle me-2"></i> Nuevo
-                </a>
-                <div class="dropdown ms-3">
-                    <button class="btn btn-outline dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                        Mostrar
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline bi bi-bell text-secondary shadow-sm ms-4 bg-white" data-bs-toggle="dropdown" aria-expanded="false">
                     </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Activos</a></li>
-                        <li><a class="dropdown-item" href="#">Inactivos</a></li>
-                        <li><a class="dropdown-item" href="#">Todos</a></li>
-                    </ul>
+                    <div class=" shadow-sm dropdown-menu dropdown-menu-end p-4 mt-2" style="width: 350px; height: 400px; overflow-y: auto;">
+                        <div class="mb-3">
+                            <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                <p class="fw-light">Algunos productos están apunto de vencer</p>
+                            </div>
+                            <div class="bg-primary-subtle border border-primary-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-primary-emphasis"> <strong class="ms-2"> Hemos actualizado nuestras políticas</strong></label>
+                                <p class="fw-light">Mira cuales son las novedades</p>
+                            </div>
+                            <div class="bg-success-subtle border border-success-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-success-emphasis"> <strong class="ms-2"> Reporte enviado</strong></label>
+                                <p class="fw-light">Su reporte ha sido enviado exitosamente</p>
+                            </div>
+                            <div class="bg-danger-subtle border border-danger-subtle rounded-3 p-2 mb-2">
+                                <label class="bi bi-bell text-danger-emphasis"> <strong class="ms-2"> Productos apunto de vencer</strong></label>
+                                <p class="fw-light">Algunos productos están apunto de vencer</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="table-responsive mt-4">
-        <table class="table table-hover align-middle shadow-sm table-striped-custom">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 80px;">Código</th>
-                    <th style="width: 80px;">Imagen</th>
-                    <th style="width: 100px;">Categoría</th>
-                    <th style="width: 180px;">Producto</th>
-                    <th style="width: 180px;">Proveedor</th>
-                    <th style="width: 120px;">Marca</th>
-                    <th style="width: 80px;">Estado</th>
-                    <th style="width: 80px;">Stock</th>
-                    <th style="width: 130px;">Precio de Compra</th>
-                    <th style="width: 130px;">Precio de Venta</th>
-                    <th style="width: 50px;">Editar</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var producto in productos)
-                {
+        <div class="row d-flex justify-content-between mb-3">
+            <div class="col-auto">
+                <button class="btn btn-outline">Resumen</button>
+
+                <button class="btn btn-outline text-secondary ms-2">Solicitudes</button>
+                <button class="btn btn-outline text-secondary ms-2">Notificaciones</button>
+            </div>
+            <div class="col-auto">
+                <a href="/Productos/Nuevo" class="btn btn-success shadow-sm d-flex align-items-center">
+                    <i class="bi bi-plus-circle me-2"></i> Nuevo
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle shadow-sm table-striped-custom">
+                <thead class="table-light">
                     <tr>
-                        <td>@producto.Codigo</td>
-                        <td>
-                            <img src="imagenes/productos/@producto.ImagenURL" alt="@producto.Nombre" width="45" />
-                        </td>
-                        <td>@producto.Categoria?.Nombre</td>
-                        <td>@producto.Nombre</td>
-                        <td>@producto.Proveedor</td>
-                        <td>@producto.Marca?.Nombre</td>
-                        <td>
-                            <span class="badge @(producto.EstadoProductoId == 1 ? "bg-success" : "bg-secondary")">
-                                @(producto.EstadoProductoId == 1 ? "Activo" : "Inactivo")
-                            </span>
-                        </td>
-                        <td>@producto.Stock</td>
-                        <td>@producto.PrecioCompra.ToString("0.00")</td>
-                        <td>@producto.PrecioVenta.ToString("0.00")</td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="action-btn" type="button" data-bs-toggle="dropdown">⋮</button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
-                                </ul>
-                            </div>
-                        </td>
+                        <th>Código</th>
+                        <th>Imagen</th>
+                        <th>Categoría</th>
+                        <th>Producto</th>
+                        <th>Descripción</th>
+                        <th>Proveedor</th>
+                        <th>Marca</th>
+                        <th>Estado</th>
+                        <th>Stock</th>
+                        <th>Precio Compra</th>
+                        <th>Precio Venta</th>
+                        <th>Editar</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var producto in productos)
+                    {
+                        <tr>
+                            <td>@producto.Codigo</td>
+                            <td><img src="imagenes/productos/@producto.ImagenURL" width="45" /></td>
+                            <td>@producto.Categoria?.Nombre</td>
+                            <td>@producto.Nombre</td>
+                            <td>@producto.Descripcion</td>
+                            <td>@producto.Proveedor?.Nombre</td>
+                            <td>@producto.Marca?.Nombre</td>
+                            <td>
+                                <span class="badge @(producto.EstadoProductoId == 1 ? "bg-success" : "bg-secondary")">
+                                    @(producto.EstadoProductoId == 1 ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td>@producto.Stock</td>
+                            <td>@producto.PrecioCompra.ToString("0.00")</td>
+                            <td>@producto.PrecioVenta.ToString("0.00")</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/Productos/Editar/@producto.ProductoId">Editar</a></li>
+                                        <li><button class="dropdown-item text-danger" @onclick="() => EliminarProducto(producto.ProductoId)">Eliminar</button></li>
+                                        <li><a class="dropdown-item" href="/Mermas/Index">Agregar a mermas</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-    <div class="d-flex justify-content-end mt-3">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-            </ul>
-        </nav>
+        <div class="d-flex justify-content-end mt-3">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+                    </li>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(paginaActual == i ? "active" : "")">
+                            <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
-</div>
+}
 
 @code {
     private List<Producto> productos = new();
+    private int paginaActual = 1;
+    private int totalPaginas;
+    private int cantidadPorPagina = 10;
+    private bool isLoading = true;
+
+    private string filtro = "Nombre";
+    private string valorFiltro = "";
 
     protected override async Task OnInitializedAsync()
     {
-        productos = await _contexto.productos
+        NavigationManager.LocationChanged += HandleLocationChanged;
+        isLoading = true;
+        await CargarProductos();
+        isLoading = false;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (e.Location.EndsWith("/Productos/Index", StringComparison.OrdinalIgnoreCase))
+        {
+            InvokeAsync(async () =>
+            {
+                isLoading = true;
+                await CargarProductos();
+                isLoading = false;
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose() => NavigationManager.LocationChanged -= HandleLocationChanged;
+
+    private async Task CargarProductos()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        var query = contexto.productos
             .Include(p => p.Categoria)
             .Include(p => p.Marca)
+            .Include(p => p.Proveedor)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(valorFiltro))
+        {
+            string filtroLower = valorFiltro.ToLower();
+            query = filtro switch
+            {
+                "Codigo" => query.Where(p => p.Codigo.ToLower().Contains(filtroLower)),
+                "Proveedor" => query.Where(p => p.Proveedor != null && p.Proveedor.Nombre.ToLower().Contains(filtroLower)),
+                "Marca" => query.Where(p => p.Marca != null && p.Marca.Nombre.ToLower().Contains(filtroLower)),
+                _ => query.Where(p => p.Nombre.ToLower().Contains(filtroLower)),
+            };
+        }
+
+        var totalRegistros = await query.CountAsync();
+        totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
+
+        productos = await query
+            .OrderBy(p => p.ProductoId)
+            .Skip((paginaActual - 1) * cantidadPorPagina)
+            .Take(cantidadPorPagina)
             .ToListAsync();
+
+        foreach (var producto in productos)
+        {
+            producto.ImagenURL ??= "default-image.jpg";
+        }
+    }
+
+    private async Task PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            await CargarProductos();
+        }
+    }
+
+    private async Task PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            await CargarProductos();
+        }
+    }
+
+    private async Task CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+        await CargarProductos();
+    }
+
+    private async Task Buscar()
+    {
+        paginaActual = 1;
+        await CargarProductos();
+    }
+
+    private async Task Restablecer()
+    {
+        valorFiltro = "";
+        await Buscar();
+    }
+
+    private async Task EliminarProducto(int id)
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        var producto = await contexto.productos.FindAsync(id);
+        if (producto != null)
+        {
+            contexto.productos.Remove(producto);
+            await contexto.SaveChangesAsync();
+            await CargarProductos();
+        }
     }
 }

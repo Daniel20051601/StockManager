@@ -8,12 +8,16 @@ namespace StockManager.Models
         [Key]
         public int ProductoId { get; set; }
 
-        [Required, MaxLength(50)]
-        public string Codigo { get; set; }  = null!;
+        [MaxLength(50)]
+        public string? Codigo { get; set; } = string.Empty;
 
         [Required, MaxLength(100)]
         public string Nombre { get; set; } = null!;
-        public string Proveedor { get; set; } = string.Empty;
+        [ForeignKey("Proveedor")]
+        public int ProveedorId { get; set; }
+        
+        public Proveedor Proveedor { get; set; } = null!;
+
         public string Descripcion { get; set; } = null!;
 
         [ForeignKey("Categoria")]
@@ -30,10 +34,10 @@ namespace StockManager.Models
         public decimal PrecioCompra { get; set; }
         public decimal PrecioVenta { get; set; }
 
-        public string ImagenURL { get; set; } = null!;
+        public string? ImagenURL { get; set; }
 
         [ForeignKey("EstadoProducto")]
-        public int EstadoProductoId { get; set; }
+        public int EstadoProductoId { get; set; } = 1; 
         public EstadoProducto EstadoProducto { get; set; } = null!;
 
         public DateTime FechaRegistro { get; set; } = DateTime.Now;

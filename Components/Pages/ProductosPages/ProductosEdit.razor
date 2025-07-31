@@ -1,0 +1,223 @@
+﻿@page "/Productos/Editar/{ProductoId:int}"
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Services
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
+@inject ProductoService productoService
+@inject IToastService toastService
+@rendermode InteractiveServer
+
+<PageTitle>Editar Producto</PageTitle>
+
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+}
+else
+{
+    <EditForm Model="producto" OnValidSubmit="GuardarProducto">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="container mt-4">
+            <h3 class="fw-semibold">Editar Producto</h3>
+
+            <div class="row mt-4">
+                <div class="col-md-7">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <strong>Editar Producto</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>ProductoId</strong></label>
+                                <InputNumber class="form-control" @bind-Value="producto.ProductoId" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Código</label>
+                                <InputText class="form-control" @bind-Value="producto.Codigo" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Categoría</label>
+                                <InputSelect class="form-select" @bind-Value="producto.CategoriaId">
+                                    <option value="0">-- Selecciona una categoría --</option>
+                                    @foreach (var cat in categorias)
+                                    {
+                                        <option value="@cat.CategoriaId">@cat.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.CategoriaId)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Producto</label>
+                                <InputText class="form-control" @bind-Value="producto.Nombre" />
+                                <ValidationMessage For="@(() => producto.Nombre)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Proveedor</label>
+                                <InputSelect class="form-select" @bind-Value="producto.ProveedorId">
+                                    <option value="0">-- Selecciona un proveedor --</option>
+                                    @foreach (var prov in proveedores)
+                                    {
+                                        <option value="@prov.ProveedorId">@prov.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.ProveedorId)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Marca</label>
+                                <InputSelect class="form-select" @bind-Value="producto.MarcaId">
+                                    <option value="0">-- Selecciona una marca --</option>
+                                    @foreach (var mar in marcas)
+                                    {
+                                        <option value="@mar.MarcaId">@mar.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => producto.MarcaId)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Stock</label>
+                                <InputNumber class="form-control" @bind-Value="producto.Stock" />
+                                <ValidationMessage For="@(() => producto.Stock)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <InputTextArea class="form-control" @bind-Value="producto.Descripcion" />
+                                <ValidationMessage For="@(() => producto.Descripcion)" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col">
+                                    <label class="form-label">Precio de compra</label>
+                                    <InputNumber class="form-control" step="0.01" @bind-Value="producto.PrecioCompra" />
+                                    <ValidationMessage For="@(() => producto.PrecioCompra)" />
+                                </div>
+                                <div class="col">
+                                    <label class="form-label">Precio de venta</label>
+                                    <InputNumber class="form-control" step="0.01" @bind-Value="producto.PrecioVenta" />
+                                    <ValidationMessage For="@(() => producto.PrecioVenta)" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-3">
+                                <label class="form-label">Estado</label>
+                                <InputSelect class="form-select" @bind-Value="producto.EstadoProductoId">
+                                    <option value="1">Activo</option>
+                                    <option value="2">Inactivo</option>
+                                </InputSelect>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-center">
+                                <a href="/Productos/Index" class="btn btn-outline-danger me-2">
+                                    <span class="bi bi-x-circle"></span> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-outline-success bi bi-floppy"> Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5 d-flex justify-content-center align-items-start mt-3 mt-md-0">
+                    <div class="card shadow-sm p-5 text-center" style="height: 100%; min-height: 400px;">
+                        @if (!string.IsNullOrEmpty(producto.ImagenURL) && producto.ImagenURL != "default-image.jpg")
+                        {
+                            <img src="/imagenes/productos/@producto.ImagenURL" class="img-fluid mb-3" alt="Imagen del producto" style="max-height: 200px; object-fit: contain;" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-image fs-1 text-muted"></i>
+                        }
+                        <p class="text-muted">Subir Imagen</p>
+                        <InputFile OnChange="SubirImagen" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int ProductoId { get; set; }
+
+    private Producto producto = new();
+    private List<Categoria> categorias = new();
+    private List<Marca> marcas = new();
+    private List<Proveedor> proveedores = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        categorias = await contexto.Categorias.ToListAsync();
+        marcas = await contexto.Marcas.ToListAsync();
+        proveedores = await contexto.Proveedores.ToListAsync();
+
+        if (ProductoId > 0)
+        {
+            producto = await contexto.productos.AsNoTracking().FirstOrDefaultAsync(p => p.ProductoId == ProductoId);
+            if (producto == null)
+            {
+                toastService.ShowError("Producto no encontrado.");
+                NavigationManager.NavigateTo("/Productos/Index");
+                return;
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/Productos/Index");
+            return;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task SubirImagen(InputFileChangeEventArgs e)
+    {
+        var archivo = e.File;
+
+        if (archivo != null)
+        {
+            var nombreUnico = $"{Guid.NewGuid()}_{archivo.Name}";
+            var ruta = Path.Combine("wwwroot", "imagenes", "productos", nombreUnico);
+
+            var pathAbsoluto = Path.Combine(Directory.GetCurrentDirectory(), ruta);
+            Directory.CreateDirectory(Path.GetDirectoryName(pathAbsoluto)!);
+
+            using (var stream = File.Create(pathAbsoluto))
+            {
+                await archivo.OpenReadStream().CopyToAsync(stream);
+            }
+
+            producto.ImagenURL = nombreUnico;
+        }
+    }
+
+    private async Task GuardarProducto()
+    {
+        if (await productoService.Guardar(producto))
+        {
+            toastService.ShowSuccess("Producto actualizado exitosamente.");
+            NavigationManager.NavigateTo("/Productos/Index");
+        }
+        else
+        {
+            toastService.ShowError("Error al actualizar el producto. Por favor, verifica los datos ingresados.");
+        }
+    }
+}
