@@ -51,6 +51,19 @@ public class ProductoService(IDbContextFactory<Contexto> DbContext)
         }
     }
 
+    public async Task<int> GetTotalProductos()
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        return await contexto.productos.CountAsync();
+    }
+
+    public async Task<int> GetProductosMermados()
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        return await contexto.productos.CountAsync(p => p.EstadoProductoId == 4); 
+    }
+
+
     public async Task<bool> Eliminar(int productoId)
     {
         await using var contexto = await DbContext.CreateDbContextAsync();

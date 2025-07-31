@@ -10,8 +10,8 @@ public class VentaService(IDbContextFactory<Contexto> dbContext, ProductoService
     {
         await using var contexto = await dbContext.CreateDbContextAsync();
 
-        // Establecer fecha actual si no se ha asignado
-        venta.Fecha = DateTime.Now;
+        // Establecer fecha actual en UTC
+        venta.Fecha = DateTime.UtcNow;
 
         // Adjuntar productos existentes y asignar precios
         foreach (var detalle in venta.Detalles)
@@ -30,7 +30,6 @@ public class VentaService(IDbContextFactory<Contexto> dbContext, ProductoService
         if (ventaGuardada)
         {
             // Actualizar el stock de los productos
-            
         }
 
         return false;
@@ -53,5 +52,13 @@ public class VentaService(IDbContextFactory<Contexto> dbContext, ProductoService
             .Include(v => v.Detalles)
                 .ThenInclude(d => d.Producto)
             .FirstOrDefaultAsync(v => v.VentaId == ventaId);
+    }
+
+    // Método corregido para obtener ventas del día en UTC
+    public async Task<int> GetVentasDiarias()
+    {
+        await using var contexto = await dbContext.CreateDbContextAsync();
+        var fechaHoyUtc = DateTime.UtcNow.Date;
+        return await contexto.Ventas.CountAsync(v => v.Fecha.Date == fechaHoyUtc);
     }
 }

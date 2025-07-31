@@ -1,6 +1,38 @@
 ﻿@page "/"
+@inject ProductoService ProductoService
+@inject VentaService VentaService
+@inject ComprasService ComprasService
 
 <PageTitle>Home</PageTitle>
+
+@* Bloque de código C# para manejar los datos del componente *@
+@code {
+    // Variables para almacenar los datos dinámicos
+    private int productosEnInventario;
+    private int ventasDiarias;
+    private int comprasDelDia;
+    private int productosMermados;
+    private bool isLoading = true; // Variable para mostrar un estado de carga
+
+    // Este método se ejecuta cuando el componente se inicializa.
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Llamadas a los servicios para obtener los datos reales
+            productosEnInventario = await ProductoService.GetTotalProductos();
+            ventasDiarias = await VentaService.GetVentasDiarias();
+            comprasDelDia = await ComprasService.GetComprasDelDia();
+            productosMermados = await ProductoService.GetProductosMermados();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
 
 <div class="header-section mt-5">
     <div class="row d-flex justify-content-between align-items-center">
@@ -44,56 +76,74 @@
         </li>
     </ul>
 
-    <div class="row g-4 mb-5">
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-subtitle text-muted mb-2">Productos en Inventario</h6>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="card-title fw-bold">305</h4>
-                        <i class="bi bi-box fs-3 text-secondary"></i>
+    @* Mostramos un spinner mientras los datos se cargan *@
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 mb-5">
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-muted mb-2">Productos en Inventario</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            @* Mostramos el valor de la variable C# *@
+                            <h4 class="card-title fw-bold">@productosEnInventario</h4>
+                            <i class="bi bi-box fs-3 text-secondary"></i>
+                        </div>
+                        <p class="card-text text-muted small">Cantidad total de productos</p>
                     </div>
-                    <p class="card-text text-muted small">2 en revisión, 1 pendiente de pago</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-muted mb-2">Ventas diarias</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            @* Mostramos el valor de la variable C# *@
+                            <h4 class="card-title fw-bold">@ventasDiarias</h4>
+                            <i class="bi bi-envelope fs-3 text-secondary"></i>
+                        </div>
+                        <p class="card-text text-muted small">Ventas realizadas hoy</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-subtitle text-muted mb-2">Compras del día</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            @* Mostramos el valor de la variable C# *@
+                            <h4 class="card-title fw-bold">@comprasDelDia</h4>
+                            <i class="bi bi-envelope fs-3 text-secondary"></i>
+                        </div>
+                        <p class="card-text text-muted small">Órdenes de compra creadas hoy</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        @* Título actualizado a "Mermas" *@
+                        <h6 class="card-subtitle text-muted mb-2">Mermas</h6>
+                        <div class="d-flex justify-content-between align-items-center">
+                            @* Mostramos el valor de la variable C# *@
+                            <h4 class="card-title fw-bold">@productosMermados</h4>
+                            @* Ícono actualizado a bi-trash *@
+                            <i class="bi bi-trash fs-3 text-secondary"></i>
+                        </div>
+                        <p class="card-text text-muted small">Productos mermados</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-subtitle text-muted mb-2">Ventas diarias</h6>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="card-title fw-bold">8</h4>
-                        <i class="bi bi-envelope fs-3 text-secondary"></i>
-                    </div>
-                    <p class="card-text text-muted small">En las últimas 6 horas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-subtitle text-muted mb-2">Compras del día</h6>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="card-title fw-bold">18</h4>
-                        <i class="bi bi-envelope fs-3 text-secondary"></i>
-                    </div>
-                    <p class="card-text text-muted small">En las últimas 6 horas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-3 col-md-6 col-sm-12">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="card-subtitle text-muted mb-2">Nivel de Stock</h6>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="card-title fw-bold">Medio</h4>
-                        <i class="bi bi-exclamation-triangle fs-3 text-secondary"></i>
-                    </div>
-                    <p class="card-text text-muted small">Promedio en general</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    }
 
     <div class="row g-4">
         <div class="col-lg-6 col-md-12">

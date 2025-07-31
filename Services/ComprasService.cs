@@ -108,13 +108,13 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
         }
     }
 
-    public async Task<OrdenCompra?> Buscar(int OrdenCompraId) 
+    public async Task<OrdenCompra?> Buscar(int OrdenCompraId)
     {
         await using var contexto = await DbContext.CreateDbContextAsync();
         return await contexto.OrdenesCompras
         .Include(p => p.Proveedor)
         .Include(u => u.Usuario)
-        .Include(e => e.EstadoOrdenCompra) 
+        .Include(e => e.EstadoOrdenCompra)
         .Include(o => o.Detalles)
             .ThenInclude(d => d.Producto)
                 .ThenInclude(p => p.Marca)
@@ -132,7 +132,7 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
             if (orden == null)
                 return false;
 
-            orden.EstadoOrdenCompraId = 4; 
+            orden.EstadoOrdenCompraId = 4;
             contexto.OrdenesCompras.Update(orden);
 
             return await contexto.SaveChangesAsync() > 0;
@@ -159,4 +159,11 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
             .ToListAsync();
     }
 
+    // Método corregido para obtener compras del día en UTC
+    public async Task<int> GetComprasDelDia()
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        var fechaHoyUtc = DateTime.UtcNow.Date;
+        return await contexto.OrdenesCompras.CountAsync(o => o.FechaCreacion.Date == fechaHoyUtc);
+    }
 }
