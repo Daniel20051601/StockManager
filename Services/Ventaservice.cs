@@ -61,4 +61,20 @@ public class VentaService(IDbContextFactory<Contexto> dbContext, ProductoService
         var fechaHoyUtc = DateTime.UtcNow.Date;
         return await contexto.Ventas.CountAsync(v => v.Fecha.Date == fechaHoyUtc);
     }
+
+    /// <summary>
+    /// Obtiene las últimas N ventas realizadas.
+    /// </summary>
+    /// <param name="cantidad">Número de ventas a obtener.</param>
+    /// <returns>Una lista de las ventas más recientes.</returns>
+    public async Task<List<Venta>> GetUltimasVentasAsync(int cantidad)
+    {
+        await using var contexto = await dbContext.CreateDbContextAsync();
+        return await contexto.Ventas
+            .Include(v => v.Detalles)
+            .OrderByDescending(v => v.Fecha) // Ordenar por fecha de forma descendente (más reciente primero)
+            .Take(cantidad) // Tomar solo la cantidad de registros solicitada
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

@@ -35,6 +35,7 @@ builder.Services.AddScoped<ComprasService>();
 builder.Services.AddScoped<ProveedorService>();
 builder.Services.AddScoped<VentaService>();
 builder.Services.AddBlazoredToast();
+builder.Services.AddScoped<ReporteService>();
 
 // 4. Componentes Blazor y configuración relacionada
 builder.Services.AddRazorComponents()
