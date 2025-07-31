@@ -1,16 +1,23 @@
 ﻿@page "/Reportes/Index"
 @rendermode InteractiveServer
+@using StockManager.Models
+@using StockManager.Dal
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<Contexto> DbFactory
+@inject IJSRuntime JS
 
 <PageTitle>Reportes</PageTitle>
 
 <div class="mt-5">
-
     <div class="row mb-5">
         <div class="col">
             <h3 class="fw-semibold">Reportes</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
             <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
+            <button class="btn btn-outline-primary shadow-sm" @onclick="AbrirModalReportes">
+                <i class="bi bi-eye me-2"></i>Ver Reportes
+            </button>
             <a href="#" class="btn btn-outline bi bi-chat-dots text-secondary shadow-sm"></a>
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
         </div>
@@ -23,40 +30,333 @@
                     <h4 class="fw-semibold mb-0 text-center">Generar Reporte</h4>
                 </div>
                 <div class="card-body p-4">
-                    <div class="mb-4">
-                        <label for="proveedor" class="form-label fw-semibold">Proveedor</label>
-                        <select id="proveedor" class="form-select shadow-sm">
-                            <option value="">Seleccione un proveedor</option>
-                            <option value="1">Agua Randy</option>
-                            <option value="2">Sosua Import</option>
-                            <option value="3">Ley's Dominican Republic</option>
-                            <option value="4">Pescadería Mar y Sol</option>
-                            <option value="5">Lacteo Caribe</option>
-                        </select>
-                    </div>
+                    @if (cargandoProveedores)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando proveedores...</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="nuevoReporte" OnValidSubmit="EnviarReporte">
+                            <DataAnnotationsValidator />
 
-                    <div class="mb-4">
-                        <label for="asunto" class="form-label fw-semibold">Asunto</label>
-                        <input type="text" id="asunto" class="form-control shadow-sm" />
-                    </div>
+                            <div class="mb-4">
+                                <label for="proveedor" class="form-label fw-semibold">Proveedor</label>
+                                <InputSelect id="proveedor" class="form-select shadow-sm" @bind-Value="nuevoReporte.ProveedorId">
+                                    <option value="0">Seleccione un proveedor</option>
+                                    @foreach (var proveedor in proveedores)
+                                    {
+                                        <option value="@proveedor.ProveedorId">@proveedor.Nombre</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => nuevoReporte.ProveedorId)" class="text-danger" />
+                            </div>
 
-                    <div class="mb-4">
-                        <label for="descripcion" class="form-label fw-semibold">Descripcion</label>
-                        <textarea id="descripcion" class="form-control shadow-sm" rows="6" placeholder="Escriba la descripción del reporte..."></textarea>
-                    </div>
+                            <div class="mb-4">
+                                <label for="asunto" class="form-label fw-semibold">Asunto</label>
+                                <InputText id="asunto" class="form-control shadow-sm" @bind-Value="nuevoReporte.Asunto" />
+                                <ValidationMessage For="@(() => nuevoReporte.Asunto)" class="text-danger" />
+                            </div>
 
-                    <div class="text-end">
-                        <button type="button" class="btn btn-success shadow-sm px-4">
-                            <i class="bi bi-send me-2"></i>Enviar
-                        </button>
-                    </div>
+                            <div class="mb-4">
+                                <label for="descripcion" class="form-label fw-semibold">Descripción</label>
+                                <InputTextArea id="descripcion" class="form-control shadow-sm" rows="6"
+                                               @bind-Value="nuevoReporte.Descripcion"
+                                               placeholder="Escriba la descripción del reporte..." />
+                                <ValidationMessage For="@(() => nuevoReporte.Descripcion)" class="text-danger" />
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success shadow-sm px-4" disabled="@enviandoReporte">
+                                    @if (enviandoReporte)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <span>Enviando...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-send me-2"></i>
+                                        <span>Enviar</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
                 </div>
             </div>
         </div>
     </div>
+</div>
 
+
+<div class="modal fade" id="modalReportes" tabindex="-1" aria-labelledby="modalReportesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalReportesLabel">
+                    <i class="bi bi-file-text me-2"></i>Reportes Enviados
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (cargandoReportes)
+                {
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando reportes...</span>
+                        </div>
+                    </div>
+                }
+                else if (!reportes.Any())
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <p class="text-muted mt-3">No hay reportes enviados</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Proveedor</th>
+                                    <th>Asunto</th>
+                                    <th>Descripción</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var reporte in reportes.OrderByDescending(r => r.FechaCreacion))
+                                {
+                                    <tr>
+                                        <td>
+                                            <small class="text-muted">
+                                                @reporte.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">@reporte.Proveedor.Nombre</span>
+                                        </td>
+                                        <td>
+                                            <strong>@reporte.Asunto</strong>
+                                        </td>
+                                        <td>
+                                            <div style="max-width: 300px;">
+                                                @if (reporte.Descripcion.Length > 100)
+                                                {
+                                                    <span>@reporte.Descripcion.Substring(0, 100)...</span>
+                                                    <button class="btn btn-link btn-sm p-0" @onclick="() => MostrarDescripcionCompleta(reporte)">
+                                                        Ver más
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span>@reporte.Descripcion</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => EliminarReporte(reporte.ReporteId)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modalDescripcion" tabindex="-1" aria-labelledby="modalDescripcionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDescripcionLabel">Descripción Completa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>@descripcionCompleta</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @code {
+    private List<Proveedor> proveedores = new();
+    private List<Reporte> reportes = new();
+    private Reporte nuevoReporte = new();
+    private bool cargandoProveedores = true;
+    private bool cargandoReportes = false;
+    private bool enviandoReporte = false;
+    private string descripcionCompleta = "";
 
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarProveedores();
+    }
+
+    private async Task CargarProveedores()
+    {
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            proveedores = await context.Proveedores
+                .Where(p => p.EstadoProveedorId == 1) 
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error al cargar proveedores: {ex.Message}");
+        }
+        finally
+        {
+            cargandoProveedores = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CargarReportes()
+    {
+        cargandoReportes = true;
+        StateHasChanged();
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+            reportes = await context.Reportes
+                .Include(r => r.Proveedor)
+                .OrderByDescending(r => r.FechaCreacion)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error al cargar reportes: {ex.Message}");
+        }
+        finally
+        {
+            cargandoReportes = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task EnviarReporte()
+    {
+        if (nuevoReporte.ProveedorId == 0)
+        {
+            await JS.InvokeVoidAsync("alert", "Debe seleccionar un proveedor");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(nuevoReporte.Asunto))
+        {
+            await JS.InvokeVoidAsync("alert", "El asunto es requerido");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(nuevoReporte.Descripcion))
+        {
+            await JS.InvokeVoidAsync("alert", "La descripción es requerida");
+            return;
+        }
+
+        enviandoReporte = true;
+        StateHasChanged();
+
+        try
+        {
+            using var context = DbFactory.CreateDbContext();
+
+            var proveedorExiste = await context.Proveedores.AnyAsync(p => p.ProveedorId == nuevoReporte.ProveedorId);
+            if (!proveedorExiste)
+            {
+                await JS.InvokeVoidAsync("alert", "El proveedor seleccionado no existe");
+                return;
+            }
+
+            var asunto = nuevoReporte.Asunto.Length > 200 ? nuevoReporte.Asunto.Substring(0, 200) : nuevoReporte.Asunto;
+            var descripcion = nuevoReporte.Descripcion.Length > 1000 ? nuevoReporte.Descripcion.Substring(0, 1000) : nuevoReporte.Descripcion;
+
+            var reporte = new Reporte
+                {
+                    ProveedorId = nuevoReporte.ProveedorId,
+                    Asunto = asunto.Trim(),
+                    Descripcion = descripcion.Trim(),
+                    FechaCreacion = DateTime.UtcNow
+                };
+
+            context.Reportes.Add(reporte);
+            await context.SaveChangesAsync();
+
+            nuevoReporte = new Reporte();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+           
+            var errorMessage = ex.InnerException != null ?
+                $"Error: {ex.Message}\nDetalle: {ex.InnerException.Message}" :
+                $"Error: {ex.Message}";
+
+            await JS.InvokeVoidAsync("alert", $"Error al enviar reporte: {errorMessage}");
+
+      
+            Console.WriteLine($"Error completo: {ex}");
+        }
+        finally
+        {
+            enviandoReporte = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task AbrirModalReportes()
+    {
+        await CargarReportes();
+        await JS.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('modalReportes')).show()");
+    }
+
+    private async Task MostrarDescripcionCompleta(Reporte reporte)
+    {
+        descripcionCompleta = reporte.Descripcion;
+        await JS.InvokeVoidAsync("eval", "new bootstrap.Modal(document.getElementById('modalDescripcion')).show()");
+    }
+
+    private async Task EliminarReporte(int reporteId)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "¿Está seguro de que desea eliminar este reporte?"))
+        {
+            try
+            {
+                using var context = DbFactory.CreateDbContext();
+                var reporte = await context.Reportes.FindAsync(reporteId);
+                if (reporte != null)
+                {
+                    context.Reportes.Remove(reporte);
+                    await context.SaveChangesAsync();
+                    await CargarReportes(); 
+                }
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Error al eliminar reporte: {ex.Message}");
+            }
+        }
+    }
 }
