@@ -17,7 +17,6 @@
                 <DataAnnotationsValidator />
 
                 <div class="row g-3">
-                    <!-- Orden Compra -->
                     <div class="col-md-6">
                         <label class="form-label">Orden de Compra <span class="required">*</span></label>
                         <select class="form-select" @bind="cuentaPorPagar.OrdenCompraId">
@@ -31,19 +30,32 @@
                         </select>
                     </div>
 
-                    <!-- Monto Total -->
                     <div class="col-md-6">
                         <label class="form-label">Monto Total</label>
-                        <input type="number" step="0.01" class="form-control" @bind="cuentaPorPagar.MontoTotal" />
+                        <input type="number" step="0.01" class="form-control" @bind="cuentaPorPagar.MontoTotal" readonly />
+                        <div class="form-text">El monto total no se puede editar directamente aquí.</div>
                     </div>
 
-                    <!-- Saldo -->
+                    <div class="col-md-6">
+                        <label class="form-label">Saldo Pagado</label>
+                        <input type="number" step="0.01" class="form-control" @bind="SaldoPagado" readonly />
+                    </div>
+
                     <div class="col-md-6">
                         <label class="form-label">Saldo Pendiente</label>
-                        <input type="number" step="0.01" class="form-control" @bind="cuentaPorPagar.SaldoPendiente" />
+                        <input type="number" step="0.01" class="form-control" @bind="cuentaPorPagar.SaldoPendiente" readonly />
                     </div>
 
-                    <!-- Fechas -->
+                    <div class="col-md-6">
+                        <label class="form-label">Monto del Pago</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" class="form-control" @bind="MontoPagoAbonar" placeholder="Ingrese monto a abonar" />
+                            <button type="button" class="btn btn-info" @onclick="AplicarPago">Abonar</button>
+                        </div>
+                        <ValidationMessage For="() => MontoPagoAbonar" />
+                    </div>
+
+
                     <div class="col-md-6">
                         <label class="form-label">Fecha Emisión</label>
                         <input type="date" class="form-control" @bind="cuentaPorPagar.FechaEmision" />
@@ -53,7 +65,6 @@
                         <input type="date" class="form-control" @bind="cuentaPorPagar.FechaLimitePago" />
                     </div>
 
-                    <!-- Estado -->
                     <div class="col-md-6">
                         <label class="form-label">Estado</label>
                         <select class="form-select" @bind="cuentaPorPagar.EstadoCuentaId">
@@ -66,29 +77,26 @@
                     </div>
                 </div>
 
-                <!-- Porcentaje pagado -->
                 @if (cuentaPorPagar.MontoTotal > 0)
                 {
                     <div class="mt-4">
                         @{
-                            var porcentajePagado = cuentaPorPagar.SaldoPendiente == 0
-                            ? 100
-                            : Math.Round(((cuentaPorPagar.MontoTotal - cuentaPorPagar.SaldoPendiente) / cuentaPorPagar.MontoTotal) * 100, 2);
+                            var porcentajePagado = (cuentaPorPagar.MontoTotal - cuentaPorPagar.SaldoPendiente) / cuentaPorPagar.MontoTotal * 100;
+                            var saldoPendienteDisplay = cuentaPorPagar.SaldoPendiente.ToString("C2"); // Formato de moneda
                         }
                         <div class="progress" style="height: 25px;">
                             <div class="progress-bar @(porcentajePagado == 100 ? "bg-success" : "bg-info")"
                                  role="progressbar"
                                  style="width: @porcentajePagado%">
-                                @porcentajePagado%
+                                Pendiente: @saldoPendienteDisplay
                             </div>
                         </div>
                         <p class="mt-2 text-muted">
-                            @(porcentajePagado == 100 ? "Cuenta pagada al 100%" : $"Pagado: {porcentajePagado}%")
+                            @(porcentajePagado == 100 ? "Cuenta pagada al 100%" : $"Pagado: {porcentajePagado:F2}%")
                         </p>
                     </div>
                 }
 
-                <!-- Botones abajo -->
                 <div class="mt-4 d-flex justify-content-center gap-3">
                     <button type="button" class="btn btn-secondary" @onclick="Cancelar">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -104,14 +112,66 @@
     private CuentaPorPagar cuentaPorPagar;
     private List<OrdenCompra> ordenesCompra = new();
     private List<EstadoCuenta> estadosCuentas = new();
+    private decimal SaldoPagado { get; set; }
+    private decimal MontoPagoAbonar { get; set; } // Nuevo campo para el monto a abonar
 
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
         cuentaPorPagar = await context.CuentasPorPagar.FindAsync(Id);
+        if (cuentaPorPagar != null)
+        {
+            // Inicializa SaldoPagado restando el SaldoPendiente del MontoTotal
+            SaldoPagado = cuentaPorPagar.MontoTotal - cuentaPorPagar.SaldoPendiente;
+        }
+
         ordenesCompra = await context.OrdenesCompras.Include(o => o.Proveedor).ToListAsync();
         estadosCuentas = await context.EstadosCuentas.ToListAsync();
     }
+
+    // Método para aplicar un abono
+    private void AplicarPago()
+    {
+        if (cuentaPorPagar == null)
+        {
+            toastService.ShowError("No se ha cargado la cuenta por pagar.");
+            return;
+        }
+
+        if (MontoPagoAbonar <= 0)
+        {
+            toastService.ShowWarning("Ingrese un monto válido para abonar.");
+            return;
+        }
+
+        if (MontoPagoAbonar > cuentaPorPagar.SaldoPendiente)
+        {
+            toastService.ShowWarning($"El monto a abonar excede el saldo pendiente. Solo se abonará {cuentaPorPagar.SaldoPendiente:C2}.");
+            MontoPagoAbonar = cuentaPorPagar.SaldoPendiente; // Ajusta el monto a lo máximo pendiente
+        }
+
+        // Reduce el saldo pendiente
+        cuentaPorPagar.SaldoPendiente -= MontoPagoAbonar;
+
+        // Si el saldo pendiente llega a 0 o menos, asegúrate de que sea 0
+        if (cuentaPorPagar.SaldoPendiente < 0)
+        {
+            cuentaPorPagar.SaldoPendiente = 0;
+        }
+
+        // Actualiza el SaldoPagado para reflejar el nuevo abono
+        SaldoPagado = cuentaPorPagar.MontoTotal - cuentaPorPagar.SaldoPendiente;
+
+        // Limpia el campo de monto a abonar después de aplicarlo
+        MontoPagoAbonar = 0;
+
+        // Opcional: Mostrar un mensaje de éxito por el abono
+        toastService.ShowInfo("Abono aplicado. Haga clic en 'Guardar Cambios' para persistir.");
+
+        // Forzar la actualización de la UI para reflejar los cambios
+        StateHasChanged();
+    }
+
 
     private async Task GuardarCuenta()
     {
@@ -124,7 +184,7 @@
             {
                 entidad.OrdenCompraId = cuentaPorPagar.OrdenCompraId;
                 entidad.MontoTotal = cuentaPorPagar.MontoTotal;
-                entidad.SaldoPendiente = cuentaPorPagar.SaldoPendiente;
+                entidad.SaldoPendiente = cuentaPorPagar.SaldoPendiente; // SaldoPendiente ya fue actualizado por AplicarPago()
                 entidad.FechaEmision = cuentaPorPagar.FechaEmision;
                 entidad.FechaLimitePago = cuentaPorPagar.FechaLimitePago;
                 entidad.EstadoCuentaId = cuentaPorPagar.EstadoCuentaId;

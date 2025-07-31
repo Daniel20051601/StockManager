@@ -159,11 +159,19 @@ public class ComprasService(IDbContextFactory<Contexto> DbContext)
             .ToListAsync();
     }
 
-    // Método corregido para obtener compras del día en UTC
+
+    
     public async Task<int> GetComprasDelDia()
     {
         await using var contexto = await DbContext.CreateDbContextAsync();
         var fechaHoyUtc = DateTime.UtcNow.Date;
         return await contexto.OrdenesCompras.CountAsync(o => o.FechaCreacion.Date == fechaHoyUtc);
     }
+
+    public async Task<List<EstadoOrdenCompra>> EstadoOrdenCompras()
+    {
+        await using var contexto = await DbContext.CreateDbContextAsync();
+        return await contexto.EstadosOrdenCompra.AsNoTracking().ToListAsync();
+    }
+
 }

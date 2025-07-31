@@ -8,6 +8,8 @@ public class Venta
 
     public decimal Total { get; set; }
     public DateTime Fecha { get; set; }
+ 
+
 
     public List<DetalleVenta> Detalles { get; set; } = new();
 

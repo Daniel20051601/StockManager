@@ -1,0 +1,65 @@
+﻿@page "/Ventas/VerFactura/{FacturaId:int}"
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager Navigation
+
+<PageTitle>Ver Factura</PageTitle>
+
+@if (factura == null)
+{
+    <div class="alert alert-warning">Cargando factura...</div>
+}
+else
+{
+    <h3>Factura ID: @factura.VentaId</h3>
+    <p><strong>Fecha:</strong> @factura.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var detalle in factura.Detalles)
+            {
+                <tr>
+                    <td>@detalle.Producto?.Nombre</td>
+                    <td>@detalle.Cantidad</td>
+                    <td>@detalle.PrecioUnitario</td>
+                    <td>@(detalle.Cantidad * detalle.PrecioUnitario)</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                <td>@factura.Total</td>
+            </tr>
+        </tfoot>
+    </table>
+    <button class="btn btn-secondary" @onclick="Volver">Volver</button>
+}
+
+@code {
+    [Parameter] public int FacturaId { get; set; }
+    private Venta? factura;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        factura = await contexto.Ventas
+            .Include(v => v.Detalles)
+                .ThenInclude(d => d.Producto)
+            .FirstOrDefaultAsync(v => v.VentaId == FacturaId);
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/Ventas/HistorialFacturas");
+    }
+}
