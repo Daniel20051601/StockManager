@@ -1,10 +1,14 @@
 ﻿@page "/Mermas/Index"
 @rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using StockManager.Dal
+@using StockManager.Models
+@inject IDbContextFactory<Contexto> DbContextFactory
+@inject NavigationManager NavigationManager
 
 <PageTitle>Mermas</PageTitle>
 
 <style>
-
     .table-striped-custom tbody tr:nth-child(odd) {
         background-color: #ffffff;
     }
@@ -12,22 +16,30 @@
     .table-striped-custom tbody tr:nth-child(even) {
         background-color: #f2f2f2;
     }
+
+    .action-btn {
+        background: none;
+        border: none;
+        font-size: 1.2em;
+        cursor: pointer;
+    }
+
+    .dropdown-menu {
+        min-width: unset;
+    }
 </style>
 
 <div class="mt-5">
-
-
     <div class="row mb-5">
         <div class="col">
             <h3 class="fw-semibold">Mermas</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." />
-            
+            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." @bind-value="valorFiltro" @oninput="Buscar" />
+            <button class="btn btn-outline-secondary ms-1 bi bi-arrow-repeat" @onclick="Restablecer"></button>
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
         </div>
     </div>
-
 
     <div class="row d-flex justify-content-between mb-5">
         <div class="col-auto">
@@ -36,123 +48,316 @@
             <button type="button" class="btn btn-outline text-secondary ms-4">Notificaciones</button>
         </div>
         <div class="col-auto">
-            <div class="d-flex align-items-center">
-                <div class="dropdown ms-3">
-                    
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Activos</a></li>
-                        <li><a class="dropdown-item" href="#">Inactivos</a></li>
-                        <li><a class="dropdown-item" href="#">Todos</a></li>
-                    </ul>
-                </div>
-            </div>
+            @* Este botón ahora abre el modal de selección de producto, que está definido en este mismo archivo *@
+            <button type="button" class="btn btn-success shadow-sm d-flex align-items-center" @onclick="ShowProductSelectModal">
+                <i class="bi bi-plus-circle me-2"></i> Nueva Merma
+            </button>
         </div>
     </div>
 
+    @if (isLoading)
+    {
+        <div class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (!mermas.Any())
+    {
+        <div class="alert alert-info text-center mt-4" role="alert">
+            No hay mermas registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive mt-4">
+            <table class="table table-hover align-middle shadow-sm table-striped-custom">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID Merma</th>
+                        <th>Producto</th>
+                        <th>Código Producto</th>
+                        <th>Cantidad</th>
+                        <th>Razón</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var merma in mermas)
+                    {
+                        <tr>
+                            <td>@merma.MermaId</td>
+                            <td>@merma.Producto?.Nombre</td>
+                            <td>@merma.Producto?.Codigo</td>
+                            <td>@merma.Cantidad</td>
+                            <td>@merma.Razon</td>
+                            <td>@merma.FechaMerma.ToShortDateString()</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="/Mermas/Editar/@merma.MermaId">Editar</a></li>
+                                        <li><button class="dropdown-item text-danger" @onclick="() => ConfirmarEliminar(merma.MermaId)">Eliminar</button></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-
-    <div class="table-responsive mt-4">
-        <table class="table table-hover align-middle shadow-sm table-striped-custom">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 80px;">Código</th>
-                    <th style="width: 80px;">Imagen</th>
-                    <th style="width: 100px;">Categoría</th>
-                    <th style="width: 180px;">Producto</th>
-                    <th style="width: 180px;">Proveedor</th>
-                    <th style="width: 120px;">Marca</th>
-                    <th style="width: 80px;">Estado</th>
-                    <th style="width: 80px;">Stock</th>
-                    <th style="width: 130px;">Precio de Compra</th>
-                    <th style="width: 130px;">Precio de Venta</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>0007</td>
-                    <td><img src="img/pollo.png" alt="Pollo entero" width="45" /></td>
-                    <td>Carnes</td>
-                    <td>Pollo entero</td>
-                    <td>Distribuidora La Granja</td>
-                    <td>Granja Feliz</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td>30</td>
-                    <td>50.00</td>
-                    <td>65.00</td>
-                </tr>
-                <tr>
-                    <td>0018</td>
-                    <td><img src="img/yogur.png" alt="Yogur" width="45" /></td>
-                    <td>Lacteos</td>
-                    <td>Yogur-natural</td>
-                    <td>Lácteos del Valle</td>
-                    <td>Danone</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td>0</td>
-                    <td>150.00</td>
-                    <td>175.00</td>
-                </tr>
-                <tr>
-                    <td>0017</td>
-                    <td><img src="img/queso.png" alt="Queso" width="45" /></td>
-                    <td>Lacteos</td>
-                    <td>Queso Mozzarella</td>
-                    <td>Lácteos El Buen Sabor</td>
-                    <td>MozzaDelight</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td>18</td>
-                    <td>100.00</td>
-                    <td>135.00</td>
-                </tr>
-                <tr>
-                    <td>0012</td>
-                    <td><img src="img/crisol.png" alt="Aceite Crisol" width="45" /></td>
-                    <td>Abarrotes</td>
-                    <td>Aceite Crisol (1 L)</td>
-                    <td>Aceites de calidad</td>
-                    <td>Crisol</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td>35</td>
-                    <td>150.00</td>
-                    <td>175.00</td>
-                </tr>
-                <tr>
-                    <td>0020</td>
-                    <td><img src="img/arroz.png" alt="Arroz Pinco" width="45" /></td>
-                    <td>Cereal</td>
-                    <td>Arroz Pinco (10Lbs)</td>
-                    <td>Arroz Muy Feliz</td>
-                    <td>Pinco</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td>133</td>
-                    <td>375.00</td>
-                    <td>425.00</td>
-                </tr>
-                <tr>
-                    <td>0021</td>
-                    <td><img src="img/cerveza.png" alt="Cerveza Presidente" width="45" /></td>
-                    <td>Alcohol</td>
-                    <td>Six Pack Cerveza presidente</td>
-                    <td>Cervecería Nacional</td>
-                    <td>Presidente</td>
-                    <td><span class="badge bg-secondary">Inactivo</span></td>
-                    <td>500</td>
-                    <td>550.00</td>
-                    <td>660.00</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="d-flex justify-content-end mt-3">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-            </ul>
-        </nav>
-    </div>
-
+        <div class="d-flex justify-content-end mt-3">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item @(paginaActual == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+                    </li>
+                    @for (int i = 1; i <= totalPaginas; i++)
+                    {
+                        <li class="page-item @(paginaActual == i ? "active" : "")">
+                            <button class="page-link" @onclick="@(() => CambiarPagina(i))">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(paginaActual == totalPaginas ? "disabled" : "")">
+                        <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
 </div>
+
+@* Modal de Confirmación para Eliminar (sin cambios) *@
+<div class="modal @(mostrarConfirmacion ? "show d-block" : "")" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que quieres eliminar esta merma? Esta acción restaurará la cantidad mermada al stock del producto.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                <button type="button" class="btn btn-danger" @onclick="EjecutarEliminar">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+---
+
+@* INICIO: Modal para Seleccionar Producto (definido directamente en Mermas/Index.razor) *@
+<div class="modal @(showProductSelectModal ? "show d-block" : "")" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Producto para Merma</h5>
+                <button type="button" class="btn-close" @onclick="HideProductSelectModal"></button>
+            </div>
+            <div class="modal-body">
+                @if (isLoadingProductsForModal)
+                {
+                    <p class="text-center">Cargando productos...</p>
+                }
+                else if (!productosForModal.Any())
+                {
+                    <div class="alert alert-warning">No hay productos disponibles.</div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label for="productSelect" class="form-label">Elige un producto:</label>
+                        <select id="productSelect" class="form-select" @onchange="OnProductSelectedInModal">
+                            <option value="0">-- Selecciona un producto --</option>
+                            @foreach (var p in productosForModal)
+                            {
+                                <option value="@p.ProductoId">@p.ProductoId) @p.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="HideProductSelectModal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private List<Mermitas> mermas = new();
+    private int paginaActual = 1;
+    private int totalPaginas;
+    private int cantidadPorPagina = 10;
+    private bool isLoading = true;
+
+    private string valorFiltro = "";
+
+    private bool mostrarConfirmacion = false;
+    private int mermaAEliminarId;
+
+    // --- Variables para el modal de selección de producto (ahora en este componente) ---
+    private bool showProductSelectModal = false;
+    private List<Producto> productosForModal = new(); // Lista de productos para el dropdown del modal
+    private bool isLoadingProductsForModal = true;
+    // --- Fin de variables del modal ---
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await CargarMermas();
+        isLoading = false;
+    }
+
+    private async Task CargarMermas()
+    {
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        var query = contexto.Mermas
+                            .Include(m => m.Producto)
+                            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(valorFiltro))
+        {
+            string filtroLower = valorFiltro.ToLower();
+            query = query.Where(m => m.Producto != null && (
+                                        m.Producto.Nombre.ToLower().Contains(filtroLower) ||
+                                        m.Producto.Codigo.ToLower().Contains(filtroLower) ||
+                                        m.Razon.ToLower().Contains(filtroLower)));
+        }
+
+        var totalRegistros = await query.CountAsync();
+        totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
+
+        mermas = await query
+                            .OrderByDescending(m => m.FechaMerma)
+                            .Skip((paginaActual - 1) * cantidadPorPagina)
+                            .Take(cantidadPorPagina)
+                            .ToListAsync();
+    }
+
+    private async Task PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            await CargarMermas();
+        }
+    }
+
+    private async Task PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            await CargarMermas();
+        }
+    }
+
+    private async Task CambiarPagina(int pagina)
+    {
+        paginaActual = pagina;
+        await CargarMermas();
+    }
+
+    private async Task Buscar()
+    {
+        paginaActual = 1;
+        await CargarMermas();
+    }
+
+    private async Task Restablecer()
+    {
+        valorFiltro = "";
+        await Buscar();
+    }
+
+    // --- Métodos para la funcionalidad de Eliminar (sin cambios) ---
+
+    private void ConfirmarEliminar(int mermaId)
+    {
+        mermaAEliminarId = mermaId;
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+        mermaAEliminarId = 0;
+    }
+
+    private async Task EjecutarEliminar()
+    {
+        if (mermaAEliminarId == 0) return;
+
+        isLoading = true;
+        mostrarConfirmacion = false;
+
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
+        var merma = await contexto.Mermas.FindAsync(mermaAEliminarId);
+
+        if (merma != null)
+        {
+            var producto = await contexto.productos.FindAsync(merma.ProductoId);
+
+            if (producto != null)
+            {
+                producto.Stock += merma.Cantidad;
+            }
+
+            contexto.Mermas.Remove(merma);
+
+            try
+            {
+                await contexto.SaveChangesAsync();
+                await CargarMermas();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar la merma o restaurar el stock: {ex.Message}");
+            }
+        }
+        isLoading = false;
+    }
+
+    // --- Métodos para controlar el modal de selección de producto (integrados aquí) ---
+
+    private async Task LoadProductsForModal()
+    {
+        isLoadingProductsForModal = true;
+        await using var contexto = await DbContextFactory.CreateDbContextAsync();
+        productosForModal = await contexto.productos.OrderBy(p => p.Nombre).ToListAsync();
+        isLoadingProductsForModal = false;
+        StateHasChanged(); // Forzar renderizado si los productos se cargan después de mostrar el modal
+    }
+
+    private async Task ShowProductSelectModal()
+    {
+        showProductSelectModal = true;
+        // Cargar productos cada vez que se abre el modal para asegurar datos frescos
+        await LoadProductsForModal();
+    }
+
+    private void HideProductSelectModal()
+    {
+        showProductSelectModal = false;
+        // Opcional: Resetear la lista de productos del modal para la próxima vez
+        // productosForModal = new List<Producto>();
+    }
+
+    private void OnProductSelectedInModal(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int selectedProductId) && selectedProductId != 0)
+        {
+            // Redirige a Mermas/Agregar, pasando el ProductoId en la ruta
+            NavigationManager.NavigateTo($"/Mermas/Agregar/{selectedProductId}");
+            HideProductSelectModal(); // Oculta el modal después de la redirección
+        }
+    }
+}

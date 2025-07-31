@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StockManager.Dal;
@@ -11,9 +12,11 @@ using StockManager.Dal;
 namespace StockManager.Migrations
 {
     [DbContext(typeof(Contexto))]
-    partial class ContextoModelSnapshot : ModelSnapshot
+    [Migration("20250725184843_Mermitas")]
+    partial class Mermitas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -700,37 +703,6 @@ namespace StockManager.Migrations
                     b.ToTable("RegistrosPagos");
                 });
 
-            modelBuilder.Entity("StockManager.Models.Reporte", b =>
-                {
-                    b.Property<int>("ReporteId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReporteId"));
-
-                    b.Property<string>("Asunto")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ProveedorId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ReporteId");
-
-                    b.HasIndex("ProveedorId");
-
-                    b.ToTable("Reportes");
-                });
-
             modelBuilder.Entity("StockManager.Models.TipoUsuario", b =>
                 {
                     b.Property<int>("TipoUsuarioId")
@@ -1076,17 +1048,6 @@ namespace StockManager.Migrations
                     b.Navigation("CuentaPorPagar");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("StockManager.Models.Reporte", b =>
-                {
-                    b.HasOne("StockManager.Models.Proveedor", "Proveedor")
-                        .WithMany()
-                        .HasForeignKey("ProveedorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proveedor");
                 });
 
             modelBuilder.Entity("StockManager.Models.Usuario", b =>
