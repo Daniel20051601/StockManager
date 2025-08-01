@@ -69,7 +69,7 @@
                 <div class="row g-3">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Factura <span class="required">*</span></label>
-                        <InputSelect @bind-Value="cuentaPorCobrar.FacturaId" class="form-select" @onchange="OnFacturaSeleccionada">
+                        <InputSelect @bind-Value="cuentaPorCobrar.FacturaId" class="form-select" @bind-Value:after="OnFacturaSeleccionadaAsync">
                             <option value="0">Seleccione una factura</option>
                             @foreach (var factura in facturas)
                             {
@@ -100,13 +100,13 @@
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Saldo Pendiente</label>
-                        <InputNumber @bind-Value="cuentaPorCobrar.SaldoPendiente" class="form-control" readonly />
+                        <label class="form-label">Saldo Pendiente <span class="required">*</span></label>
+                        <InputNumber @bind-Value="cuentaPorCobrar.SaldoPendiente" class="form-control" @oninput="OnSaldoPendienteChanged" step="0.01" />
                         <ValidationMessage For="() => cuentaPorCobrar.SaldoPendiente" />
                     </div>
 
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Mora</label>
+                        <label class="form-label">Mora (5% - 10%)</label>
                         <InputNumber @bind-Value="cuentaPorCobrar.Mora" class="form-control" readonly />
                         <ValidationMessage For="() => cuentaPorCobrar.Mora" />
                     </div>
@@ -142,6 +142,7 @@
     private List<EstadoCuenta> estadosCuentas = new();
     private bool cargando = true;
     private bool guardando = false;
+    private Random random = new Random();
 
     protected override async Task OnInitializedAsync()
     {
@@ -170,9 +171,72 @@
             };
     }
 
+    private decimal CalcularMoraAleatoria(decimal saldoPendiente)
+    {
+        if (saldoPendiente <= 0) return 0;
+
+        // Genera un porcentaje aleatorio entre 5% y 10%
+        double porcentajeAleatorio = random.NextDouble() * (10.0 - 5.0) + 5.0;
+
+        // Calcula la mora basada en el saldo pendiente
+        decimal mora = saldoPendiente * (decimal)(porcentajeAleatorio / 100.0);
+
+        // Redondea a 2 decimales
+        return Math.Round(mora, 2);
+    }
+
+    private void OnSaldoPendienteChanged(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out decimal saldoPendiente))
+        {
+            cuentaPorCobrar.SaldoPendiente = saldoPendiente;
+
+            // Recalcula la mora basada en el nuevo saldo pendiente
+            cuentaPorCobrar.Mora = CalcularMoraAleatoria(saldoPendiente);
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnFacturaSeleccionadaAsync()
+    {
+        if (cuentaPorCobrar.FacturaId > 0)
+        {
+            var facturaSeleccionada = facturas.FirstOrDefault(f => f.FacturaId == cuentaPorCobrar.FacturaId);
+
+            if (facturaSeleccionada != null)
+            {
+                // Rellena los campos automáticamente desde la factura seleccionada
+                cuentaPorCobrar.MontoTotal = facturaSeleccionada.Total;
+                cuentaPorCobrar.SaldoPendiente = facturaSeleccionada.Total; // Al inicio, el saldo pendiente es igual al monto total
+                cuentaPorCobrar.FechaEmision = facturaSeleccionada.FechaEmision.Date;
+                cuentaPorCobrar.ClienteId = facturaSeleccionada.ClienteId;
+
+                // Calcula la mora automáticamente con porcentaje aleatorio entre 5% y 10% del saldo pendiente
+                cuentaPorCobrar.Mora = CalcularMoraAleatoria(cuentaPorCobrar.SaldoPendiente);
+
+                Console.WriteLine($"Factura seleccionada: {facturaSeleccionada.FacturaId}, Total: {facturaSeleccionada.Total}");
+                Console.WriteLine($"Monto Total asignado: {cuentaPorCobrar.MontoTotal}");
+            }
+            else
+            {
+                Console.WriteLine($"No se encontró la factura con ID: {cuentaPorCobrar.FacturaId}");
+                ResetearCampos();
+            }
+        }
+        else
+        {
+            Console.WriteLine("FacturaId es 0, reseteando campos");
+            ResetearCampos();
+        }
+
+        // Fuerza la actualización de la interfaz de usuario
+        StateHasChanged();
+    }
+
     private void OnFacturaSeleccionada(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int facturaId))
+        if (int.TryParse(e.Value?.ToString(), out int facturaId) && facturaId > 0)
         {
             cuentaPorCobrar.FacturaId = facturaId;
             var facturaSeleccionada = facturas.FirstOrDefault(f => f.FacturaId == facturaId);
@@ -181,30 +245,36 @@
             {
                 // Rellena los campos automáticamente desde la factura seleccionada
                 cuentaPorCobrar.MontoTotal = facturaSeleccionada.Total;
-                cuentaPorCobrar.SaldoPendiente = facturaSeleccionada.Total; // Al inicio, el saldo pendiente es el monto total
+                cuentaPorCobrar.SaldoPendiente = facturaSeleccionada.Total; // Al inicio, el saldo pendiente es igual al monto total
                 cuentaPorCobrar.FechaEmision = facturaSeleccionada.FechaEmision.Date;
-                cuentaPorCobrar.ClienteId = facturaSeleccionada.ClienteId; // Asigna el ClienteId desde la factura
+                cuentaPorCobrar.ClienteId = facturaSeleccionada.ClienteId;
+
+                // Calcula la mora automáticamente con porcentaje aleatorio entre 5% y 10% del saldo pendiente
+                cuentaPorCobrar.Mora = CalcularMoraAleatoria(cuentaPorCobrar.SaldoPendiente);
             }
             else
             {
-                // Si se deselecciona o selecciona "Seleccione una factura", reinicia los campos
-                cuentaPorCobrar.MontoTotal = 0;
-                cuentaPorCobrar.SaldoPendiente = 0;
-                cuentaPorCobrar.Mora = 0;
-                cuentaPorCobrar.ClienteId = 0;
+                // Si no se encuentra la factura, reinicia los campos
+                ResetearCampos();
             }
         }
         else
         {
-            // Si el valor no es un número válido, reinicia FacturaId a 0 y limpia campos
-            cuentaPorCobrar.FacturaId = 0;
-            cuentaPorCobrar.MontoTotal = 0;
-            cuentaPorCobrar.SaldoPendiente = 0;
-            cuentaPorCobrar.Mora = 0;
-            cuentaPorCobrar.ClienteId = 0;
+            // Si el valor no es válido o es 0, reinicia los campos
+            ResetearCampos();
         }
-        // Fuerza la actualización de la interfaz de usuario para que los campos readonly se muestren con los nuevos valores
+
+        // Fuerza la actualización de la interfaz de usuario
         StateHasChanged();
+    }
+
+    private void ResetearCampos()
+    {
+        cuentaPorCobrar.FacturaId = 0;
+        cuentaPorCobrar.MontoTotal = 0;
+        cuentaPorCobrar.SaldoPendiente = 0;
+        cuentaPorCobrar.Mora = 0;
+        cuentaPorCobrar.ClienteId = 0;
     }
 
     private async Task CrearCuenta()
@@ -232,6 +302,11 @@
             if (cuentaPorCobrar.SaldoPendiente < 0)
             {
                 toastService.ShowError("El Saldo Pendiente no puede ser negativo.");
+                return;
+            }
+            if (cuentaPorCobrar.SaldoPendiente > cuentaPorCobrar.MontoTotal)
+            {
+                toastService.ShowError("El Saldo Pendiente no puede ser mayor que el Monto Total.");
                 return;
             }
             if (cuentaPorCobrar.FechaLimitePago < cuentaPorCobrar.FechaEmision)

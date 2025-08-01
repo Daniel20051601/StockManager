@@ -82,7 +82,6 @@ else
             <table class="table table-hover align-middle shadow-sm table-striped-custom">
                 <thead class="table-light">
                     <tr>
-                        <th>Editar</th>
                         <th>Factura #</th>
                         <th>Cliente</th>
                         <th>Monto Total</th>
@@ -91,7 +90,6 @@ else
                         <th>Fecha Límite de Pago</th>
                         <th>Mora</th>
                         <th>Estado</th>
-                        @* <th>RNC del Cliente</th> <- Esta columna no tiene un mapeo directo en tu modelo CuentaPorCobrar, la comenté *@
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -101,25 +99,19 @@ else
                         @foreach (var cuenta in cuentasPaginadas)
                         {
                             <tr>
-                                <td>
-                                    <button class="action-btn" @onclick="() => EditarCuenta(cuenta.CuentaPorCobrarId)">
-                                        <i class="bi bi-pencil-fill"></i>
-                                    </button>
-                                </td>
-                                <td>#@cuenta.FacturaId</td>
-                                <td>@cuenta.Cliente?.Nombre</td> @* Usar el operador ?. para seguridad *@
+                                <td>#@cuenta.Factura?.NumeroFactura</td>
+                                <td>@cuenta.Cliente?.Nombre</td>
                                 <td>@cuenta.MontoTotal.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
                                 <td>@cuenta.SaldoPendiente.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
                                 <td>@cuenta.FechaEmision.ToString("dd/MM/yyyy")</td>
                                 <td>@cuenta.FechaLimitePago.ToString("dd/MM/yyyy")</td>
                                 <td>@cuenta.Mora.ToString("C", new System.Globalization.CultureInfo("es-DO"))</td>
-                                <td>@cuenta.EstadoCuenta?.Nombre</td> @* Usar el operador ?. para seguridad *@
-                                @* <td>@cuenta.Cliente?.RNC</td> <- Descomenta si tu modelo Cliente tiene RNC *@
+                                <td>@cuenta.EstadoCuenta?.Nombre</td>
                                 <td>
                                     <div class="dropdown">
                                         <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="#" @onclick="() => EditarCuenta(cuenta.CuentaPorCobrarId)">Editar</a></li>
+                                            <li><button class="dropdown-item text-primary" @onclick="() => EditarCuenta(cuenta.CuentaPorCobrarId)">Editar</button></li>
                                             <li><button class="dropdown-item text-danger" @onclick="() => EliminarCuenta(cuenta.CuentaPorCobrarId)">Eliminar</button></li>
                                         </ul>
                                     </div>
@@ -130,7 +122,7 @@ else
                     else
                     {
                         <tr>
-                            <td colspan="9" class="text-center py-4">No se encontraron cuentas por cobrar.</td> @* Ajusta colspan según tus columnas visibles *@
+                            <td colspan="9" class="text-center py-4">No se encontraron cuentas por cobrar.</td>
                         </tr>
                     }
                 </tbody>
@@ -165,7 +157,7 @@ else
     private List<CuentaPorCobrar> cuentas = new();
     private List<CuentaPorCobrar> cuentasFiltradas = new();
     private string terminoBusqueda = string.Empty;
-    private bool isLoading = true; // Variable para controlar el estado de carga
+    private bool isLoading = true;
 
     private int paginaActual = 1;
     private int elementosPorPagina = 10;
@@ -177,17 +169,14 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Suscribirse al evento LocationChanged
         Navigation.LocationChanged += HandleLocationChanged;
-        isLoading = true; // Mostrar spinner al iniciar
+        isLoading = true;
         await CargarDatos();
-        isLoading = false; // Ocultar spinner después de cargar
+        isLoading = false;
     }
 
-    // Método para manejar los cambios de URL
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        // Solo recargar si la URL actual es la de esta página
         if (e.Location.EndsWith("/CuentasPorCobrar/Index", StringComparison.OrdinalIgnoreCase))
         {
             InvokeAsync(async () =>
@@ -200,7 +189,6 @@ else
         }
     }
 
-    // Implementar IDisposable para desuscribirse del evento y evitar fugas de memoria
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
@@ -209,15 +197,14 @@ else
     private async Task CargarDatos()
     {
         using var context = DbFactory.CreateDbContext();
-        // Include related entities to access their properties (Cliente, EstadoCuenta, Factura)
         cuentas = await context.CuentasPorCobrar
             .Include(c => c.Cliente)
             .Include(c => c.EstadoCuenta)
-            .Include(c => c.Factura) // Incluye Factura si necesitas detalles de ella
+            .Include(c => c.Factura)
             .ToListAsync();
 
-        cuentasFiltradas = cuentas; // Inicialmente, las filtradas son todas
-        BuscarCuentas(); // Aplica el filtro inicial (si hay término de búsqueda) y paginación
+        cuentasFiltradas = cuentas;
+        BuscarCuentas();
     }
 
     private void BuscarCuentas()
@@ -230,11 +217,11 @@ else
         {
             var termino = terminoBusqueda.ToLower();
             cuentasFiltradas = cuentas.Where(c =>
-                (c.Cliente != null && c.Cliente.Nombre.ToLower().Contains(termino)) || // Buscar por Nombre del Cliente
-                c.FacturaId.ToString().Contains(termino) || // Buscar por ID de Factura
-                (c.EstadoCuenta != null && c.EstadoCuenta.Nombre.ToLower().Contains(termino)) || // Buscar por Nombre del Estado
-                c.MontoTotal.ToString().Contains(termino) || // Buscar por Monto Total
-                c.SaldoPendiente.ToString().Contains(termino) // Buscar por Saldo Pendiente
+                (c.Cliente != null && c.Cliente.Nombre.ToLower().Contains(termino)) ||
+                (c.Factura != null && c.Factura.NumeroFactura.ToLower().Contains(termino)) ||
+                (c.EstadoCuenta != null && c.EstadoCuenta.Nombre.ToLower().Contains(termino)) ||
+                c.MontoTotal.ToString().Contains(termino) ||
+                c.SaldoPendiente.ToString().Contains(termino)
             ).ToList();
         }
 
@@ -243,7 +230,7 @@ else
             toastService.ShowInfo("No se encontraron resultados para la búsqueda.");
         }
 
-        paginaActual = 1; // Reiniciar a la primera página con cada búsqueda
+        paginaActual = 1;
         StateHasChanged();
     }
 
@@ -266,7 +253,7 @@ else
             context.CuentasPorCobrar.Remove(cuenta);
             await context.SaveChangesAsync();
             toastService.ShowSuccess("Cuenta eliminada correctamente.");
-            await CargarDatos(); // Recargar datos después de eliminar
+            await CargarDatos();
             StateHasChanged();
         }
         else
@@ -280,7 +267,6 @@ else
         if (paginaActual > 1)
         {
             paginaActual--;
-            // No se necesita recargar de la BD, solo se cambia la vista de la lista filtrada
         }
     }
 
@@ -289,13 +275,11 @@ else
         if (paginaActual < totalPaginas)
         {
             paginaActual++;
-            // No se necesita recargar de la BD, solo se cambia la vista de la lista filtrada
         }
     }
 
     private void CambiarPagina(int pagina)
     {
         paginaActual = pagina;
-        // No se necesita recargar de la BD, solo se cambia la vista de la lista filtrada
     }
 }
