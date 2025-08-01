@@ -6,8 +6,6 @@
 @inject IDbContextFactory<Contexto> DbContextFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Mermas</PageTitle>
-
 <style>
     .table-striped-custom tbody tr:nth-child(odd) {
         background-color: #ffffff;
@@ -35,20 +33,25 @@
             <h3 class="fw-semibold">Mermas</h3>
         </div>
         <div class="col-auto d-flex align-items-center gap-3">
-            <input class="form-control shadow-sm text-secondary" style="width: 250px;" placeholder="Buscar..." @bind-value="valorFiltro" @oninput="Buscar" />
-            <button class="btn btn-outline-secondary ms-1 bi bi-arrow-repeat" @onclick="Restablecer"></button>
+            <div class="input-group">
+                <select class="form-select shadow-sm" style="max-width: 180px;" @bind="filtroSeleccionado">
+                    <option value="Id">ID Merma</option>
+                    <option value="Codigo">Código del Producto</option>
+                    <option value="Cantidad">Cantidad</option>
+                    <option value="Razon">Razón</option>
+                </select>
+                <input class="form-control shadow-sm text-secondary" placeholder="@GetPlaceholderText()" @bind-value="valorFiltro" @oninput="Buscar" />
+            </div>
+            <button class="btn btn-outline-primary bi bi-search" @onclick="Buscar"></button>
+            <button class="btn btn-outline-secondary bi bi-arrow-repeat" @onclick="Restablecer"></button>
             <a href="#" class="btn btn-outline bi bi-bell text-secondary shadow-sm"></a>
         </div>
     </div>
 
     <div class="row d-flex justify-content-between mb-5">
         <div class="col-auto">
-            <button type="button" class="btn btn-outline">Resumen</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Solicitudes</button>
-            <button type="button" class="btn btn-outline text-secondary ms-4">Notificaciones</button>
         </div>
         <div class="col-auto">
-            @* Este botón ahora abre el modal de selección de producto, que está definido en este mismo archivo *@
             <button type="button" class="btn btn-success shadow-sm d-flex align-items-center" @onclick="ShowProductSelectModal">
                 <i class="bi bi-plus-circle me-2"></i> Nueva Merma
             </button>
@@ -80,8 +83,6 @@
                         <th>Código Producto</th>
                         <th>Cantidad</th>
                         <th>Razón</th>
-                        <th>Fecha</th>
-                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,7 +94,6 @@
                             <td>@merma.Producto?.Codigo</td>
                             <td>@merma.Cantidad</td>
                             <td>@merma.Razon</td>
-                            <td>@merma.FechaMerma.ToShortDateString()</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="action-btn" data-bs-toggle="dropdown">⋮</button>
@@ -130,7 +130,6 @@
     }
 </div>
 
-@* Modal de Confirmación para Eliminar (sin cambios) *@
 <div class="modal @(mostrarConfirmacion ? "show d-block" : "")" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -149,9 +148,6 @@
     </div>
 </div>
 
----
-
-@* INICIO: Modal para Seleccionar Producto (definido directamente en Mermas/Index.razor) *@
 <div class="modal @(showProductSelectModal ? "show d-block" : "")" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -198,15 +194,17 @@
     private bool isLoading = true;
 
     private string valorFiltro = "";
+    private string filtroSeleccionado = "Id";
 
     private bool mostrarConfirmacion = false;
     private int mermaAEliminarId;
 
-    // --- Variables para el modal de selección de producto (ahora en este componente) ---
     private bool showProductSelectModal = false;
-    private List<Producto> productosForModal = new(); // Lista de productos para el dropdown del modal
+    private List<Producto> productosForModal = new();
     private bool isLoadingProductsForModal = true;
-    // --- Fin de variables del modal ---
+
+    private List<Producto> productos = new();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -218,6 +216,7 @@
     private async Task CargarMermas()
     {
         await using var contexto = await DbContextFactory.CreateDbContextAsync();
+
         var query = contexto.Mermas
                             .Include(m => m.Producto)
                             .AsQueryable();
@@ -225,17 +224,34 @@
         if (!string.IsNullOrWhiteSpace(valorFiltro))
         {
             string filtroLower = valorFiltro.ToLower();
-            query = query.Where(m => m.Producto != null && (
-                                        m.Producto.Nombre.ToLower().Contains(filtroLower) ||
-                                        m.Producto.Codigo.ToLower().Contains(filtroLower) ||
-                                        m.Razon.ToLower().Contains(filtroLower)));
+
+            switch (filtroSeleccionado)
+            {
+                case "Id":
+                    if (int.TryParse(valorFiltro, out int idMerma))
+                    {
+                        query = query.Where(m => m.MermaId == idMerma);
+                    }
+                    break;
+                case "Codigo":
+                    query = query.Where(m => m.Producto != null && m.Producto.Codigo.ToLower().Contains(filtroLower));
+                    break;
+                case "Cantidad":
+                    if (int.TryParse(valorFiltro, out int cantidadMerma))
+                    {
+                        query = query.Where(m => m.Cantidad == cantidadMerma);
+                    }
+                    break;
+                case "Razon":
+                    query = query.Where(m => m.Razon != null && m.Razon.ToLower().Contains(filtroLower));
+                    break;
+            }
         }
 
         var totalRegistros = await query.CountAsync();
         totalPaginas = (int)Math.Ceiling(totalRegistros / (double)cantidadPorPagina);
 
         mermas = await query
-                            .OrderByDescending(m => m.FechaMerma)
                             .Skip((paginaActual - 1) * cantidadPorPagina)
                             .Take(cantidadPorPagina)
                             .ToListAsync();
@@ -274,10 +290,9 @@
     private async Task Restablecer()
     {
         valorFiltro = "";
+        filtroSeleccionado = "Razon";
         await Buscar();
     }
-
-    // --- Métodos para la funcionalidad de Eliminar (sin cambios) ---
 
     private void ConfirmarEliminar(int mermaId)
     {
@@ -326,38 +341,44 @@
         isLoading = false;
     }
 
-    // --- Métodos para controlar el modal de selección de producto (integrados aquí) ---
-
     private async Task LoadProductsForModal()
     {
         isLoadingProductsForModal = true;
         await using var contexto = await DbContextFactory.CreateDbContextAsync();
         productosForModal = await contexto.productos.OrderBy(p => p.Nombre).ToListAsync();
         isLoadingProductsForModal = false;
-        StateHasChanged(); // Forzar renderizado si los productos se cargan después de mostrar el modal
+        StateHasChanged();
     }
 
     private async Task ShowProductSelectModal()
     {
         showProductSelectModal = true;
-        // Cargar productos cada vez que se abre el modal para asegurar datos frescos
         await LoadProductsForModal();
     }
 
     private void HideProductSelectModal()
     {
         showProductSelectModal = false;
-        // Opcional: Resetear la lista de productos del modal para la próxima vez
-        // productosForModal = new List<Producto>();
     }
 
     private void OnProductSelectedInModal(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int selectedProductId) && selectedProductId != 0)
         {
-            // Redirige a Mermas/Agregar, pasando el ProductoId en la ruta
             NavigationManager.NavigateTo($"/Mermas/Agregar/{selectedProductId}");
-            HideProductSelectModal(); // Oculta el modal después de la redirección
+            HideProductSelectModal();
         }
+    }
+
+    private string GetPlaceholderText()
+    {
+        return filtroSeleccionado switch
+        {
+            "Id" => "Buscar por ID...",
+            "Codigo" => "Buscar por código de producto...",
+            "Cantidad" => "Buscar por cantidad...",
+            "Razon" => "Buscar por razón...",
+            _ => "Buscar...",
+        };
     }
 }
