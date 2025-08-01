@@ -1,10 +1,13 @@
 using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF;
+using QuestPDF.Infrastructure;
 using StockManager.Components;
 using StockManager.Dal;
 using StockManager.Services;
 
+QuestPDF.Settings.License = LicenseType.Community;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Servicios Base
@@ -36,6 +39,7 @@ builder.Services.AddScoped<ProveedorService>();
 builder.Services.AddScoped<VentaService>();
 builder.Services.AddBlazoredToast();
 builder.Services.AddScoped<ReporteService>();
+builder.Services.AddScoped<OrdenCompraPrintService>();
 
 // 4. Componentes Blazor y configuración relacionada
 builder.Services.AddRazorComponents()
@@ -62,5 +66,17 @@ app.UseAntiforgery();
 // Mapeo de componentes
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapGet("/api/compras/pdf/{ordenId:int}", async (int ordenId, ComprasService comprasService, OrdenCompraPrintService printService) =>
+{
+    var orden = await comprasService.Buscar(ordenId);
+    if (orden is null)
+        return Results.NotFound();
+
+    // Si necesitas cargar detalles adicionales, hazlo aquí
+
+    var pdf = await printService.GenerarOrdenCompraPdfAsync(orden);
+    return Results.File(pdf, "application/pdf", $"OrdenCompra_{ordenId}.pdf");
+});
 
 app.Run();

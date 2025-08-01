@@ -165,7 +165,6 @@
 
                 <a href="/Compras/Index" class="btn btn-danger bi bi-arrow-left shadow-sm "> Cancelar</a>
                 <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2"> Guardar</button>
-                <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir"> Imprimir</button>
             </div>
         </div>
     }
@@ -344,10 +343,6 @@
         StateHasChanged();
     }
 
-    private void Imprimir()
-    {
-        toastService.ShowInfo("Impresión en curso...");
-    }
 
     private async Task BuscarProductos()
     {
