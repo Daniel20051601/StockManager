@@ -48,24 +48,17 @@
     }
     else
     {
-        <h3>Editar Cuenta por Cobrar #@cuentaPorCobrar.CuentaPorCobrarId</h3>
+        <h3>Editar Cuenta por Cobrar</h3>
         <div class="form-container">
             <EditForm Model="cuentaPorCobrar" OnValidSubmit="GuardarCuenta">
                 <DataAnnotationsValidator />
 
                 <div class="row g-3">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Factura #</label>
-                        <input type="text" class="form-control" value="@cuentaPorCobrar.Factura?.NumeroFactura" readonly />
-                        <div class="form-text">Factura asociada a esta cuenta. Para cambiar, debe crear una nueva cuenta.</div>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
                         <label class="form-label">Cliente</label>
                         <input type="text" class="form-control" value="@cuentaPorCobrar.Cliente?.Nombre" readonly />
                     </div>
 
-                    
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Monto Total</label>
                         <input type="number" step="0.01" class="form-control" @bind="cuentaPorCobrar.MontoTotal" readonly />
@@ -73,7 +66,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Saldo Pendiente</label>
-                        <InputNumber @bind-Value="cuentaPorCobrar.SaldoPendiente" class="form-control" />
+                        <InputNumber @bind-Value="cuentaPorCobrar.SaldoPendiente" class="form-control" @oninput="OnSaldoPendienteChanged" step="0.01" />
                         <ValidationMessage For="() => cuentaPorCobrar.SaldoPendiente" />
                     </div>
 
@@ -89,8 +82,8 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Mora</label>
-                        <InputNumber @bind-Value="cuentaPorCobrar.Mora" class="form-control" />
+                        <label class="form-label">Mora (5% - 10%)</label>
+                        <InputNumber @bind-Value="cuentaPorCobrar.Mora" class="form-control" readonly />
                         <ValidationMessage For="() => cuentaPorCobrar.Mora" />
                     </div>
 
@@ -121,6 +114,7 @@
 
     private CuentaPorCobrar? cuentaPorCobrar;
     private List<EstadoCuenta> estadosCuentas = new();
+    private Random random = new Random();
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,6 +137,35 @@
         }
     }
 
+    // Función para calcular mora automáticamente (copiada desde Create)
+    private decimal CalcularMoraAleatoria(decimal saldoPendiente)
+    {
+        if (saldoPendiente <= 0) return 0;
+
+        // Genera un porcentaje aleatorio entre 5% y 10%
+        double porcentajeAleatorio = random.NextDouble() * (10.0 - 5.0) + 5.0;
+
+        // Calcula la mora basada en el saldo pendiente
+        decimal mora = saldoPendiente * (decimal)(porcentajeAleatorio / 100.0);
+
+        // Redondea a 2 decimales
+        return Math.Round(mora, 2);
+    }
+
+    // Función para manejar el cambio del saldo pendiente (copiada desde Create)
+    private void OnSaldoPendienteChanged(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out decimal saldoPendiente))
+        {
+            cuentaPorCobrar.SaldoPendiente = saldoPendiente;
+
+            // Recalcula la mora basada en el nuevo saldo pendiente
+            cuentaPorCobrar.Mora = CalcularMoraAleatoria(saldoPendiente);
+
+            StateHasChanged();
+        }
+    }
+
     private async Task GuardarCuenta()
     {
         if (cuentaPorCobrar == null)
@@ -158,10 +181,21 @@
             return;
         }
 
+        // Validaciones adicionales (copiadas desde Create para consistencia)
+        if (cuentaPorCobrar.SaldoPendiente < 0)
+        {
+            toastService.ShowError("El Saldo Pendiente no puede ser negativo.");
+            return;
+        }
+        if (cuentaPorCobrar.SaldoPendiente > cuentaPorCobrar.MontoTotal)
+        {
+            toastService.ShowError("El Saldo Pendiente no puede ser mayor que el Monto Total.");
+            return;
+        }
+
         // Ensure DateTimeKind is Utc if your database expects it
         cuentaPorCobrar.FechaEmision = DateTime.SpecifyKind(cuentaPorCobrar.FechaEmision, DateTimeKind.Utc);
         cuentaPorCobrar.FechaLimitePago = DateTime.SpecifyKind(cuentaPorCobrar.FechaLimitePago, DateTimeKind.Utc);
-
 
         try
         {
