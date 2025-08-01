@@ -14,11 +14,13 @@
     </PackageReference>
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="QuestPDF" Version="2025.7.0" />
     <PackageReference Include="Supabase" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="wwwroot\img\Logo\" />
+    <Folder Include="wwwroot\Services\" />
   </ItemGroup>
 
 </Project>

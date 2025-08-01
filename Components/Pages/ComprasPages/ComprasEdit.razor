@@ -181,7 +181,6 @@
             <div class="container mb-5 d-flex justify-content-center">
                 <a href="/Compras/Index" class="btn btn-secondary bi bi-arrow-left shadow-sm ">  Volver</a>
                 <button type="submit" class="btn btn-success bi bi-check2-circle shadow-sm ms-2">  Guardar</button>
-                <button type="button" class="btn btn-secondary bi bi-printer shadow-sm ms-2" @onclick="Imprimir">  Imprimir</button>
                 <button type="button" class="btn btn-danger bi bi-trash shadow-sm ms-2" @onclick="() => MostrarModalEliminar = true"> Eliminar</button>
             </div>
         </div>
@@ -409,11 +408,6 @@
         ordenCompra.Impuestos = impuestos;
         ordenCompra.Total = subtotalGeneral + impuestos;
         StateHasChanged();
-    }
-
-    private void Imprimir()
-    {
-        toastService.ShowInfo("Impresión en curso...");
     }
 
     private void CerrarModal()
